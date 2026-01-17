@@ -1,5 +1,6 @@
 import swervemodule 
 import constants
+from phoenix6 import hardware 
 
 class Drivetrain:
     def __init__(self):
@@ -9,7 +10,7 @@ class Drivetrain:
             toffset=constants.FL_OFFSET,
             turning_motor_id=constants.STEER_CAN_FL,
             turning_encoder_id=constants.TURN_ENCODER_ID_FL,
-            name ="Front Left",
+            name = "Front Left",
             )
             
         self.front_right = swervemodule.SwerveModule(
@@ -17,7 +18,7 @@ class Drivetrain:
             toffset=constants.FR_OFFSET,
             turning_motor_id=constants.STEER_CAN_FR,
             turning_encoder_id=constants.TURN_ENCODER_ID_FR,
-            name ="Front Right",
+            name = "Front Right",
             )
                 
         self.back_right = swervemodule.SwerveModule(
@@ -25,7 +26,7 @@ class Drivetrain:
             toffset=constants.BR_OFFSET,
             turning_motor_id=constants.STEER_CAN_BR,
             turning_encoder_id=constants.TURN_ENCODER_ID_BR,
-            name ="Back Right",
+            name = "Back Right",
             )
 
         self.back_left = swervemodule.SwerveModule(
@@ -33,5 +34,5 @@ class Drivetrain:
             toffset=constants.BL_OFFSET,
             turning_motor_id=constants.STEER_CAN_BL,
             turning_encoder_id=constants.TURN_ENCODER_ID_BL,
-            name ="Back Left",
+            name = "Back Left",
             )

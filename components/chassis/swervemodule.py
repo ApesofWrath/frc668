@@ -10,7 +10,7 @@ import wpimath.trajectory
 from phoenix6 import hardware, configs, controls, BaseStatusSignal, signals
 from wpilib import RobotBase
 
-import utilities.constants as constants
+import constants
 
 wheel_radius = constants.WHEEL_RADIUS
 encoder_resolution = constants.TURN_ENCODER_TICKS
