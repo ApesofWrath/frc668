@@ -1,15 +1,20 @@
 import constants
 import components.chassis.swervemodule as swervemodule
 from wpilib import SmartDashboard 
+from wpimath.kinematics import SwerveDriveKinematics
+from wpimath.geometry import Translation2d
+import wpimath.kinematics
 
 class Drivetrain:
-
-    SmartDashboard.putNumber("FL Offset", constants.FL_OFFSET)
-    SmartDashboard.putNumber("FR Offset", constants.FR_OFFSET)
-    SmartDashboard.putNumber("BL Offset", constants.BL_OFFSET)
-    SmartDashboard.putNumber("BR Offset", constants.BR_OFFSET)
     
     def __init__(self):
+
+        self.kinematics = SwerveDriveKinematics(
+            Translation2d(constants.WHEEL_BASE / 2,  constants.TRACK_WIDTH / 2),   # FL
+            Translation2d(constants.WHEEL_BASE / 2, -constants.TRACK_WIDTH / 2),   # FR
+            Translation2d(-constants.WHEEL_BASE / 2,  constants.TRACK_WIDTH / 2),  # BL
+            Translation2d(-constants.WHEEL_BASE / 2, -constants.TRACK_WIDTH / 2),  # BR
+        )
 
         self.front_left = swervemodule.SwerveModule(
             drive_motor_id=constants.DRIVE_CAN_FL,
@@ -43,7 +48,22 @@ class Drivetrain:
             name = "Back Left",
             )
         
+    def drive(self, speeds: wpimath.kinematics.ChassisSpeeds, field_relative: bool = True) -> None:
+        pass 
+
     def execute(self) -> None:
         """
         Called periodically, runs all necessary logic to operate the drivetrain based off current state.
         """
+        SmartDashboard.putNumber(
+            "FL ENCODER ABS", self.front_left.get_encoder_angle_abs()
+        )
+        SmartDashboard.putNumber(
+            "FR ENCODER ABS", self.front_right.get_encoder_angle_abs()
+        )
+        SmartDashboard.putNumber(
+            "BL ENCODER ABS", self.back_left.get_encoder_angle_abs()
+        )
+        SmartDashboard.putNumber(
+            "BR ENCODER ABS", self.back_right.get_encoder_angle_abs()
+        )
