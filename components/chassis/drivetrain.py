@@ -1,6 +1,5 @@
-import swervemodule 
 import constants
-from phoenix6 import hardware 
+import components.chassis.swervemodule as swervemodule
 from wpilib import SmartDashboard 
 
 class Drivetrain:
@@ -14,7 +13,7 @@ class Drivetrain:
 
         self.front_left = swervemodule.SwerveModule(
             drive_motor_id=constants.DRIVE_CAN_FL,
-            toffset=constants.FL_OFFSET,
+            offset=constants.FL_OFFSET,
             turning_motor_id=constants.STEER_CAN_FL,
             turning_encoder_id=constants.TURN_ENCODER_ID_FL,
             name = "Front Left",
@@ -22,7 +21,7 @@ class Drivetrain:
             
         self.front_right = swervemodule.SwerveModule(
             drive_motor_id=constants.DRIVE_CAN_FR,
-            toffset=constants.FR_OFFSET,
+            offset=constants.FR_OFFSET,
             turning_motor_id=constants.STEER_CAN_FR,
             turning_encoder_id=constants.TURN_ENCODER_ID_FR,
             name = "Front Right",
@@ -30,7 +29,7 @@ class Drivetrain:
                 
         self.back_right = swervemodule.SwerveModule(
             drive_motor_id=constants.DRIVE_CAN_BR,
-            toffset=constants.BR_OFFSET,
+            offset=constants.BR_OFFSET,
             turning_motor_id=constants.STEER_CAN_BR,
             turning_encoder_id=constants.TURN_ENCODER_ID_BR,
             name = "Back Right",
@@ -38,8 +37,13 @@ class Drivetrain:
 
         self.back_left = swervemodule.SwerveModule(
             drive_motor_id=constants.DRIVE_CAN_BL,
-            toffset=constants.BL_OFFSET,
+            offset=constants.BL_OFFSET,
             turning_motor_id=constants.STEER_CAN_BL,
             turning_encoder_id=constants.TURN_ENCODER_ID_BL,
             name = "Back Left",
             )
+        
+    def execute(self) -> None:
+        """
+        Called periodically, runs all necessary logic to operate the drivetrain based off current state.
+        """

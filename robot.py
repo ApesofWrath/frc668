@@ -1,22 +1,29 @@
 import magicbot
 import wpilib
-from components import drivetrain
+from components.chassis.drivetrain import Drivetrain
 
 class MyRobot(magicbot.MagicRobot):
     drivetrain: Drivetrain 
-    
+
     def createObjects(self):
-        return super().createObjects()
-    
+        """ called on initialization """
+        self.main_controller = wpilib.XboxController(0)
+        self.operator_controller = wpilib.XboxController(1)
+
+    def disabledInit(self):
+        """ called when enter disabled mode """
+        
+    def disabledPeriodic(self):
+        """ called periodically when disabled """
+
     def autonomousInit(self):
-        return super().autonomousInit()
-    
+        """ initialization code for auton """
+
     def autonomousPeriodic(self):
-        return super().autonomousPeriodic()
-    
+        """ called periodically during auton """
+
     def teleopInit(self):
-        return super().teleopInit()
-    
+        """ initialization code for teleop """
+
     def teleopPeriodic(self):
-        return super().teleopPeriodic()
-    
+        """ called periodically during teleop """
