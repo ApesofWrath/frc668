@@ -1,8 +1,15 @@
 import swervemodule 
 import constants
 from phoenix6 import hardware 
+from wpilib import SmartDashboard 
 
 class Drivetrain:
+
+    SmartDashboard.putNumber("FL Offset", constants.FL_OFFSET)
+    SmartDashboard.putNumber("FR Offset", constants.FR_OFFSET)
+    SmartDashboard.putNumber("BL Offset", constants.BL_OFFSET)
+    SmartDashboard.putNumber("BR Offset", constants.BR_OFFSET)
+    
     def __init__(self):
 
         self.front_left = swervemodule.SwerveModule(
