@@ -49,7 +49,7 @@ class SwerveModule:
                 signals.InvertedValue.CLOCKWISE_POSITIVE
             )
 
-        self.drive_motor = hardware.talon_fx.TalonFX(drive_motor_id, "*")
+        self.drive_motor = hardware.talon_fx.TalonFX(drive_motor_id, "rio")
         self.drive_motor.clear_sticky_faults()
         self.drive_motor.configurator.apply(drive_motor_configs)
 
@@ -62,11 +62,11 @@ class SwerveModule:
         )
         self.turning_motor_configs.future_proof_configs = True
 
-        self.turning_motor = hardware.TalonFX(turning_motor_id, "*")
+        self.turning_motor = hardware.TalonFX(turning_motor_id, "rio")
         self.turning_motor.clear_sticky_faults()
         self.turning_motor.configurator.apply(self.turning_motor_configs)
 
-        self.turning_encoder = hardware.cancoder.CANcoder(turning_encoder_id, "*")
+        self.turning_encoder = hardware.cancoder.CANcoder(turning_encoder_id, "rio")
 
         self.turning_motor.set_control(controls.VoltageOut(0))
 

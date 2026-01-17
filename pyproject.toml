@@ -19,7 +19,7 @@ components = [
     # "navx",
       "pathplannerlib",
     # "phoenix5",
-      "phoenix6",
+    #  "phoenix6",
     # "rev",
     # "romi",
       "sim",
@@ -27,4 +27,6 @@ components = [
 ]
 
 # Other pip packages to install
-requires = []
+requires = [
+    "phoenix6",
+]
