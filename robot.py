@@ -1,0 +1,2 @@
+import magicbot
+import wpilib
