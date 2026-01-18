@@ -1,5 +1,6 @@
 import magicbot
 import wpilib
+import wpimath
 from components.chassis.drivetrain import Drivetrain
 
 class MyRobot(magicbot.MagicRobot):
@@ -8,7 +9,6 @@ class MyRobot(magicbot.MagicRobot):
     def createObjects(self):
         """ called on initialization """
         self.main_controller = wpilib.XboxController(0)
-        self.operator_controller = wpilib.XboxController(1)
 
     def disabledInit(self):
         """ called when enter disabled mode """
@@ -27,3 +27,4 @@ class MyRobot(magicbot.MagicRobot):
 
     def teleopPeriodic(self):
         """ called periodically during teleop """
+        # TODO: button bindings

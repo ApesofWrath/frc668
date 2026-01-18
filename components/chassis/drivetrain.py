@@ -1,20 +1,16 @@
+import math
+import wpimath
 import constants
+
+from phoenix6 import hardware 
 import components.chassis.swervemodule as swervemodule
 from wpilib import SmartDashboard 
-from wpimath.kinematics import SwerveDriveKinematics
-from wpimath.geometry import Translation2d
-import wpimath.kinematics
+from wpimath.geometry import Translation2d, Rotation2d
+from wpimath.kinematics import SwerveDrive4Kinematics, ChassisSpeeds, SwerveModuleState
 
 class Drivetrain:
     
     def __init__(self):
-
-        self.kinematics = SwerveDriveKinematics(
-            Translation2d(constants.WHEEL_BASE / 2,  constants.TRACK_WIDTH / 2),   # FL
-            Translation2d(constants.WHEEL_BASE / 2, -constants.TRACK_WIDTH / 2),   # FR
-            Translation2d(-constants.WHEEL_BASE / 2,  constants.TRACK_WIDTH / 2),  # BL
-            Translation2d(-constants.WHEEL_BASE / 2, -constants.TRACK_WIDTH / 2),  # BR
-        )
 
         self.front_left = swervemodule.SwerveModule(
             drive_motor_id=constants.DRIVE_CAN_FL,
@@ -48,13 +44,51 @@ class Drivetrain:
             name = "Back Left",
             )
         
-    def drive(self, speeds: wpimath.kinematics.ChassisSpeeds, field_relative: bool = True) -> None:
-        pass 
+        self.gyro = hardware.Pigeon2(22, "rio")
+
+        self.kinematics = SwerveDrive4Kinematics(
+            Translation2d(constants.WHEEL_BASE / 2, constants.TRACK_WIDTH / 2),  # Front Left
+            Translation2d(constants.WHEEL_BASE / 2, -constants.TRACK_WIDTH / 2),  # Front Right
+            Translation2d(-constants.WHEEL_BASE / 2, constants.TRACK_WIDTH / 2),  # Back Left
+            Translation2d(-constants.WHEEL_BASE / 2, -constants.TRACK_WIDTH / 2),  # Back Right
+        )
+
+        self.vx = 0
+        self.vy = 0
+        self.omega = 0
+        self.gyro.set_yaw(0)
+
+    def drive(
+        self, speeds: ChassisSpeeds, field_relative: bool = True
+    ) -> None:
+        """
+        Sets the desired state for each module based on the givven ChassisSpeeds.
+
+        Params:
+            speeds (ChassisSpeeds): Target velocities for the bot.
+            field_relative (bool): Whether the bot should be field relative or not
+        """
+
+        if field_relative:
+            speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
+                speeds.vx, speeds.vy, speeds.omega, self.gyro.getRotation2d()
+            )
+
+        states = self.kinematics.toSwerveModuleStates(speeds)
+        SwerveDrive4Kinematics.desaturateWheelSpeeds(states, constants.MAX_LINEAR_SPEED)
+
+        self.front_left.set_desired_state(states[0])
+        self.front_right.set_desired_state(states[1])
+        self.back_left.set_desired_state(states[2])
+        self.back_right.set_desired_state(states[3])
 
     def execute(self) -> None:
         """
         Called periodically, runs all necessary logic to operate the drivetrain based off current state.
         """
+        speeds = ChassisSpeeds(self.vx, self.vy, self.omega)
+        self.drive(speeds, field_relative=True)
+
         SmartDashboard.putNumber(
             "FL ENCODER ABS", self.front_left.get_encoder_angle_abs()
         )

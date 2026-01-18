@@ -1,6 +1,19 @@
 {
   "HALProvider": {
+    "Other Devices": {
+      "CANcoder (v6)[10]": {
+        "header": {
+          "open": true
+        }
+      }
+    },
     "RoboRIO": {
+      "6V Rail": {
+        "open": true
+      },
+      "RoboRIO Input": {
+        "open": true
+      },
       "window": {
         "visible": true
       }

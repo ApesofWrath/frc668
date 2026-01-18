@@ -13,7 +13,6 @@ from wpilib import RobotBase
 import constants
 
 wheel_radius = constants.WHEEL_RADIUS
-encoder_resolution = constants.TURN_ENCODER_TICKS
 max_rotation_speed = constants.MAX_SINGLE_SWERVE_ROTATION_SPEED
 max_rotation_acceleration = constants.MAX_SINGLE_SWERVE_ROTATION_ACCELERATION
 
@@ -73,9 +72,10 @@ class SwerveModule:
         self.name = name
 
         # Gains are for example purposes only - must be determined for your own robot!
+        #TODO: tune! 
         self.drive_feed_forward = SimpleMotorFeedforwardMeters(
-            0.23727, 2.59628, 0
-        )  # How fast motor turns wrt how fast it is commanded to drive
+            0.23727, 2.59628, 0                    
+        )  # How fast motor turns with respect to how fast it is commanded to drive
 
         self.turning_PID_controller = ProfiledPIDController(
             constants.TURNING_P,
@@ -124,7 +124,7 @@ class SwerveModule:
             self.turning_encoder.get_absolute_position(),
             self.turning_encoder.get_velocity(),
         )
-        return angle * math.tau - math.radians(self.offset)
+        return angle * math.tau - (self.offset * math.tau) #to convert to radians
 
     def get_encoder_angle_deg(self) -> float:
         """
