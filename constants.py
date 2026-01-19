@@ -1,27 +1,28 @@
 # drivetrain front right
 DRIVE_CAN_FR = 7
-FR_OFFSET = -0.149658203125
+FR_OFFSET = 178/360#-0.149658203125+0.375
 STEER_CAN_FR = 8
 TURN_ENCODER_ID_FR = 12
 
 # drivetrain front left
 DRIVE_CAN_FL = 3
-FL_OFFSET = 0.4736328125
+FL_OFFSET = 2/360#0.4736328125+0.5
 STEER_CAN_FL = 4
 TURN_ENCODER_ID_FL = 10
 
 # drivetrain back right
 DRIVE_CAN_BR = 5
-BR_OFFSET = 0.19873046875
+BR_OFFSET = 177/360#0.19873046875-0.333
 STEER_CAN_BR = 6
 TURN_ENCODER_ID_BR = 11
 
 # drivetrain back left
 DRIVE_CAN_BL = 0
-BL_OFFSET = 0.144287109375
+BL_OFFSET = 183/360#0.144287109375-0.333
 STEER_CAN_BL = 1
 TURN_ENCODER_ID_BL = 2
 
+DEADBAND = 0.15**2
 
 # PID. TODO: tune!
 DRIVE_P = 2
@@ -35,14 +36,14 @@ TURNING_D = 0
 WHEEL_BASE = 0.625 # meters
 TRACK_WIDTH = 0.625 # meters
 
-WHEEL_RADIUS = 0.045 # meters
-GEAR_RATIO = 1/6.75 #TODO: confirm with mechanical design team
+WHEEL_RADIUS = 0.0889/2 # meters
+GEAR_RATIO = 1/4.67 #X2St swerve
 
-MAX_LINEAR_SPEED = 5  # meters per second
+MAX_LINEAR_SPEED = 6  # meters per second
 MAX_LINEAR_ACCELERATION = 3  # meters per second squared
 
-MAX_ROTATION_SPEED = 7  # radians per second
+MAX_ROTATION_SPEED = 6  # radians per second
 MAX_ROTATION_ACCELERATION = 1 / 2  # Radians per second squared
 
 MAX_SINGLE_SWERVE_ROTATION_SPEED = 12 # radians per second
-MAX_SINGLE_SWERVE_ROTATION_ACCELERATION = 40 # radians per sec squared
+MAX_SINGLE_SWERVE_ROTATION_ACCELERATION = 40 # radians per sec squaredff

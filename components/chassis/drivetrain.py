@@ -57,6 +57,11 @@ class Drivetrain:
         self.vy = 0
         self.omega = 0
         self.gyro.set_yaw(0)
+        
+        self.front_left.reset_drive_motor_position()
+        self.front_right.reset_drive_motor_position()
+        self.back_left.reset_drive_motor_position()
+        self.back_right.reset_drive_motor_position()
 
     def drive(
         self, speeds: ChassisSpeeds, field_relative: bool = True
@@ -81,23 +86,25 @@ class Drivetrain:
         self.front_right.set_desired_state(states[1])
         self.back_left.set_desired_state(states[2])
         self.back_right.set_desired_state(states[3])
+        
 
     def execute(self) -> None:
         """
         Called periodically, runs all necessary logic to operate the drivetrain based off current state.
         """
+
         speeds = ChassisSpeeds(self.vx, self.vy, self.omega)
         self.drive(speeds, field_relative=True)
 
-        SmartDashboard.putNumber(
-            "FL ENCODER ABS", self.front_left.get_encoder_angle_abs()
-        )
-        SmartDashboard.putNumber(
-            "FR ENCODER ABS", self.front_right.get_encoder_angle_abs()
-        )
-        SmartDashboard.putNumber(
-            "BL ENCODER ABS", self.back_left.get_encoder_angle_abs()
-        )
-        SmartDashboard.putNumber(
-            "BR ENCODER ABS", self.back_right.get_encoder_angle_abs()
-        )
+        SmartDashboard.putNumber("FL Encoder", self.front_left.get_encoder_angle_deg())
+        SmartDashboard.putNumber("FR Encoder", self.front_right.get_encoder_angle_deg())
+        SmartDashboard.putNumber("BL Encoder", self.back_left.get_encoder_angle_deg())
+        SmartDashboard.putNumber("BR Encoder", self.back_right.get_encoder_angle_deg())
+    
+    def is_manual(self):
+        """
+        Returns whether the robot is being controlled by the driver
+        
+        Currently just returns True, but could return false when doing precise alignments
+        """
+        return True
