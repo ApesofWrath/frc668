@@ -62,7 +62,7 @@ class MyRobot(magicbot.MagicRobot):
         self.drivetrain.vy = vy
         self.drivetrain.omega = omega
     
-def filter_input(controller_input: float, apply_deadband: bool = True) -> float:
+def filterInput(controller_input: float, apply_deadband: bool = True) -> float:
     """
     Filters the controller input by applying a squared scaling and an optional deadband.
 
