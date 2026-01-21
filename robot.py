@@ -44,17 +44,17 @@ class MyRobot(magicbot.MagicRobot):
 
         if self.drivetrain.is_manual():
             vx = (
-                -filter_input(self.main_controller.getLeftY())
+                -filterInput(self.main_controller.getLeftY())
                 * constants.MAX_LINEAR_SPEED
                 * modifier
             )
             vy = (
-                -filter_input(self.main_controller.getLeftX())
+                -filterInput(self.main_controller.getLeftX())
                 * constants.MAX_LINEAR_SPEED
                 * modifier
             )   
             omega = (
-                -filter_input(self.main_controller.getRightX())
+                -filterInput(self.main_controller.getRightX())
                 * constants.MAX_ROTATION_SPEED
                 * modifier
             ) 

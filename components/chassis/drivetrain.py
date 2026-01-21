@@ -101,7 +101,7 @@ class Drivetrain:
         SmartDashboard.putNumber("BL Encoder", self.back_left.get_encoder_angle_deg())
         SmartDashboard.putNumber("BR Encoder", self.back_right.get_encoder_angle_deg())
     
-    def is_manual(self):
+    def isManual(self):
         """
         Returns whether the robot is being controlled by the driver
         

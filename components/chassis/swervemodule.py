@@ -16,7 +16,6 @@ wheel_radius = constants.WHEEL_RADIUS
 max_rotation_speed = constants.MAX_SINGLE_SWERVE_ROTATION_SPEED
 max_rotation_acceleration = constants.MAX_SINGLE_SWERVE_ROTATION_ACCELERATION
 
-
 class SwerveModule:
     def __init__(
         self,
@@ -111,7 +110,7 @@ class SwerveModule:
         else:
             raise ValueError("Can't input that value for offset")
 
-    def get_encoder_angle(self) -> float:
+    def getEncoderAngle(self) -> float:
         """
         Gets the steering encoder angle in radians
 
@@ -126,7 +125,7 @@ class SwerveModule:
         )
         return angle * math.tau - (self.offset * math.tau) #to convert to radians
 
-    def get_encoder_angle_deg(self) -> float:
+    def getEncoderAngleDeg(self) -> float:
         """
         Gets the steering encoder angle in degrees
 
@@ -135,10 +134,10 @@ class SwerveModule:
         """
         return (self.get_encoder_angle() * 180 / math.pi) % 360
 
-    def get_encoder_angle_abs(self) -> float:
+    def getEncoderAngleAbs(self) -> float:
         return (self.turning_encoder.get_absolute_position().value * 360) % 360
 
-    def get_drive_motor_velocity(self) -> float:
+    def getDriveMotorVelocity(self) -> float:
         """
         Gets the rotational velocity of the swerve module on the steering axis in radians / sec
 
@@ -152,7 +151,7 @@ class SwerveModule:
             * math.tau
         )
 
-    def get_drive_motor_position(self) -> float:
+    def getDriveMotorPosition(self) -> float:
         """
         Gets the total translational distance of the drive motor in meters
 
@@ -166,13 +165,13 @@ class SwerveModule:
         )
         return position * constants.WHEEL_RADIUS * math.tau * constants.GEAR_RATIO
 
-    def reset_drive_motor_position(self) -> None:
+    def resetDriveMotorPosition(self) -> None:
         """
         Resets the drive motor encoder to 0 at the start of the match
         """
         self.drive_motor.set_position(0)
 
-    def get_swerve_position(self) -> SwerveModulePosition:
+    def getSwervePosition(self) -> SwerveModulePosition:
         """
         Gets the current position of the given swerve module for both the drive and steer positions
 
@@ -183,7 +182,7 @@ class SwerveModule:
             self.get_drive_motor_position(), Rotation2d(self.get_encoder_angle())
         )
 
-    def set_module_voltage(self, drive_voltage: float, turn_voltage: float) -> None:
+    def setModuleVoltage(self, drive_voltage: float, turn_voltage: float) -> None:
         """
         Sets the voltage for the drive and steer motors
 
@@ -195,7 +194,7 @@ class SwerveModule:
         self.drive_motor.set_control(controls.VoltageOut(drive_voltage))
         self.turning_motor.set_control(controls.VoltageOut(turn_voltage))
 
-    def get_module_voltage(self) -> list[float]:
+    def getModuleVoltage(self) -> list[float]:
         """
         Gets the current voltage given to each module
 
@@ -207,7 +206,7 @@ class SwerveModule:
             self.turning_motor.get_motor_voltage().value,
         ]
 
-    def stop_swerve_module(self) -> None:
+    def stopSwerveModule(self) -> None:
         """
         Stops all movement for this swerve module. Only supposed to be used in emergency / urgent situations
         """
@@ -216,7 +215,7 @@ class SwerveModule:
             SwerveModuleState(0, Rotation2d(self.get_encoder_angle()))
         )
 
-    def reset_feedforward(self) -> None:
+    def resetFeedforward(self) -> None:
         """
         Resets the drive feedfoward on module to only
         having a Kv of 1 (basically voltage = inputted velocity). Only use when tuning feedfowards.
@@ -225,7 +224,7 @@ class SwerveModule:
         self.drive_feed_forward.setKv(1)
         self.drive_feed_forward.setKa(0)
 
-    def set_desired_state(self, desired_state: SwerveModuleState) -> None:
+    def setDesiredState(self, desired_state: SwerveModuleState) -> None:
         """
         Given the desired state, this method runs the calculations and sets the voltages necessary
         to achieve that state.
