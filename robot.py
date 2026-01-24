@@ -30,6 +30,7 @@ class MyRobot(magicbot.MagicRobot):
     def teleopPeriodic(self):
         """ called periodically during teleop """
         self.driveWithJoysicks()
+        self.controlShooter()
 
     def driveWithJoysicks(self):
         omega = 0
@@ -61,6 +62,15 @@ class MyRobot(magicbot.MagicRobot):
         self.drivetrain.vx = vx
         self.drivetrain.vy = vy
         self.drivetrain.omega = omega
+    
+    def controlShooter(self):
+        if self.drivetrain.is_manual():
+
+        else:
+            # self.autoalign()
+            # implement this once autoalign works
+        
+        # global shooter code
     
 def filterInput(controller_input: float, apply_deadband: bool = True) -> float:
     """
