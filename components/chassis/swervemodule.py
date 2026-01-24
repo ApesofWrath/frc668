@@ -132,7 +132,7 @@ class SwerveModule:
         Returns:
             float: The steering encoder angle in degrees
         """
-        return (self.get_encoder_angle() * 180 / math.pi) % 360
+        return (self.getEncoderAngle() * 180 / math.pi) % 360
 
     def getEncoderAngleAbs(self) -> float:
         return (self.turning_encoder.get_absolute_position().value * 360) % 360
@@ -179,7 +179,7 @@ class SwerveModule:
             SwerveModulePosition: the current position and angle of the swerve module
         """
         return SwerveModulePosition(
-            self.get_drive_motor_position(), Rotation2d(self.get_encoder_angle())
+            self.getDriveMotorPosition(), Rotation2d(self.getEncoderAngle())
         )
 
     def setModuleVoltage(self, drive_voltage: float, turn_voltage: float) -> None:
@@ -210,9 +210,9 @@ class SwerveModule:
         """
         Stops all movement for this swerve module. Only supposed to be used in emergency / urgent situations
         """
-        self.set_module_voltage(0, 0)
-        self.set_desired_state(
-            SwerveModuleState(0, Rotation2d(self.get_encoder_angle()))
+        self.setModuleVoltage(0, 0)
+        self.setDesiredState(
+            SwerveModuleState(0, Rotation2d(self.getEncoderAngle()))
         )
 
     def resetFeedforward(self) -> None:
@@ -233,7 +233,7 @@ class SwerveModule:
             desired_state (SwerveModuleState): The target state for the given swerve module to reach
         """
 
-        encoder_rotation = Rotation2d(self.get_encoder_angle())
+        encoder_rotation = Rotation2d(self.getEncoderAngle())
 
         # Optimize the reference state to avoid spinning further than 90 degrees
         desired_state.optimize(encoder_rotation)
@@ -247,10 +247,10 @@ class SwerveModule:
         drive_output = self.drive_feed_forward.calculate(desired_state.speed)
 
         turn_output = self.turning_PID_controller.calculate(
-            self.get_encoder_angle(), desired_state.angle.radians()
+            self.getEncoderAngle(), desired_state.angle.radians()
         )
 
-        self.set_module_voltage(drive_output, turn_output)
+        self.setModuleVoltage(drive_output, turn_output)
 
         if not RobotBase.isReal():
             self.sim_velocity = desired_state.speed

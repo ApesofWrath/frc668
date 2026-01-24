@@ -58,10 +58,10 @@ class Drivetrain:
         self.omega = 0
         self.gyro.set_yaw(0)
         
-        self.front_left.reset_drive_motor_position()
-        self.front_right.reset_drive_motor_position()
-        self.back_left.reset_drive_motor_position()
-        self.back_right.reset_drive_motor_position()
+        self.front_left.resetDriveMotorPosition()
+        self.front_right.resetDriveMotorPosition()
+        self.back_left.resetDriveMotorPosition()
+        self.back_right.resetDriveMotorPosition()
 
     def drive(
         self, speeds: ChassisSpeeds, field_relative: bool = True
@@ -82,10 +82,10 @@ class Drivetrain:
         states = self.kinematics.toSwerveModuleStates(speeds)
         SwerveDrive4Kinematics.desaturateWheelSpeeds(states, constants.MAX_LINEAR_SPEED)
 
-        self.front_left.set_desired_state(states[0])
-        self.front_right.set_desired_state(states[1])
-        self.back_left.set_desired_state(states[2])
-        self.back_right.set_desired_state(states[3])
+        self.front_left.setDesiredState(states[0])
+        self.front_right.setDesiredState(states[1])
+        self.back_left.setDesiredState(states[2])
+        self.back_right.setDesiredState(states[3])
         
 
     def execute(self) -> None:
@@ -96,11 +96,11 @@ class Drivetrain:
         speeds = ChassisSpeeds(self.vx, self.vy, self.omega)
         self.drive(speeds, field_relative=True)
 
-        SmartDashboard.putNumber("FL Encoder", self.front_left.get_encoder_angle_deg())
-        SmartDashboard.putNumber("FR Encoder", self.front_right.get_encoder_angle_deg())
-        SmartDashboard.putNumber("BL Encoder", self.back_left.get_encoder_angle_deg())
-        SmartDashboard.putNumber("BR Encoder", self.back_right.get_encoder_angle_deg())
-    
+        SmartDashboard.putNumber("FL Encoder", self.front_left.getEncoderAngleDeg())
+        SmartDashboard.putNumber("FR Encoder", self.front_right.getEncoderAngleDeg())
+        SmartDashboard.putNumber("BL Encoder", self.back_left.getEncoderAngleDeg())
+        SmartDashboard.putNumber("BR Encoder", self.back_right.getEncoderAngleDeg())
+
     def isManual(self):
         """
         Returns whether the robot is being controlled by the driver

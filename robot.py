@@ -42,7 +42,7 @@ class MyRobot(magicbot.MagicRobot):
         if self.main_controller.getRightBumperButton():
             self.drivetrain.gyro.set_yaw(0)
 
-        if self.drivetrain.is_manual():
+        if self.drivetrain.isManual():
             vx = (
                 -filterInput(self.main_controller.getLeftY())
                 * constants.MAX_LINEAR_SPEED
