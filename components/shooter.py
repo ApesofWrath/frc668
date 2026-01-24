@@ -6,7 +6,7 @@ import constants
 class Shooter:
     
     def __init__(self):
-        # define all shooter moters and encoders and stuff
+        # define all shooter moters and encoders/potentiometers and stuff
         self.turretMotor = hardware.TalonFX(constants.TURRET_CAN_ID)
         self.hoodMotor = hardware.TalonFX(constants.HOOD_CAN_ID)
         self.flywheelMotor = hardware.TalonFX(constants.FLYWHEEL_CAN_ID)
@@ -30,7 +30,6 @@ class Shooter:
         """
         Called periodically, runs all necessary logic to operate the shooter based off current state.
         """
-        # spin the motors and stuff
 
         self.turretMotor.set_control(controls.PositionVoltage(self.turretAngle))
         self.hoodMotor.set_control(controls.PositionVoltage(self.hoodAngle))
