@@ -3,6 +3,7 @@ import wpilib
 import wpimath
 import math
 from components.chassis.drivetrain import Drivetrain
+from components.shooter import Shooter
 import constants
 
 class MyRobot(magicbot.MagicRobot):
