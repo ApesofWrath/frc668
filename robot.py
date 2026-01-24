@@ -7,10 +7,12 @@ import constants
 
 class MyRobot(magicbot.MagicRobot):
     drivetrain: Drivetrain 
+    shooter: Shooter 
 
     def createObjects(self):
         """ called on initialization """
         self.main_controller = wpilib.XboxController(0)
+        self.operator_controller = wpilib.XboxController(1)
 
     def disabledInit(self):
         """ called when enter disabled mode """
@@ -64,13 +66,23 @@ class MyRobot(magicbot.MagicRobot):
         self.drivetrain.omega = omega
     
     def controlShooter(self):
-        if self.drivetrain.is_manual():
-
+        if self.shooter.isManual():
+            turretAngle = -filterInput(self.main_controller.getLeftX())
+            hoodAngle = -filterInput(self.main_controller.getLeftY())
+            flywheelTargetVelocityDelta = (-filterInput(self.main_controller.getRightX()) 
+                                          -(0.2 * filterInput(self.main_controller.getRightY())))
         else:
-            # self.autoalign()
+            # self.autoAlign()
             # implement this once autoalign works
+            turretAngle = 0
+            hoodAngle = 0
+            flywheelTargetVelocityDelta = 0
         
-        # global shooter code
+        self.shooter.turretAngle = turretAngle
+        self.shooter.turretAngle = hoodAngle
+        self.shooter.flywheelTargetVelocity += flywheelTargetVelocityDelta
+        if self.shooter.flywheelTargetVelocity < 0:
+            self.shooter.flywheelTargetVelocity = 0
     
 def filterInput(controller_input: float, apply_deadband: bool = True) -> float:
     """

@@ -9,7 +9,14 @@ class Shooter:
         """
         Called periodically, runs all necessary logic to operate the shooter based off current state.
         """
+        # spin the moters and stuff
+        ''' (pseudocode)
+        self.turretmotor.setAngle(self.turretAngle)
+        self.hoodmotor.setAngle(self.hoodAngle)
+        self.flywheelmotor.setVelocity(self.flywheelTargetVelocity) # needs to get the PID tuning i think
 
+        do any SmartDashboard stuff, if needed
+        '''
 
     def isManual(self):
         """
