@@ -70,8 +70,8 @@ class MyRobot(magicbot.MagicRobot):
         if self.shooter.isManual():
             turretAngle = -filterInput(self.operator_controller.getLeftX())
             hoodAngle = -filterInput(self.operator_controller.getLeftY())
-            flywheelTargetVelocityDelta = (-filterInput(self.operator_controller.getRightX()) 
-                                          -(0.2 * filterInput(self.operator_controller.getRightY())))
+            flywheelTargetVelocityDelta = (-filterInput(self.operator_controller.getRightTriggerAxis())
+                                           -filterInput(self.operator_controller.getLeftTriggerAxis()))
         else:
             # self.autoAlign()
             # implement this once autoalign works
@@ -84,6 +84,9 @@ class MyRobot(magicbot.MagicRobot):
         self.shooter.flywheelTargetVelocity += flywheelTargetVelocityDelta
         if self.shooter.flywheelTargetVelocity < 0:
             self.shooter.flywheelTargetVelocity = 0
+        
+        if self.shooter.flywheelTargetVelocity > 2:
+            self.shooter.flywheelTargetVelocity = 2 # test for good max speed
     
 def filterInput(controller_input: float, apply_deadband: bool = True) -> float:
     """
