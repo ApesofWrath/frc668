@@ -68,10 +68,10 @@ class MyRobot(magicbot.MagicRobot):
     
     def controlShooter(self):
         if self.shooter.isManual():
-            turretAngle = -filterInput(self.main_controller.getLeftX())
-            hoodAngle = -filterInput(self.main_controller.getLeftY())
-            flywheelTargetVelocityDelta = (-filterInput(self.main_controller.getRightX()) 
-                                          -(0.2 * filterInput(self.main_controller.getRightY())))
+            turretAngle = -filterInput(self.operator_controller.getLeftX())
+            hoodAngle = -filterInput(self.operator_controller.getLeftY())
+            flywheelTargetVelocityDelta = (-filterInput(self.operator_controller.getRightX()) 
+                                          -(0.2 * filterInput(self.operator_controller.getRightY())))
         else:
             # self.autoAlign()
             # implement this once autoalign works
