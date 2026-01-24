@@ -6,7 +6,7 @@ import constants
 class Intake:
     
     def __init__(self):
-        # define all intake motors and stuff
+        # define all intake motors and stuff TODO: there is annother motor for intake rotation
         self.intakeMotor = hardware.TalonFX(constants.INTAKE_CAN_ID)
         self.intakeSpeed = 0
 

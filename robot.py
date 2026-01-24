@@ -69,14 +69,23 @@ class MyRobot(magicbot.MagicRobot):
     def controlIntake(self):
         if self.intake.isManual():
 
-            self.intake.intakeSpeed = ((self.operator_controller.getRightTriggerAxis() 
-                                        *int(self.operator_controller.getRightTriggerAxis() > 0.1))
-                                      -(self.operator_controller.getLeftTriggerAxis()
-                                        *int(self.operator_controller.getLeftTriggerAxis() > 0.1)))
+            # self.intake.intakeSpeed = ((self.operator_controller.getRightTriggerAxis() 
+            #                             *int(self.operator_controller.getRightTriggerAxis() > 0.1))
+            #                           -(self.operator_controller.getLeftTriggerAxis()
+            #                             *int(self.operator_controller.getLeftTriggerAxis() > 0.1)))
+            # if (self.operator_controller.getRightTriggerAxis() < 0.1 
+            #     and self.operator_controller.getLeftTriggerAxis() < 0.1):
+            #     self.intake.intakeSpeed = 0
+            # intake using the triggers
+
+            if self.operator_controller.getLeftBumper():
+                self.intake.intakeSpeed = 1
+            if(self.operator_controller.getStartButton()):
+                self.intake.intakeSpeed = -1
+
+
             
-            if (self.operator_controller.getRightTriggerAxis() < 0.1 
-                and self.operator_controller.getLeftTriggerAxis() < 0.1):
-                self.intake.intakeSpeed = 0
+            
     
 def filterInput(controller_input: float, apply_deadband: bool = True) -> float:
     """
