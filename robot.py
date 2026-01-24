@@ -3,14 +3,17 @@ import wpilib
 import wpimath
 import math
 from components.chassis.drivetrain import Drivetrain
+from components.intake import Intake
 import constants
 
 class MyRobot(magicbot.MagicRobot):
     drivetrain: Drivetrain 
+    intake : Intake
 
     def createObjects(self):
         """ called on initialization """
         self.main_controller = wpilib.XboxController(0)
+        self.operator_controller = wpilib.XboxController(1)
 
     def disabledInit(self):
         """ called when enter disabled mode """
@@ -30,6 +33,7 @@ class MyRobot(magicbot.MagicRobot):
     def teleopPeriodic(self):
         """ called periodically during teleop """
         self.driveWithJoysicks()
+        self.controlIntake()
 
     def driveWithJoysicks(self):
         omega = 0
@@ -61,6 +65,18 @@ class MyRobot(magicbot.MagicRobot):
         self.drivetrain.vx = vx
         self.drivetrain.vy = vy
         self.drivetrain.omega = omega
+    
+    def controlIntake(self):
+        if self.intake.isManual():
+
+            self.intake.intakeSpeed = ((self.operator_controller.getRightTriggerAxis() 
+                                        *int(self.operator_controller.getRightTriggerAxis() > 0.1))
+                                      -(self.operator_controller.getLeftTriggerAxis()
+                                        *int(self.operator_controller.getLeftTriggerAxis() > 0.1)))
+            
+            if (self.operator_controller.getRightTriggerAxis() < 0.1 
+                and self.operator_controller.getLeftTriggerAxis() < 0.1):
+                self.intake.intakeSpeed = 0
     
 def filterInput(controller_input: float, apply_deadband: bool = True) -> float:
     """
