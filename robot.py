@@ -3,14 +3,19 @@ import wpilib
 import wpimath
 import math
 from components.chassis.drivetrain import Drivetrain
+from components.hopper import Hopper
+from components.indexer import Indexer
 import constants
 
 class MyRobot(magicbot.MagicRobot):
     drivetrain: Drivetrain 
+    hopper: Hopper 
+    indexer: Indexer 
 
     def createObjects(self):
         """ called on initialization """
         self.main_controller = wpilib.XboxController(0)
+        self.operator_controller = wpilib.XboxController(1)
 
     def disabledInit(self):
         """ called when enter disabled mode """
@@ -30,6 +35,8 @@ class MyRobot(magicbot.MagicRobot):
     def teleopPeriodic(self):
         """ called periodically during teleop """
         self.driveWithJoysicks()
+        self.controlHopper()
+        self.controlIndexer()
 
     def driveWithJoysicks(self):
         omega = 0
@@ -61,6 +68,23 @@ class MyRobot(magicbot.MagicRobot):
         self.drivetrain.vx = vx
         self.drivetrain.vy = vy
         self.drivetrain.omega = omega
+    
+    def controlHopper(self):
+        if self.hopper.isManual():
+            if self.operator_controller.getRightBumper():
+                self.hopper.motorSpeed = 1
+        else:
+            #placeholder for auto
+            self.hopper.motorSpeed = 0
+
+    def controlIndexer(self):
+        if self.indexer.isManual():
+            if self.operator_controller.getRightBumper():
+                self.indexer.motorSpeed = 1
+        else:
+            #placeholder for auto
+            self.indexer.motorSpeed = 0
+        
     
 def filterInput(controller_input: float, apply_deadband: bool = True) -> float:
     """
