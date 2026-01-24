@@ -83,8 +83,10 @@ class MyRobot(magicbot.MagicRobot):
             if(self.operator_controller.getStartButton()):
                 self.intake.intakeSpeed = -1
 
-
-            
+            if(self.operator_controller.getAButton()):
+                self.intake.intakeAngle = 0.25
+            if(self.operator_controller.getBButton()):
+                self.intake.intakeAngle = 0
             
     
 def filterInput(controller_input: float, apply_deadband: bool = True) -> float:
