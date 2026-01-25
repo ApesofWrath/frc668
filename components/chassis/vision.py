@@ -5,14 +5,9 @@ import time
 
 class Vision:
     def __init__ (self):
-        try:
-            self.limelight1_address = "10.6.68.11"                
-            self.ll = limelight.Limelight(self.limelight1_address)
-            self.ll.enable_websocket()
-            results_url = f"http://{self.limelight1_address}:5807/results"
-
-        except:
-            print("Vision __init__ error")
+        self.limelight1_address = "10.6.68.11"                
+        self.ll = limelight.Limelight(self.limelight1_address)
+        #results_url = f"http://{self.limelight1_address}:5807/results"
 
     """
     def get_results(self):
@@ -37,27 +32,44 @@ class Vision:
         except:
             print("Vision get_results error")
     """
-    def stream_results(self):
+    def execute(self) -> None:
         """
         TO DO
         How to analyze stream data
         """
-        try:
-            while True:
-                result = self.ll.get_latest_results()
-                parsed_result = self.ll.limelight.parse_results(result)
-                print("Validity", parsed_result.validity)
-                print("ID", parsed_result.pipeline_id)
-                print("FPS", parsed_result.fps)
-                print("Latency", parsed_result.targeting_latency)
-                print("Count", parsed_result.tag_count)
-        except:
-            print("Vision stream_results error")        
+        self.ll.enable_websocket()
+        packet = self.ll.get_latest_results()
+        
+        # print("Connected:", self.ll.websocket_connected)
+        # print("Packet:", packet)
+        
+        if packet is not None:
+            results = packet.get("results", {})
+            print("Pipeline:", results.get("pipelineID"))
+            print("FPS:", results.get("fps"))
+            print("Latency:", results.get("latency"))
+            print("Tag Count:", results.get("tagCount"))
+            fiducials = results.get("fiducialResults", [])
+            if fiducials:
+                print("First Tag ID:", fiducials[0].get("fiducialID"))
+        else:
+            print("Packet is none")
+        time.sleep(0.02)
 
-    
+        """
+            SmartDashboard.putNumber("SD Validity", parsed_result.validity)
+            SmartDashboard.putNumber("SD ID", parsed_result.pipeline_id)
+            SmartDashboard.putNumber("SD FPS", parsed_result.fps)
+            SmartDashboard.putNumber("SD Latency", parsed_result.targeting_latency)
+            SmartDashboard.putNumber("SD Count", parsed_result.tag_count)
 
-            
-            """
+            for tag in parsed_result.fiducialResults:
+                print("TAG ID:", tag.fiducial_id)
+                print("Robot pose field space:", tag.robot_pose_field_space)
+
+        time.sleep(0.1)
+        """
+        """
                 self.ll.enable_websocket()   
                 
                 print(self.ll.get_pipeline_atindex(0))
@@ -105,6 +117,8 @@ class GeneralResult:
 
 
 """
+
+
 
 
 

@@ -2,11 +2,15 @@ import magicbot
 import wpilib
 import wpimath
 import math
-from components.chassis.drivetrain import Drivetrain
 import constants
 
+from components.chassis.drivetrain import Drivetrain
+#from components.chassis.vision import Vision
+from components.chassis.vision_new import Vision
+
 class MyRobot(magicbot.MagicRobot):
-    drivetrain: Drivetrain 
+    drivetrain: Drivetrain
+    vision: Vision 
 
     def createObjects(self):
         """ called on initialization """
@@ -14,6 +18,7 @@ class MyRobot(magicbot.MagicRobot):
 
     def disabledInit(self):
         """ called when enter disabled mode """
+        #self.vision.ll.disable_websocket()
         
     def disabledPeriodic(self):
         """ called periodically when disabled """
