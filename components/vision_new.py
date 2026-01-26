@@ -8,6 +8,7 @@ class Vision:
     def __init__ (self):
         self.l1_address = "10.6.68.11"
         self.l1 = limelight.Limelight(self.l1_address)
+        self.l1.pipeline_switch(0)
         self.l1.enable_websocket()
         self.websocketConnected = False
         self.websocketAttemptDelay = 0
@@ -46,10 +47,10 @@ class Vision:
             return
         data = json.loads(_data)
         print(data)
-        # if data.get("v") == 1:
-        #     fiducial = data.get("Fiducial", {})
-        #     print("Fiducial Data: ", fiducial)
-        #     print("botpose_orb_wpiblue: ", data.get("botpose_orb_wpiblue"))
+        if data.get("v") == 1:
+            fiducial = data.get("Fiducial", {})
+            print("Fiducial Data: ", fiducial)
+            print("botpose_orb_wpiblue: ", data.get("botpose_orb_wpiblue"))
         # get location based off of data and do things
 
     

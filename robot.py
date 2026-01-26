@@ -5,8 +5,7 @@ import math
 import constants
 
 from components.chassis.drivetrain import Drivetrain
-#from components.chassis.vision import Vision
-from components.chassis.vision_new import Vision
+from components.vision_new import Vision
 
 class MyRobot(magicbot.MagicRobot):
     drivetrain: Drivetrain
