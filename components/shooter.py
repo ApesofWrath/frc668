@@ -20,7 +20,7 @@ class Shooter:
         hood_configs.slot0.kP = constants.SHOOTER_HOOD_P
         hood_configs.slot0.kI = constants.SHOOTER_HOOD_I
         hood_configs.slot0.kD = constants.SHOOTER_HOOD_D
-        self.hoodMotor.config_apply(turret_configs)
+        self.hoodMotor.config_apply(hood_configs)
 
         self.turretAngle = 0
         self.hoodAngle = 0
