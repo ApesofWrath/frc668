@@ -70,7 +70,7 @@ class MyRobot(magicbot.MagicRobot):
         if self.shooter.isManual():
             turretAngle = -filterInput(self.operator_controller.getLeftX())
             hoodAngle = -filterInput(self.operator_controller.getLeftY())
-            flywheelSpeedMulti = 0.5 #find a good multiplier
+            flywheelSpeedMulti = 0.01 #find a good multiplier
             flywheelTargetVelocityDelta = ((self.operator_controller.getRightTriggerAxis() * flywheelSpeedMulti)
                                            -(self.operator_controller.getLeftTriggerAxis() * flywheelSpeedMulti))
         else:

@@ -12,15 +12,15 @@ class Shooter:
         self.flywheelMotor = hardware.TalonFX(constants.FLYWHEEL_CAN_ID)
 
         turret_configs = configs.TalonFXConfiguration()
-        turret_configs.slot0.kP = constants.SHOOTER_TURRET_P
-        turret_configs.slot0.kI = constants.SHOOTER_TURRET_I
-        turret_configs.slot0.kD = constants.SHOOTER_TURRET_D # TODO: tune these!
-        self.turretMotor.config_apply(turret_configs)
+        turret_configs.slot0.k_p = constants.SHOOTER_TURRET_P
+        turret_configs.slot0.k_i = constants.SHOOTER_TURRET_I
+        turret_configs.slot0.k_d = constants.SHOOTER_TURRET_D # TODO: tune these!
+        self.turretMotor.configurator.apply(turret_configs)
         hood_configs = configs.TalonFXConfiguration()
-        hood_configs.slot0.kP = constants.SHOOTER_HOOD_P
-        hood_configs.slot0.kI = constants.SHOOTER_HOOD_I
-        hood_configs.slot0.kD = constants.SHOOTER_HOOD_D
-        self.hoodMotor.config_apply(hood_configs)
+        hood_configs.slot0.k_p = constants.SHOOTER_HOOD_P
+        hood_configs.slot0.k_i = constants.SHOOTER_HOOD_I
+        hood_configs.slot0.k_d = constants.SHOOTER_HOOD_D
+        self.hoodMotor.configurator.apply(hood_configs)
 
         self.turretAngle = 0
         self.hoodAngle = 0
