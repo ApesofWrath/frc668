@@ -5,12 +5,13 @@ import math
 import constants
 
 from components.chassis.drivetrain import Drivetrain
-from components.vision_new import Vision
+from components.vision import Vision
+from components.limelight import LimelightHelpers
 
 class MyRobot(magicbot.MagicRobot):
     drivetrain: Drivetrain
     vision: Vision 
-
+    
     def createObjects(self):
         """ called on initialization """
         self.main_controller = wpilib.XboxController(0)
@@ -30,10 +31,12 @@ class MyRobot(magicbot.MagicRobot):
 
     def teleopInit(self):
         """ initialization code for teleop """
+        LimelightHelpers.set_imu_mode(self.l1, 1)
 
     def teleopPeriodic(self):
         """ called periodically during teleop """
         self.driveWithJoysicks()
+        LimelightHelpers.set_imu_mode(self.l1, 4)
 
     def driveWithJoysicks(self):
         omega = 0
