@@ -73,6 +73,8 @@ class MyRobot(magicbot.MagicRobot):
         if self.hopper.isManual():
             if self.operator_controller.getRightBumper():
                 self.hopper.motorSpeed = 1
+            else:
+                self.hopper.motorSpeed = 0
         else:
             #placeholder for auto
             self.hopper.motorSpeed = 0
@@ -81,6 +83,8 @@ class MyRobot(magicbot.MagicRobot):
         if self.indexer.isManual():
             if self.operator_controller.getRightBumper():
                 self.indexer.motorSpeed = 1
+            else:
+                self.indexer.motorSpeed = 0
         else:
             #placeholder for auto
             self.indexer.motorSpeed = 0
