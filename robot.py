@@ -77,12 +77,14 @@ class MyRobot(magicbot.MagicRobot):
             #     and self.operator_controller.getLeftTriggerAxis() < 0.1):
             #     self.intake.intakeSpeed = 0
             # intake using the triggers
-
-            if self.operator_controller.getLeftBumper():
-                self.intake.intakeSpeed = 1
+            
+            intakeSpeed = 0
+            if(self.operator_controller.getLeftBumper()):
+                intakeSpeed = 1
             if(self.operator_controller.getStartButton()):
-                self.intake.intakeSpeed = -1
-
+                intakeSpeed = -1
+            self.intake.intakeSpeed = intakeSpeed
+            
             if(self.operator_controller.getAButton()):
                 self.intake.intakeAngle = 0.25
             if(self.operator_controller.getBButton()):

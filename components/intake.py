@@ -6,15 +6,15 @@ import constants
 class Intake:
     
     def __init__(self):
-        # define all intake motors and stuff TODO: there is annother motor for intake rotation
+        # define all intake motors and stuff
         self.intakeMotor = hardware.TalonFX(constants.INTAKE_CAN_ID)
         self.intakeRotatorMotor = hardware.TalonFX(constants.INTAKE_ROTATOR_CAN_ID)
 
         rotator_configs = configs.TalonFXConfiguration()
-        rotator_configs.slot0.kP = constants.INTAKE_ROTATOR_P
-        rotator_configs.slot0.kI = constants.INTAKE_ROTATOR_I
-        rotator_configs.slot0.kD = constants.INTAKE_ROTATOR_D # TODO: tune these!
-        self.intakeRotatorMotor.config_apply(rotator_configs)
+        rotator_configs.slot0.k_p = constants.INTAKE_ROTATOR_P
+        rotator_configs.slot0.k_i = constants.INTAKE_ROTATOR_I
+        rotator_configs.slot0.k_d = constants.INTAKE_ROTATOR_D # TODO: tune these!
+        self.intakeRotatorMotor.configurator.apply(rotator_configs)
 
         self.intakeSpeed = 0
         self.intakeAngle = 0
