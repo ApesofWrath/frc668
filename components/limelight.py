@@ -47,7 +47,7 @@ class ConcurrentDefaultDict(defaultdict):
 class RawFiducial:
 	"""Represents a Limelight Raw Fiducial result from Limelight's NetworkTables output."""
 	id: int = 0
-	txyc: float = 0
+	txnc: float = 0
 	tync: float = 0
 	ta: float = 0
 	dist_to_camera: float = 0
@@ -58,7 +58,7 @@ class RawFiducial:
 class RawDetection:
 	"""Represents a Limelight Raw Neural Detector result from Limelight's NetworkTables output."""
 	class_id: int = 0
-	txyc: float = 0
+	txnc: float = 0
 	tync: float = 0
 	ta: float = 0
 	corner0_x: float = 0
@@ -357,7 +357,7 @@ class LimelightHelpers:
 			fiducial = pose.raw_fiducials[i]
 			print(f" Fiducial #{i+1}:")
 			print(f" ID: {fiducial.id}")
-			print(f" TXNC: {fiducial.txyc}")
+			print(f" TXNC: {fiducial.txnc}")
 			print(f" TYNC: {fiducial.tync}")
 			print(f" TA: {fiducial.ta}")
 			print(f" Distance to Camera: {fiducial.dist_to_camera} meters")

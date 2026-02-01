@@ -48,37 +48,14 @@ class Vision:
         self.logger.info("botpose success")
 
     @feedback
-    def test(self):
+    def get_pose_estimate(self):
         orientation = self.pigeon.getRotation3d()
         LimelightHelpers.set_robot_orientation(self.l1, orientation.Z()*180.0/math.pi, 0, orientation.Y()*180.0/math.pi, 0, orientation.X()*180.0/math.pi, 0)
         self.logger.info("orientation success")
         mega_tag2 = LimelightHelpers.get_botpose_estimate_wpiblue_megatag2(self.l1)
         self.logger.info("botpose success")
-        self.logger.info(mega_tag2.tag_count)
-        if mega_tag2.tag_count>0:
-            return mega_tag2.tag_count
-        return None 
-        """
-        if mega_tag2.raw_fiducials:
-            return mega_tag2.raw_fiducials
-        return None 
-        """
-        """
-        if mega_tag2.is_megatag_2:
-            self.logger.info("megatag2 true")
-            return mega_tag2
-        return None
-        """
-
-    # TODO: This function was causing either the limelight or the roborio to crash. Figure out
-    # what's going on and fix it.
-    #
-    # @feedback
-    # def get_pose_estimate(self):
-    #     orientation = self.pigeon.getRotation3d()
-    #     LimelightHelpers.set_robot_orientation(self.l1, orientation.Z()*180.0/math.pi, 0, orientation.Y()*180.0/math.pi, 0, orientation.X()*180.0/math.pi, 0)
-    #     #TODO: fill in yaw, pitch, and roll rates 
-    #     mega_tag2 = LimelightHelpers.get_botpose_estimate_wpiblue_megatag2(self.l1)
-    #     if mega_tag2.tag_count > 0:
-    #         return mega_tag2
-    #     return None 
+        ret = [mega_tag2.pose.X(), mega_tag2.pose.Y(), mega_tag2.pose.rotation().degrees()]
+        for item in mega_tag2.raw_fiducials:
+            ret.append(item.id)
+        return ret 
+    
