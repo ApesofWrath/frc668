@@ -4,11 +4,15 @@ import wpimath
 import math
 from components.chassis.drivetrain import Drivetrain
 from components.shooter import Shooter
+from components.hopper import Hopper
+from components.indexer import Indexer
 import constants
 
 class MyRobot(magicbot.MagicRobot):
     drivetrain: Drivetrain 
     shooter: Shooter 
+    hopper: Hopper 
+    indexer: Indexer 
 
     def createObjects(self):
         """ called on initialization """
@@ -34,6 +38,8 @@ class MyRobot(magicbot.MagicRobot):
         """ called periodically during teleop """
         self.driveWithJoysicks()
         self.controlShooter()
+        self.controlHopper()
+        self.controlIndexer()
 
     def driveWithJoysicks(self):
         omega = 0
@@ -87,6 +93,27 @@ class MyRobot(magicbot.MagicRobot):
             self.shooter.flywheel_target_rpm = 0
         if self.shooter.flywheel_target_rpm > constants.FLYWHEEL_MAX_RPM:
             self.shooter.flywheel_target_rpm = constants.FLYWHEEL_MAX_RPM
+    
+    def controlHopper(self):
+        if self.hopper.isManual():
+            if self.operator_controller.getRightBumper():
+                self.hopper.motorSpeed = 1
+            else:
+                self.hopper.motorSpeed = 0
+        else:
+            #placeholder for auto
+            self.hopper.motorSpeed = 0
+
+    def controlIndexer(self):
+        if self.indexer.isManual():
+            if self.operator_controller.getRightBumper():
+                self.indexer.motorSpeed = 1
+            else:
+                self.indexer.motorSpeed = 0
+        else:
+            #placeholder for auto
+            self.indexer.motorSpeed = 0
+        
     
 def filterInput(controller_input: float, apply_deadband: bool = True) -> float:
     """
