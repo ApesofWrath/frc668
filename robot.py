@@ -67,27 +67,26 @@ class MyRobot(magicbot.MagicRobot):
         self.drivetrain.omega = omega
     
     def controlShooter(self):
+        self.shooter.turret_rpm = 0
+        self.shooter.hood_rpm = 0
         if self.shooter.isManual():
-            turretAngle = self.operator_controller.getLeftX()*0.3
-            hoodAngle = self.operator_controller.getRightY()*0.3
-            flywheelSpeedMulti = 0.01 #find a good multiplier
-            flywheelTargetVelocityDelta = ((self.operator_controller.getRightTriggerAxis() * flywheelSpeedMulti)
-                                           -(self.operator_controller.getLeftTriggerAxis() * flywheelSpeedMulti))
+            self.shooter.turret_rpm = self.operator_controller.getLeftX() * 0.1
+            self.shooter.hood_rpm = self.operator_controller.getRightY() * 0.1
+            # We want the flywheel to keep spinning even when the operator isn't holding down a trigger.
+            # Make it so that the left and right triggers can be used to decrease or increase its target RPM.
+            FLYWHEEL_SPEED_MULTIPLIER = 0.01
+            flywheel_target_velocity_delta = ((self.operator_controller.getRightTriggerAxis() * FLYWHEEL_SPEED_MULTIPLIER)
+                                           -(self.operator_controller.getLeftTriggerAxis() * FLYWHEEL_SPEED_MULTIPLIER))
         else:
-            # self.autoAlign()
-            # implement this once autoalign works
-            turretAngle = 0
-            hoodAngle = 0
-            flywheelTargetVelocityDelta = 0
-        
-        self.shooter.turretAngle = turretAngle
-        self.shooter.hoodAngle = hoodAngle
-        self.shooter.flywheelTargetVelocity += flywheelTargetVelocityDelta
-        if self.shooter.flywheelTargetVelocity < 0:
-            self.shooter.flywheelTargetVelocity = 0
-        
-        if self.shooter.flywheelTargetVelocity > constants.FLYWHEEL_MAX_SPEED:
-            self.shooter.flywheelTargetVelocity = constants.FLYWHEEL_MAX_SPEED # test for good max speed
+            # TODO: Implement auto-align.
+            turret_angle = 0
+            flywheel_target_velocity_delta = 0
+
+        self.shooter.flywheel_target_rpm += flywheel_target_velocity_delta
+        if self.shooter.flywheel_target_rpm < 0:
+            self.shooter.flywheel_target_rpm = 0
+        if self.shooter.flywheel_target_rpm > constants.FLYWHEEL_MAX_RPM:
+            self.shooter.flywheel_target_rpm = constants.FLYWHEEL_MAX_RPM
     
 def filterInput(controller_input: float, apply_deadband: bool = True) -> float:
     """
