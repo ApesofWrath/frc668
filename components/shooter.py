@@ -17,7 +17,7 @@ class Shooter:
         # define all shooter moters and encoders/potentiometers and stuff
         self.turret_motor = hardware.TalonFX(constants.TURRET_CAN_ID)
         self.hood_motor = hardware.TalonFX(constants.HOOD_CAN_ID)
-        self.fllywheel_motor = hardware.TalonFX(constants.FLYWHEEL_CAN_ID)
+        self.flywheel_motor = hardware.TalonFX(constants.FLYWHEEL_MOTOR_CAN_ID)
 
         self.hood_encoder = hardware.CANcoder(constants.HOOD_ENCODER_CAN_ID)
 
@@ -70,6 +70,8 @@ class Shooter:
         if self.joystick_control:
             # Just use velocity control.
             self.hood_motor.set(-self.hood_rpm)
+            self.flywheel_motor.set(-self.flywheel_target_rpm)
+            self.turret_motor.set(self.turret_rpm)
         else:
             # Command the hood motor to the target angle.
             if self.target_hood_angle < constants.HOOD_MIN_TARGET_ANGLE:
