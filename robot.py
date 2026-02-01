@@ -31,12 +31,12 @@ class MyRobot(magicbot.MagicRobot):
 
     def teleopInit(self):
         """ initialization code for teleop """
-        LimelightHelpers.set_imu_mode(self.l1, 1)
+        LimelightHelpers.set_imu_mode(constants.LIMELIGHT_ONE, 1)
 
     def teleopPeriodic(self):
         """ called periodically during teleop """
         self.driveWithJoysicks()
-        LimelightHelpers.set_imu_mode(self.l1, 4)
+        LimelightHelpers.set_imu_mode(constants.LIMELIGHT_ONE, 4)
 
     def driveWithJoysicks(self):
         omega = 0
