@@ -7,6 +7,8 @@ import constants
 from components.chassis.drivetrain import Drivetrain
 from components.vision import Vision
 from components.limelight import LimelightHelpers
+from wpilib import SmartDashboard 
+
 
 class MyRobot(magicbot.MagicRobot):
     drivetrain: Drivetrain
@@ -22,6 +24,7 @@ class MyRobot(magicbot.MagicRobot):
         
     def disabledPeriodic(self):
         """ called periodically when disabled """
+        self.logger.info(Vision.get_pose_estimate_m1(self, constants.LIMELIGHT_ONE))
 
     def autonomousInit(self):
         """ initialization code for auton """
