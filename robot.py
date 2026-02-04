@@ -7,12 +7,20 @@ from components.shooter import Shooter
 from components.hopper import Hopper
 from components.indexer import Indexer
 import constants
+from phoenix6 import swerve, hardware
 
 class MyRobot(magicbot.MagicRobot):
+    
     drivetrain: Drivetrain 
     shooter: Shooter 
     hopper: Hopper 
     indexer: Indexer 
+
+    def __init__(self):
+        self.drive_request = swerve.requests.RobotCentric()
+            .with_drive_request_type(
+                swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
+            )  # Use open-loop control for drive motors
 
     def createObjects(self):
         """ called on initialization """
@@ -68,9 +76,7 @@ class MyRobot(magicbot.MagicRobot):
                 * constants.MAX_ROTATION_SPEED
                 * modifier
             ) 
-        self.drivetrain.vx = vx
-        self.drivetrain.vy = vy
-        self.drivetrain.omega = omega
+        self.drivetrain.set_control(self.drive_request.with_velocity_x(vx).with_velocity_y(vy).with_rotational_rate(omega))
     
     def controlShooter(self):
         self.shooter.turret_rpm = 0

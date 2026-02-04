@@ -77,9 +77,9 @@ class SwerveModule:
         )  # How fast motor turns with respect to how fast it is commanded to drive
 
         self.turning_PID_controller = ProfiledPIDController(
-            constants.STEER_P,
-            constants.STEER_I,
-            constants.STEER_D,
+            constants.TURNING_P,
+            constants.TURNING_I,
+            constants.TURNING_D,
             wpimath.trajectory.TrapezoidProfile.Constraints(
                 max_rotation_speed, max_rotation_acceleration
             ),
