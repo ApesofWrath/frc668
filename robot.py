@@ -14,18 +14,16 @@ class MyRobot(magicbot.MagicRobot):
     drivetrain: Drivetrain 
     shooter: Shooter 
     hopper: Hopper 
-    indexer: Indexer 
-
-    def __init__(self):
-        self.drive_request = swerve.requests.RobotCentric()
-            .with_drive_request_type(
-                swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
-            )  # Use open-loop control for drive motors
+    indexer: Indexer
 
     def createObjects(self):
         """ called on initialization """
         self.main_controller = wpilib.XboxController(0)
         self.operator_controller = wpilib.XboxController(1)
+        
+        self.drive_request = swerve.requests.RobotCentric().with_drive_request_type(
+                swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
+            )  # Use open-loop control for drive motors
 
     def disabledInit(self):
         """ called when enter disabled mode """
@@ -75,7 +73,8 @@ class MyRobot(magicbot.MagicRobot):
                 -filterInput(self.main_controller.getRightX())
                 * constants.MAX_ROTATION_SPEED
                 * modifier
-            ) 
+            )
+        self.logger.info(f"vx: {vx}, vy: {vy}, omega: {omega}")
         self.drivetrain.set_control(self.drive_request.with_velocity_x(vx).with_velocity_y(vy).with_rotational_rate(omega))
     
     def controlShooter(self):

@@ -83,7 +83,7 @@ class TunerConstants:
 
     _drive_gear_ratio = 4.67 
     _steer_gear_ratio = 25.9
-    _wheel_radius: units.meter = inchesToMeters(0)
+    _wheel_radius: units.meter = 0.0889/2
 
     _invert_left_side = True
     _invert_right_side = False
@@ -100,8 +100,8 @@ class TunerConstants:
     drivetrain_constants = (
         swerve.SwerveDrivetrainConstants()
         .with_can_bus_name(canbus.name)
-        .with_pigeon2_id(_pigeon_id)
-        .with_pigeon2_configs(_pigeon_configs)
+        # .with_pigeon2_id(_pigeon_id)
+        # .with_pigeon2_configs(_pigeon_configs)
     )
 
     _constants_creator: swerve.SwerveModuleConstantsFactory[
