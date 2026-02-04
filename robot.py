@@ -24,7 +24,7 @@ class MyRobot(magicbot.MagicRobot):
         
     def disabledPeriodic(self):
         """ called periodically when disabled """
-        self.logger.info(Vision.get_pose_estimate_m1(self, constants.LIMELIGHT_ONE))
+        # self.logger.info(Vision.get_pose_estimate_m1(self, constants.LIMELIGHT_ONE))
 
     def autonomousInit(self):
         """ initialization code for auton """
