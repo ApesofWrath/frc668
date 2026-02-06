@@ -8,37 +8,71 @@ from components.indexer import Indexer
 import constants
 
 class MyRobot(magicbot.MagicRobot):
+    """Top-level robot class.
+
+    This class uses the MagicBot framework to set up and manage the robot's subsystems
+    and modes.
+    https://robotpy.readthedocs.io/en/latest/frameworks/magicbot.html
+    """
+
     drivetrain: Drivetrain 
     hopper: Hopper 
     indexer: Indexer 
 
-    def createObjects(self):
-        """ called on initialization """
+    def createObjects(self) -> None:
+        """Create and initialize robot objects."""
         self.main_controller = wpilib.XboxController(0)
         self.operator_controller = wpilib.XboxController(1)
 
-    def disabledInit(self):
-        """ called when enter disabled mode """
+    def autonomousInit(self) -> None:
+        """Initialize autonomous mode.
+
+        This is called each time the robot enters autonomous mode, regardless of the
+        selected autonomous routine.
+        """
+        self.logger.info("Entering autonomous mode")
+
+    def disabledInit(self) -> None:
+        """Initialize disabled mode.
+
+        This is called each time the robot enters disabled mode. The `on_disable` method
+        of all components are called before this method is called.
+        """
+        self.logger.info("Robot disabled")
         
-    def disabledPeriodic(self):
-        """ called periodically when disabled """
+    def disabledPeriodic(self) -> None:
+        """Run during disabled mode.
 
-    def autonomousInit(self):
-        """ initialization code for auton """
+        This is called periodically at a regular rate when the robot is in disabled
+        mode. This code executes before the `execute` method of all components are
+        called.
+        """
+        pass
 
-    def autonomousPeriodic(self):
-        """ called periodically during auton """
+    def teleopInit(self) -> None:
+        """Initialize teleoperated mode.
 
-    def teleopInit(self):
-        """ initialization code for teleop """
+        This is called each time the robot enters teleoperated mode. The `on_enable`
+        method of all components are called before this method is called.
+        """
+        self.logger.info("Entering teleop mode")
 
-    def teleopPeriodic(self):
-        """ called periodically during teleop """
+    def teleopPeriodic(self) -> None:
+        """Run during teleoperated mode.
+
+        This is called periodically at a regular rate when the robot is in teleoperated
+        mode. This code executes before the `execute` method of all components are
+        called.
+
+        If you want this method to be called in autonomous mode, set
+        `use_teleop_in_autonomous=True` in this class' instance.
+        """
         self.driveWithJoysicks()
         self.controlHopper()
         self.controlIndexer()
 
-    def driveWithJoysicks(self):
+    def driveWithJoysicks(self) -> None:
+        """Use the main controller joystick inputs to drive the robot base."""
         omega = 0
         vx = 0
         vy = 0
@@ -69,7 +103,8 @@ class MyRobot(magicbot.MagicRobot):
         self.drivetrain.vy = vy
         self.drivetrain.omega = omega
     
-    def controlHopper(self):
+    def controlHopper(self) -> None:
+        """Drive the hopper motors."""
         if self.hopper.isManual():
             if self.operator_controller.getRightBumper():
                 self.hopper.motorSpeed = 1
@@ -79,7 +114,8 @@ class MyRobot(magicbot.MagicRobot):
             #placeholder for auto
             self.hopper.motorSpeed = 0
 
-    def controlIndexer(self):
+    def controlIndexer(self) -> None:
+        """Drive the indexer motors."""
         if self.indexer.isManual():
             if self.operator_controller.getRightBumper():
                 self.indexer.motorSpeed = 1
@@ -100,7 +136,8 @@ def filterInput(controller_input: float, apply_deadband: bool = True) -> float:
 
     Args:
         controller_input (float): The raw input from the controller, ranging from -1 to 1.
-        apply_deadband (bool, optional): Whether to apply a deadband to the input. Defaults to True.
+        apply_deadband (bool, optional): Whether to apply a deadband to the input.
+        Defaults to True.
 
     Returns:
         float: The filtered controller input.
