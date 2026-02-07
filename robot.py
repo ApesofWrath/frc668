@@ -4,6 +4,7 @@ import magicbot
 import phoenix6
 import wpilib
 import wpimath
+from phoenix6 import swerve, hardware
 
 import constants
 from subsystem import drivetrain, shooter
@@ -25,6 +26,12 @@ class MyRobot(magicbot.MagicRobot):
         """Create and initialize robot objects."""
         self.main_controller = wpilib.XboxController(0)
         self.operator_controller = wpilib.XboxController(1)
+
+        self.drive_request = (
+            swerve.requests.RobotCentric().with_drive_request_type(
+                swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
+            )
+        )  # Use open-loop control for drive motors
 
         # Hopper motors.
         self.hopper_left_motor = phoenix6.hardware.TalonFX(
@@ -119,9 +126,11 @@ class MyRobot(magicbot.MagicRobot):
                 * constants.MAX_ROTATION_SPEED
                 * modifier
             )
-        self.drivetrain.vx = vx
-        self.drivetrain.vy = vy
-        self.drivetrain.omega = omega
+        self.drivetrain.set_control(
+            self.drive_request.with_velocity_x(vx)
+            .with_velocity_y(vy)
+            .with_rotational_rate(omega)
+        )
 
     def controlHopper(self) -> None:
         """Drive the hopper motors."""
