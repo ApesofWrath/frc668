@@ -1,8 +1,11 @@
-# Credit to https://github.com/olentangyfrc/2025-Reefscape-Code 
+# Credit to https://github.com/olentangyfrc/2025-Reefscape-Code
 
 import math
 
-from wpimath.controller import SimpleMotorFeedforwardMeters, ProfiledPIDController
+from wpimath.controller import (
+    SimpleMotorFeedforwardMeters,
+    ProfiledPIDController,
+)
 from wpimath.geometry import Rotation2d
 from wpimath.kinematics import SwerveModulePosition, SwerveModuleState
 import wpimath.trajectory
@@ -15,6 +18,7 @@ import constants
 wheel_radius = constants.WHEEL_RADIUS
 max_rotation_speed = constants.MAX_SINGLE_SWERVE_ROTATION_SPEED
 max_rotation_acceleration = constants.MAX_SINGLE_SWERVE_ROTATION_ACCELERATION
+
 
 class SwerveModule:
     def __init__(
@@ -38,7 +42,9 @@ class SwerveModule:
         self._offset = offset
 
         drive_motor_configs = configs.TalonFXConfiguration()
-        drive_motor_configs.motor_output.neutral_mode = signals.NeutralModeValue.BRAKE
+        drive_motor_configs.motor_output.neutral_mode = (
+            signals.NeutralModeValue.BRAKE
+        )
         drive_motor_configs.current_limits.stator_current_limit_enable = True
         drive_motor_configs.current_limits.stator_current_limit = 50
         drive_motor_configs.future_proof_configs = True
@@ -64,16 +70,18 @@ class SwerveModule:
         self.turning_motor.clear_sticky_faults()
         self.turning_motor.configurator.apply(self.turning_motor_configs)
 
-        self.turning_encoder = hardware.cancoder.CANcoder(turning_encoder_id, "rio")
+        self.turning_encoder = hardware.cancoder.CANcoder(
+            turning_encoder_id, "rio"
+        )
 
         self.turning_motor.set_control(controls.VoltageOut(0))
 
         self.name = name
 
         # Gains are for example purposes only - must be determined for your own robot!
-        #TODO: tune! 
+        # TODO: tune!
         self.drive_feed_forward = SimpleMotorFeedforwardMeters(
-            0.23727, 2.59628, 0                    
+            0.23727, 2.59628, 0
         )  # How fast motor turns with respect to how fast it is commanded to drive
 
         self.turning_PID_controller = ProfiledPIDController(
@@ -123,7 +131,9 @@ class SwerveModule:
             self.turning_encoder.get_absolute_position(),
             self.turning_encoder.get_velocity(),
         )
-        return angle * math.tau - (self.offset * math.tau) #to convert to radians
+        return angle * math.tau - (
+            self.offset * math.tau
+        )  # to convert to radians
 
     def getEncoderAngleDeg(self) -> float:
         """
@@ -163,7 +173,9 @@ class SwerveModule:
         position = BaseStatusSignal.get_latency_compensated_value(
             self.drive_motor.get_position(), self.drive_motor.get_velocity()
         )
-        return position * constants.WHEEL_RADIUS * math.tau * constants.GEAR_RATIO
+        return (
+            position * constants.WHEEL_RADIUS * math.tau * constants.GEAR_RATIO
+        )
 
     def resetDriveMotorPosition(self) -> None:
         """
@@ -182,7 +194,9 @@ class SwerveModule:
             self.getDriveMotorPosition(), Rotation2d(self.getEncoderAngle())
         )
 
-    def setModuleVoltage(self, drive_voltage: float, turn_voltage: float) -> None:
+    def setModuleVoltage(
+        self, drive_voltage: float, turn_voltage: float
+    ) -> None:
         """
         Sets the voltage for the drive and steer motors
 

@@ -21,3 +21,6 @@ components = [
 requires = [
     "phoenix6",
 ]
+
+[tool.black]
+line-length = 80

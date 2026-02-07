@@ -1,68 +1,88 @@
+import math
+
 import magicbot
+import phoenix6
 import wpilib
 import wpimath
-import math
-from components.chassis.drivetrain import Drivetrain
-from components.hopper import Hopper
-from components.indexer import Indexer
+
 import constants
+from subsystem import drivetrain, shooter
+
 
 class MyRobot(magicbot.MagicRobot):
     """Top-level robot class.
 
-    This class uses the MagicBot framework to set up and manage the robot's subsystems
-    and modes.
+    This class uses the MagicBot framework to set up and manage the robot's
+    subsystems and modes.
     https://robotpy.readthedocs.io/en/latest/frameworks/magicbot.html
     """
 
-    drivetrain: Drivetrain 
-    hopper: Hopper 
-    indexer: Indexer 
+    drivetrain: drivetrain.Drivetrain
+    hopper: shooter.Hopper
+    indexer: shooter.Indexer
 
     def createObjects(self) -> None:
         """Create and initialize robot objects."""
         self.main_controller = wpilib.XboxController(0)
         self.operator_controller = wpilib.XboxController(1)
 
+        # Hopper motors.
+        self.hopper_left_motor = phoenix6.hardware.TalonFX(
+            shooter.constants.HOPPER_LEFT_MOTOR_CAN_ID
+        )
+        self.hopper_right_motor = phoenix6.hardware.TalonFX(
+            shooter.constants.HOPPER_RIGHT_MOTOR_CAN_ID
+        )
+
+        # Indexer motors.
+        self.indexer_bottom_motor = phoenix6.hardware.TalonFX(
+            shooter.constants.INDEXER_BOTTOM_MOTOR_CAN_ID
+        )
+        self.indexer_top_motor = phoenix6.hardware.TalonFX(
+            shooter.constants.INDEXER_TOP_MOTOR_CAN_ID
+        )
+
     def autonomousInit(self) -> None:
         """Initialize autonomous mode.
 
-        This is called each time the robot enters autonomous mode, regardless of the
-        selected autonomous routine.
+        This is called each time the robot enters autonomous mode, regardless of
+        the selected autonomous routine.
         """
         self.logger.info("Entering autonomous mode")
 
     def disabledInit(self) -> None:
         """Initialize disabled mode.
 
-        This is called each time the robot enters disabled mode. The `on_disable` method
-        of all components are called before this method is called.
+        This is called each time the robot enters disabled mode. The
+        `on_disable` method of all components are called before this method is
+        called.
         """
         self.logger.info("Robot disabled")
-        
+
     def disabledPeriodic(self) -> None:
         """Run during disabled mode.
 
-        This is called periodically at a regular rate when the robot is in disabled
-        mode. This code executes before the `execute` method of all components are
-        called.
+        This is called periodically at a regular rate when the robot is in
+        disabled mode. This code executes before the `execute` method of all
+        components are called.
         """
         pass
 
     def teleopInit(self) -> None:
         """Initialize teleoperated mode.
 
-        This is called each time the robot enters teleoperated mode. The `on_enable`
-        method of all components are called before this method is called.
+        This is called each time the robot enters teleoperated mode. The
+        `on_enable` method of all components are called before this method is
+        called.
         """
         self.logger.info("Entering teleop mode")
 
     def teleopPeriodic(self) -> None:
         """Run during teleoperated mode.
 
-        This is called periodically at a regular rate when the robot is in teleoperated
-        mode. This code executes before the `execute` method of all components are
-        called.
+        This is called periodically at a regular rate when the robot is in
+        teleoperated mode. This code executes before the `execute` method of all
+        components are called.
 
         If you want this method to be called in autonomous mode, set
         `use_teleop_in_autonomous=True` in this class' instance.
@@ -93,61 +113,54 @@ class MyRobot(magicbot.MagicRobot):
                 -filterInput(self.main_controller.getLeftX())
                 * constants.MAX_LINEAR_SPEED
                 * modifier
-            )   
+            )
             omega = (
                 -filterInput(self.main_controller.getRightX())
                 * constants.MAX_ROTATION_SPEED
                 * modifier
-            ) 
+            )
         self.drivetrain.vx = vx
         self.drivetrain.vy = vy
         self.drivetrain.omega = omega
-    
+
     def controlHopper(self) -> None:
         """Drive the hopper motors."""
-        if self.hopper.isManual():
-            if self.operator_controller.getRightBumper():
-                self.hopper.motorSpeed = 1
-            else:
-                self.hopper.motorSpeed = 0
+        if self.operator_controller.getRightBumper():
+            self.hopper.setMotorSpeedRps(1.0)
         else:
-            #placeholder for auto
-            self.hopper.motorSpeed = 0
+            self.hopper.setMotorSpeedRps(0.0)
 
     def controlIndexer(self) -> None:
         """Drive the indexer motors."""
-        if self.indexer.isManual():
-            if self.operator_controller.getRightBumper():
-                self.indexer.motorSpeed = 1
-            else:
-                self.indexer.motorSpeed = 0
+        if self.operator_controller.getRightBumper():
+            self.indexer.setMotorSpeedRps(1.0)
         else:
-            #placeholder for auto
-            self.indexer.motorSpeed = 0
-        
-    
-def filterInput(controller_input: float, apply_deadband: bool = True) -> float:
-    """
-    Filters the controller input by applying a squared scaling and an optional deadband.
+            self.indexer.setMotorSpeedRps(0.0)
 
-    This function squares the input while preserving its sign to provide finer control
-    at lower values. If `apply_deadband` is True, it applies a deadband to ignore small
-    inputs that may result from controller drift.
+
+def filterInput(controller_input: float, apply_deadband: bool = True) -> float:
+    """Filter the controller input with a squared scaling and deadband.
+
+    This function squares the input while preserving its sign to provide finer
+    control at lower values. If `apply_deadband` is True, it applies a deadband
+    to ignore small inputs that may result from controller drift.
 
     Args:
-        controller_input (float): The raw input from the controller, ranging from -1 to 1.
-        apply_deadband (bool, optional): Whether to apply a deadband to the input.
-        Defaults to True.
+        controller_input:
+            The raw input from the controller, ranging from -1.0 to 1.0.
+        apply_deadband:
+            Whether to apply a deadband to the input. Defaults to True.
 
     Returns:
-        float: The filtered controller input.
+        A float that is the filtered controller input.
     """
     controller_input_corrected = math.copysign(
         math.pow(controller_input, 2), controller_input
     )
 
     if apply_deadband:
-        return wpimath.applyDeadband(controller_input_corrected, constants.DEADBAND)
+        return wpimath.applyDeadband(
+            controller_input_corrected, constants.DEADBAND
+        )
     else:
         return controller_input_corrected
-        
