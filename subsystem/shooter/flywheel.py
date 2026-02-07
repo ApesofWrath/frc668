@@ -10,7 +10,6 @@ class Flywheel:
     This class controls the rotational velocity of the flywheel.
     """
 
-    flywheel_encoder: phoenix6.hardware.CANcoder
     flywheel_motor: phoenix6.hardware.TalonFX
 
     def setup(self) -> None:
@@ -84,14 +83,6 @@ class Flywheel:
                 flywheel, in rotations per second.
         """
         self._target_rps = rotations_per_second
-
-    @magicbot.feedback
-    def get_target_rps(self) -> float:
-        return self._target_rps
-
-    @magicbot.feedback
-    def get_flywheel_rps(self) -> float:
-        return self.flywheel_encoder.get_velocity().value
 
     def _setSlot0Configs(
         self,

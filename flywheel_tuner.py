@@ -12,6 +12,9 @@ class FlywheelTuner:
     on AdvantageScope. It also provides a settable flywheel target velocity.
     """
 
+    flywheel_motor: phoenix6.hardware.TalonFX
+    flywheel_encoder: phoenix6.hardware.CANcoder
+
     target_rps = magicbot.tunable(shooter.constants.FLYWHEEL_ENABLE_RPS)
     k_s = magicbot.tunable(shooter.constants.FLYWHEEL_K_S)
     k_v = magicbot.tunable(shooter.constants.FLYWHEEL_K_V)
@@ -77,13 +80,33 @@ class FlywheelTuner:
             .with_k_d(self.k_d)
         )
 
-    def get_target_rps(self) -> float:
+    def targetRps(self) -> float:
         """Get the current target velocity for the flywheel.
 
         Returns:
             The target velocity in rotations per second.
         """
         return self.target_rps
+
+    @magicbot.feedback
+    def get_motor_voltage(self) -> phoenix6.units.volt:
+        return self.flywheel_motor.get_motor_voltage().value
+
+    @magicbot.feedback
+    def get_supply_current(self) -> phoenix6.units.ampere:
+        return self.flywheel_motor.get_supply_current().value
+
+    @magicbot.feedback
+    def get_stator_current(self) -> phoenix6.units.ampere:
+        return self.flywheel_motor.get_stator_current().value
+
+    @magicbot.feedback
+    def get_target_rps(self):
+        return self.targetRps()
+
+    @magicbot.feedback
+    def get_flywheel_rps(self) -> float:
+        return self.flywheel_encoder.get_velocity().value
 
 
 class FlywheelTunerRobot(magicbot.MagicRobot):
@@ -143,7 +166,7 @@ class FlywheelTunerRobot(magicbot.MagicRobot):
         `use_teleop_in_autonomous=True` in this class' instance.
         """
         # Set the target velocity for the flywheel.
-        self.flywheel.setTargetRps(self.flywheel_tuner.get_target_rps())
+        self.flywheel.setTargetRps(self.flywheel_tuner.targetRps())
         # If any of the gains changed, register the new gains with the flywheel.
         if self.flywheel_tuner.gainsChanged():
             self.flywheel._setSlot0Configs(self.flywheel_tuner.gains())
