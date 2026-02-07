@@ -3,7 +3,6 @@ import wpilib
 import wpimath
 import math
 from components.chassis.drivetrain import Drivetrain
-from components.shooter import Shooter
 from components.hopper import Hopper
 from components.indexer import Indexer
 import constants
@@ -12,7 +11,6 @@ from phoenix6 import swerve, hardware
 class MyRobot(magicbot.MagicRobot):
     
     drivetrain: Drivetrain 
-    shooter: Shooter 
     hopper: Hopper 
     indexer: Indexer
 
@@ -43,7 +41,6 @@ class MyRobot(magicbot.MagicRobot):
     def teleopPeriodic(self):
         """ called periodically during teleop """
         self.driveWithJoysicks()
-        self.controlShooter()
         self.controlHopper()
         self.controlIndexer()
 
@@ -76,28 +73,6 @@ class MyRobot(magicbot.MagicRobot):
             )
         self.logger.info(f"vx: {vx}, vy: {vy}, omega: {omega}")
         self.drivetrain.set_control(self.drive_request.with_velocity_x(vx).with_velocity_y(vy).with_rotational_rate(omega))
-    
-    def controlShooter(self):
-        self.shooter.turret_rpm = 0
-        self.shooter.hood_rpm = 0
-        if self.shooter.isManual():
-            self.shooter.turret_rpm = self.operator_controller.getLeftX() * 0.1
-            self.shooter.hood_rpm = self.operator_controller.getRightY() * 0.1
-            # We want the flywheel to keep spinning even when the operator isn't holding down a trigger.
-            # Make it so that the left and right triggers can be used to decrease or increase its target RPM.
-            FLYWHEEL_SPEED_MULTIPLIER = 0.01
-            flywheel_target_velocity_delta = ((self.operator_controller.getRightTriggerAxis() * FLYWHEEL_SPEED_MULTIPLIER)
-                                           -(self.operator_controller.getLeftTriggerAxis() * FLYWHEEL_SPEED_MULTIPLIER))
-        else:
-            # TODO: Implement auto-align.
-            turret_angle = 0
-            flywheel_target_velocity_delta = 0
-
-        self.shooter.flywheel_target_rpm += flywheel_target_velocity_delta
-        if self.shooter.flywheel_target_rpm < 0:
-            self.shooter.flywheel_target_rpm = 0
-        if self.shooter.flywheel_target_rpm > constants.FLYWHEEL_MAX_RPM:
-            self.shooter.flywheel_target_rpm = constants.FLYWHEEL_MAX_RPM
     
     def controlHopper(self):
         if self.hopper.isManual():
