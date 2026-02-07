@@ -16,9 +16,9 @@ class TunerConstants:
         configs.Slot0Configs()
         .with_k_p(100)
         .with_k_i(0)
-        .with_k_d(0.08)
-        .with_k_s(0)
-        .with_k_v(1)
+        .with_k_d(0.5)
+        .with_k_s(0.1)
+        .with_k_v(2.48)
         .with_k_a(0)
         .with_static_feedforward_sign(
             signals.StaticFeedforwardSignValue.USE_CLOSED_LOOP_SIGN
@@ -84,8 +84,8 @@ class TunerConstants:
     _steer_gear_ratio = 25.9
     _wheel_radius: units.meter = 0.0889 / 2
 
-    _invert_left_side = True
-    _invert_right_side = False
+    _invert_left_side = False
+    _invert_right_side = True
 
     _pigeon_id = 22
 
@@ -97,9 +97,10 @@ class TunerConstants:
     _drive_friction_voltage: units.volt = 0.2
 
     drivetrain_constants = (
-        swerve.SwerveDrivetrainConstants().with_can_bus_name(canbus.name)
-        # .with_pigeon2_id(_pigeon_id)
-        # .with_pigeon2_configs(_pigeon_configs)
+        swerve.SwerveDrivetrainConstants()
+        .with_can_bus_name(canbus.name)
+        .with_pigeon2_id(_pigeon_id)
+        .with_pigeon2_configs(_pigeon_configs)
     )
 
     _constants_creator: swerve.SwerveModuleConstantsFactory[
@@ -138,8 +139,8 @@ class TunerConstants:
     _front_left_steer_motor_inverted = False
     _front_left_encoder_inverted = True
 
-    _front_left_x_pos: units.meter = inchesToMeters(0)
-    _front_left_y_pos: units.meter = inchesToMeters(0)
+    _front_left_x_pos: units.meter = inchesToMeters(11.5)
+    _front_left_y_pos: units.meter = inchesToMeters(11.5)
 
     # Front Right
     _front_right_drive_motor_id = 3
@@ -149,8 +150,8 @@ class TunerConstants:
     _front_right_steer_motor_inverted = False
     _front_right_encoder_inverted = True
 
-    _front_right_x_pos: units.meter = inchesToMeters(0)
-    _front_right_y_pos: units.meter = inchesToMeters(-0)
+    _front_right_x_pos: units.meter = inchesToMeters(11.5)
+    _front_right_y_pos: units.meter = inchesToMeters(-11.5)
 
     # Back Left
     _back_left_drive_motor_id = 1
@@ -160,8 +161,8 @@ class TunerConstants:
     _back_left_steer_motor_inverted = False
     _back_left_encoder_inverted = False
 
-    _back_left_x_pos: units.meter = inchesToMeters(-0)
-    _back_left_y_pos: units.meter = inchesToMeters(0)
+    _back_left_x_pos: units.meter = inchesToMeters(-11.5)
+    _back_left_y_pos: units.meter = inchesToMeters(11.5)
 
     # Back Right
     _back_right_drive_motor_id = 5
@@ -171,8 +172,8 @@ class TunerConstants:
     _back_right_steer_motor_inverted = False
     _back_right_encoder_inverted = False
 
-    _back_right_x_pos: units.meter = inchesToMeters(-0)
-    _back_right_y_pos: units.meter = inchesToMeters(-0)
+    _back_right_x_pos: units.meter = inchesToMeters(-11.5)
+    _back_right_y_pos: units.meter = inchesToMeters(-11.5)
 
     front_left = _constants_creator.create_module_constants(
         _front_left_steer_motor_id,
