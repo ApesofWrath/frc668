@@ -42,7 +42,7 @@ class Hopper:
         """
         self._motor_speed = 0.0
 
-    def setMotorSpeedRps(self, speed: float) -> None:
+    def setMotorSpeed(self, speed: float) -> None:
         """Set the speed of the hopper motors.
 
         Args:

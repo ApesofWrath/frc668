@@ -13,15 +13,15 @@ class Flywheel:
     flywheel_motor: phoenix6.hardware.TalonFX
     flywheel_encoder: phoenix6.hardware.CANcoder
 
+    # The target rotational velocity of the flywheel.
+    target_rps = magicbot.tunable(0.0)
+
     def setup(self) -> None:
         """Set up initial state for the flywheel.
 
         This method is called after createObjects has been called in the main
         robot class, and after all components have been created.
         """
-        # The target rotational velocity of the flywheel.
-        self._target_rps = 0.0
-
         # Configure the feedback sensor to use and the feedforward + feedback
         # gains.
         self._flywheel_configs = phoenix6.configs.TalonFXConfiguration()
@@ -62,7 +62,7 @@ class Flywheel:
         # Create a velocity closed-loop request with voltage output and slot 0
         # configs.
         self._request = phoenix6.controls.VelocityVoltage(
-            self._target_rps
+            self.target_rps
         ).with_slot(0)
 
     def execute(self) -> None:
@@ -71,7 +71,7 @@ class Flywheel:
         This method is called at the end of the control loop.
         """
         self.flywheel_motor.set_control(
-            self._request.with_velocity(self._target_rps)
+            self._request.with_velocity(self.target_rps)
         )
 
     def on_enable(self) -> None:
@@ -81,23 +81,14 @@ class Flywheel:
         test mode.
         """
         self.logger.info("ENABLED")
-        self._target_rps = shooter.constants.FLYWHEEL_ENABLE_RPS
+        self.target_rps = shooter.constants.FLYWHEEL_ENABLE_RPS
 
     def on_disable(self) -> None:
         """Reset state when the robot is disabled.
 
         This method is called when the robot enters disabled mode.
         """
-        self._target_rps = 0.0
-
-    def setTargetRps(self, rotations_per_second: float) -> None:
-        """Set the target rotational velocity of the flywheel.
-
-        Args:
-            rotations_per_second: A decimal target rotational velocity for the
-                flywheel, in rotations per second.
-        """
-        self._target_rps = rotations_per_second
+        self.target_rps = 0.0
 
     def _setSlot0Configs(
         self,
