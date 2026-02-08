@@ -37,9 +37,6 @@ class Flywheel:
         self._flywheel_configs.motor_output.neutral_mode = (
             phoenix6.signals.spn_enums.NeutralModeValue.COAST
         )
-        self._flywheel_configs.motor_output.inverted = (
-            phoenix6.signals.spn_enums.InvertedValue.CLOCKWISE_POSITIVE
-        )
         # Output to overcome static friction
         self._flywheel_configs.slot0.k_s = shooter.constants.FLYWHEEL_K_S
         # A target of 1 rps results in this output
