@@ -6,7 +6,7 @@ import wpilib
 import wpimath
 
 import constants
-from subsystem import drivetrain, shooter
+from subsystem import drivetrain, shooter, intake
 
 
 class MyRobot(magicbot.MagicRobot):
@@ -20,6 +20,7 @@ class MyRobot(magicbot.MagicRobot):
     drivetrain: drivetrain.Drivetrain
     hopper: shooter.Hopper
     indexer: shooter.Indexer
+    intake: intake.Intake
 
     def createObjects(self) -> None:
         """Create and initialize robot objects."""
@@ -137,6 +138,13 @@ class MyRobot(magicbot.MagicRobot):
             self.indexer.setMotorSpeedRps(1.0)
         else:
             self.indexer.setMotorSpeedRps(0.0)
+
+    def controlIntake(self) -> None:
+        """Drive the intake motors."""
+        if self.operator_controller.getLeftBumper():
+            self.intake.setMotorSpeed(1.0)
+        else:
+            self.intake.setMotorSpeed(0.0)
 
 
 def filterInput(controller_input: float, apply_deadband: bool = True) -> float:
