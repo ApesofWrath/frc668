@@ -19,6 +19,7 @@ class MyRobot(magicbot.MagicRobot):
     """
 
     drivetrain: drivetrain.Drivetrain
+    flywheel: shooter.Flywheel
     hopper: shooter.Hopper
     indexer: shooter.Indexer
     intake: intake.Intake
@@ -34,20 +35,28 @@ class MyRobot(magicbot.MagicRobot):
             )
         )  # Use open-loop control for drive motors
 
+        # Flywheel motor and encoder.
+        self.flywheel_motor = phoenix6.hardware.TalonFX(
+            shooter.constants.FLYWHEEL_MOTOR_CAN_ID, "Shooter"
+        )
+        self.flywheel_encoder = phoenix6.hardware.CANcoder(
+            shooter.constants.FLYWHEEL_ENCODER_CAN_ID, "Shooter"
+        )
+
         # Hopper motors.
         self.hopper_left_motor = phoenix6.hardware.TalonFX(
-            shooter.constants.HOPPER_LEFT_MOTOR_CAN_ID
+            shooter.constants.HOPPER_LEFT_MOTOR_CAN_ID, "rio"
         )
         self.hopper_right_motor = phoenix6.hardware.TalonFX(
-            shooter.constants.HOPPER_RIGHT_MOTOR_CAN_ID
+            shooter.constants.HOPPER_RIGHT_MOTOR_CAN_ID, "rio"
         )
 
         # Indexer motors.
         self.indexer_bottom_motor = phoenix6.hardware.TalonFX(
-            shooter.constants.INDEXER_BOTTOM_MOTOR_CAN_ID
+            shooter.constants.INDEXER_BOTTOM_MOTOR_CAN_ID, "Shooter"
         )
         self.indexer_top_motor = phoenix6.hardware.TalonFX(
-            shooter.constants.INDEXER_TOP_MOTOR_CAN_ID
+            shooter.constants.INDEXER_TOP_MOTOR_CAN_ID, "Shooter"
         )
 
         # Intake motors.
