@@ -94,7 +94,7 @@ class MyRobot(magicbot.MagicRobot):
         `use_teleop_in_autonomous=True` in this class' instance.
         """
         # TODO: Handle exceptions so robot code doesn't crash.
-        self.driveWithJoysicks()
+        #self.driveWithJoysicks()
         self.controlHopper()
         self.controlIndexer()
 
