@@ -11,6 +11,7 @@ class Flywheel:
     """
 
     flywheel_motor: phoenix6.hardware.TalonFX
+    flywheel_encoder: phoenix6.hardware.CANcoder
 
     def setup(self) -> None:
         """Set up initial state for the flywheel.
@@ -30,6 +31,15 @@ class Flywheel:
         self._flywheel_configs.feedback.feedback_remote_sensor_id = (
             shooter.constants.FLYWHEEL_ENCODER_CAN_ID
         )
+        self._flywheel_configs.motor_output.inverted = (
+            phoenix6.signals.spn_enums.InvertedValue.CLOCKWISE_POSITIVE
+        )
+        self._flywheel_configs.motor_output.neutral_mode = (
+            phoenix6.signals.spn_enums.NeutralModeValue.COAST
+        )
+        self._flywheel_configs.motor_output.inverted = (
+            phoenix6.signals.spn_enums.InvertedValue.CLOCKWISE_POSITIVE
+        )
         # Output to overcome static friction
         self._flywheel_configs.slot0.k_s = shooter.constants.FLYWHEEL_K_S
         # A target of 1 rps results in this output
@@ -44,6 +54,14 @@ class Flywheel:
         self._flywheel_configs.slot0.k_d = shooter.constants.FLYWHEEL_K_D
         self.flywheel_motor.configurator.apply(self._flywheel_configs)
 
+        self._flywheel_encoder_configs = (
+            phoenix6.configs.CANcoderConfiguration()
+        )
+        self._flywheel_encoder_configs.magnet_sensor.sensor_direction = (
+            phoenix6.signals.spn_enums.SensorDirectionValue.COUNTER_CLOCKWISE_POSITIVE
+        )
+        self.flywheel_encoder.configurator.apply(self._flywheel_encoder_configs)
+
         # Create a velocity closed-loop request with voltage output and slot 0
         # configs.
         self._request = phoenix6.controls.VelocityVoltage(
@@ -56,7 +74,7 @@ class Flywheel:
         This method is called at the end of the control loop.
         """
         self.flywheel_motor.set_control(
-            self._request.with_velocity(-self._target_rps)
+            self._request.with_velocity(self._target_rps)
         )
 
     def on_enable(self) -> None:

@@ -22,6 +22,8 @@ class FlywheelTuner:
     k_p = magicbot.tunable(shooter.constants.FLYWHEEL_K_P)
     k_i = magicbot.tunable(shooter.constants.FLYWHEEL_K_I)
     k_d = magicbot.tunable(shooter.constants.FLYWHEEL_K_D)
+    indexer_rps = magicbot.tunable(1.0)
+    hopper_rps = magicbot.tunable(1.0)
 
     def setup(self) -> None:
         """Set up initial state for the flywheel tuner.
@@ -87,6 +89,12 @@ class FlywheelTuner:
             The target velocity in rotations per second.
         """
         return self.target_rps
+
+    def indexerRps(self) -> float:
+        return self.indexer_rps
+
+    def hopperRps(self) -> float:
+        return self.hopper_rps
 
     @magicbot.feedback
     def get_motor_voltage(self) -> phoenix6.units.volt:
@@ -173,8 +181,8 @@ class FlywheelTunerRobot(magicbot.MagicRobot):
 
         # Drive the hopper and indexer motors when the right bumper is pressed.
         if self.operator_controller.getRightBumper():
-            self.indexer.setMotorSpeedRps(1.0)
-            self.hopper.setMotorSpeedRps(1.0)
+            self.indexer.setMotorSpeedRps(self.flywheel_tuner.indexerRps())
+            self.hopper.setMotorSpeedRps(self.flywheel_tuner.hopperRps())
         else:
             self.indexer.setMotorSpeedRps(0.0)
             self.hopper.setMotorSpeedRps(0.0)
