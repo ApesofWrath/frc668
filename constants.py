@@ -1,49 +1,26 @@
-# drivetrain front left
-DRIVE_CAN_FL = 7
-FL_OFFSET = 178 / 360  # -0.149658203125+0.375
-STEER_CAN_FL = 8
-TURN_ENCODER_ID_FL = 12
+HOPPER_LEFT_CAN_ID = 16
+HOPPER_RIGHT_CAN_ID = 17
 
-# drivetrain front right
-DRIVE_CAN_FR = 3
-FR_OFFSET = 2 / 360  # 0.4736328125+0.5
-STEER_CAN_FR = 4
-TURN_ENCODER_ID_FR = 10
 
-# drivetrain back right
-DRIVE_CAN_BR = 5
-BR_OFFSET = 177 / 360  # 0.19873046875-0.333
-STEER_CAN_BR = 6
-TURN_ENCODER_ID_BR = 11
+INDEXER_BOTTOM_CAN_ID = 18
+INDEXER_TOP_CAN_ID = 19
 
-# drivetrain back left
-DRIVE_CAN_BL = 1
-BL_OFFSET = 183 / 360  # 0.144287109375-0.333
-STEER_CAN_BL = 2
-TURN_ENCODER_ID_BL = 9
+# Shooter sensors and actuators
+TURRET_CAN_ID = 13
+HOOD_CAN_ID = 14
+FLYWHEEL_MOTOR_CAN_ID = 15
+TURRET_ENCODER_CAN_ID = 16
+HOOD_ENCODER_CAN_ID = 17
+
+# Shooter gear ratios
+TURRET_ENCODER_GEAR_RATIO = 10
+HOOD_SENSOR_TO_MECHANISM_GEAR_RATIO = 19
+HOOD_ROTOR_TO_SENSOR_GEAR_RATIO = 8
+
+# Shooter limits
+FLYWHEEL_MAX_RPM = 1
+SHOOTER_TURRET_ROTATION_SPEED = 0.12
+HOOD_MIN_TARGET_ANGLE = 0.01  # rotations of the hood
+HOOD_MAX_TARGET_ANGLE = 0.08  # rotations of the hood
 
 DEADBAND = 0.15**2
-
-# PID. TODO: tune!
-DRIVE_P = 2
-DRIVE_I = 0
-DRIVE_D = 0
-
-TURNING_P = 4
-TURNING_I = 0
-TURNING_D = 0
-
-WHEEL_BASE = 0.625  # meters
-TRACK_WIDTH = 0.625  # meters
-
-WHEEL_RADIUS = 0.0889 / 2  # meters
-GEAR_RATIO = 1 / 4.67  # X2St swerve
-
-MAX_LINEAR_SPEED = 6  # meters per second
-MAX_LINEAR_ACCELERATION = 3  # meters per second squared
-
-MAX_ROTATION_SPEED = 6  # radians per second
-MAX_ROTATION_ACCELERATION = 1 / 2  # radians per second squared
-
-MAX_SINGLE_SWERVE_ROTATION_SPEED = 12  # radians per second
-MAX_SINGLE_SWERVE_ROTATION_ACCELERATION = 40  # radians per sec squared
