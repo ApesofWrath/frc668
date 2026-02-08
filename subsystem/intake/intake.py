@@ -17,6 +17,12 @@ class Intake:
         """
         self._motor_speed = 0.0
 
+        intake_motor_configs = phoenix6.configs.TalonFXConfiguration()
+        intake_motor_configs.motor_output.inverted = (
+            phoenix6.signals.spn_enums.InvertedValue.CLOCKWISE_POSITIVE
+        )
+        self.intake_motor.configurator.apply(intake_motor_configs)
+
     def execute(self) -> None:
         """Command the motors to the current speed.
 

@@ -45,7 +45,7 @@ class MyRobot(magicbot.MagicRobot):
 
         # Intake motors.
         self.intake_motor = phoenix6.hardware.TalonFX(
-            intake.constants.INTAKE_MOTOR_CAN_ID
+            intake.constants.INTAKE_MOTOR_CAN_ID, "rio"
         )
 
     def autonomousInit(self) -> None:
@@ -94,9 +94,10 @@ class MyRobot(magicbot.MagicRobot):
         `use_teleop_in_autonomous=True` in this class' instance.
         """
         # TODO: Handle exceptions so robot code doesn't crash.
-        #self.driveWithJoysicks()
+        self.driveWithJoysicks()
         self.controlHopper()
         self.controlIndexer()
+        self.controlIntake()
 
     def driveWithJoysicks(self) -> None:
         """Use the main controller joystick inputs to drive the robot base."""
