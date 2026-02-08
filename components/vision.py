@@ -47,10 +47,10 @@ class Vision:
         return self.botpose_wpiblue_topic.get()
 
     
-    def start_match (self):
-        if Driverstation.getAlliance() == DriverStation.Alliance.kBlue:
+    def start_match(self):
+        if DriverStation.getAlliance() == DriverStation.Alliance.kBlue:
             self.pigeon.set_yaw(0)
-        elif Driverstation.getAlliance() == DriverStation.Alliance.kRed:
+        elif DriverStation.getAlliance() == DriverStation.Alliance.kRed:
             self.pigeon.set_yaw(180)
     
     
@@ -83,3 +83,7 @@ class Vision:
         for item in mega_tag1.raw_fiducials:
             ret.append(item.id)
         return ret        
+    
+    def get_distance(self, limelight_name):
+        self.botpose_wpiblue_topic[9].get()
+        #TODO: this gets the distance from limelight 1, but we want it from the turret limelight
