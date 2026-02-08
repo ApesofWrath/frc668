@@ -230,5 +230,3 @@ MAX_ROTATION_ACCELERATION = 1 / 2  # radians per second squared
 MAX_SINGLE_SWERVE_ROTATION_SPEED = 12  # radians per second
 MAX_SINGLE_SWERVE_ROTATION_ACCELERATION = 40  # radians per sec squared
 
-WHEEL_RADIUS = 0.0889 / 2  # meters
-GEAR_RATIO = 1 / 4.67  # X2St swerve
