@@ -42,7 +42,7 @@ class MyRobot(magicbot.MagicRobot):
 
     def teleopPeriodic(self):
         """ called periodically during teleop """
-        self.driveWithJoysicks()
+        # self.driveWithJoysicks()
         self.controlShooter()
         self.controlHopper()
         self.controlIndexer()
