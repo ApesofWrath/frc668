@@ -220,6 +220,7 @@ class TunerConstants:
         _back_right_encoder_inverted,
     )
 
+
 MAX_LINEAR_SPEED = 6  # meters per second
 MAX_LINEAR_ACCELERATION = 3  # meters per second squared
 
