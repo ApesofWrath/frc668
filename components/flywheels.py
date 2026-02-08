@@ -1,6 +1,6 @@
-import constants 
+import constants
 import components.vision as vision
-import numpy 
+import numpy
 
 class Flywheel:
     def __init__(self):
@@ -10,4 +10,6 @@ class Flywheel:
 
 
     def execute(self) -> None:
-        pass 
+        pass
+        
+        current_distance = vision.get_distance(constants.LIMELIGHT_ONE)
