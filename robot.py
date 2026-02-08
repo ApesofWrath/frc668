@@ -7,7 +7,7 @@ import wpimath
 from phoenix6 import swerve, hardware
 
 import constants
-from subsystem import drivetrain, shooter
+from subsystem import drivetrain, shooter, intake
 
 
 class MyRobot(magicbot.MagicRobot):
@@ -21,6 +21,7 @@ class MyRobot(magicbot.MagicRobot):
     drivetrain: drivetrain.Drivetrain
     hopper: shooter.Hopper
     indexer: shooter.Indexer
+    intake: intake.Intake
 
     def createObjects(self) -> None:
         """Create and initialize robot objects."""
@@ -47,6 +48,11 @@ class MyRobot(magicbot.MagicRobot):
         )
         self.indexer_top_motor = phoenix6.hardware.TalonFX(
             shooter.constants.INDEXER_TOP_MOTOR_CAN_ID
+        )
+
+        # Intake motors.
+        self.intake_motor = phoenix6.hardware.TalonFX(
+            intake.constants.INTAKE_MOTOR_CAN_ID, "rio"
         )
 
     def autonomousInit(self) -> None:
@@ -98,6 +104,7 @@ class MyRobot(magicbot.MagicRobot):
         self.driveWithJoysicks()
         self.controlHopper()
         self.controlIndexer()
+        self.controlIntake()
 
     def driveWithJoysicks(self) -> None:
         """Use the main controller joystick inputs to drive the robot base."""
@@ -143,6 +150,13 @@ class MyRobot(magicbot.MagicRobot):
             self.indexer.setMotorSpeed(1.0)
         else:
             self.indexer.setMotorSpeed(0.0)
+
+    def controlIntake(self) -> None:
+        """Drive the intake motors."""
+        if self.operator_controller.getLeftBumper():
+            self.intake.setMotorSpeed(1.0)
+        else:
+            self.intake.setMotorSpeed(0.0)
 
 
 def filterInput(controller_input: float, apply_deadband: bool = True) -> float:
