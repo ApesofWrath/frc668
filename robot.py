@@ -133,16 +133,16 @@ class MyRobot(magicbot.MagicRobot):
     def controlHopper(self) -> None:
         """Drive the hopper motors."""
         if self.operator_controller.getRightBumper():
-            self.hopper.setMotorSpeedRps(1.0)
+            self.hopper.setMotorSpeed(1.0)
         else:
-            self.hopper.setMotorSpeedRps(0.0)
+            self.hopper.setMotorSpeed(0.0)
 
     def controlIndexer(self) -> None:
         """Drive the indexer motors."""
         if self.operator_controller.getRightBumper():
-            self.indexer.setMotorSpeedRps(1.0)
+            self.indexer.setMotorSpeed(1.0)
         else:
-            self.indexer.setMotorSpeedRps(0.0)
+            self.indexer.setMotorSpeed(0.0)
 
 
 def filterInput(controller_input: float, apply_deadband: bool = True) -> float:
