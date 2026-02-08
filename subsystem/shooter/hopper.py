@@ -24,8 +24,8 @@ class Hopper:
 
         This method is called at the end of the control loop.
         """
-        self.hopper_left_motor.set(self._motor_speed_rps)
-        self.hopper_right_motor.set(-self._motor_speed_rps)
+        self.hopper_left_motor.set(-self._motor_speed_rps)
+        self.hopper_right_motor.set(self._motor_speed_rps)
 
     def onEnable(self) -> None:
         """Reset to a "safe" state when the robot is enabled.
