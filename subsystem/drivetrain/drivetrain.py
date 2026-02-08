@@ -1,17 +1,9 @@
 import math
 import wpimath
-import constants
 
 from phoenix6 import hardware, swerve
-from wpilib import SmartDashboard
-from wpimath.geometry import Translation2d, Rotation2d
-from wpimath.kinematics import (
-    SwerveDrive4Kinematics,
-    ChassisSpeeds,
-    SwerveModuleState,
-)
 
-import subsystem.drivetrain.swervemodule as swervemodule
+from subsystem.drivetrain import constants
 
 
 class Drivetrain(swerve.SwerveDrivetrain):

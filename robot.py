@@ -107,23 +107,20 @@ class MyRobot(magicbot.MagicRobot):
         if self.main_controller.getLeftBumperButton():
             modifier = 0.13
 
-        if self.main_controller.getRightBumperButton():
-            self.drivetrain.gyro.set_yaw(0)
-
         if self.drivetrain.isManual():
             vx = (
                 -filterInput(self.main_controller.getLeftY())
-                * constants.MAX_LINEAR_SPEED
+                * drivetrain.constants.MAX_LINEAR_SPEED
                 * modifier
             )
             vy = (
                 -filterInput(self.main_controller.getLeftX())
-                * constants.MAX_LINEAR_SPEED
+                * drivetrain.constants.MAX_LINEAR_SPEED
                 * modifier
             )
             omega = (
                 -filterInput(self.main_controller.getRightX())
-                * constants.MAX_ROTATION_SPEED
+                * drivetrain.constants.MAX_ROTATION_SPEED
                 * modifier
             )
         self.drivetrain.set_control(
