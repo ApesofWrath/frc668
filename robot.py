@@ -43,6 +43,11 @@ class MyRobot(magicbot.MagicRobot):
             shooter.constants.INDEXER_TOP_MOTOR_CAN_ID
         )
 
+        # Intake motors.
+        self.intake_motor = phoenix6.hardware.TalonFX(
+            intake.constants.INTAKE_MOTOR_CAN_ID
+        )
+
     def autonomousInit(self) -> None:
         """Initialize autonomous mode.
 
