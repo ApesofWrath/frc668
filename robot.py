@@ -22,6 +22,7 @@ class MyRobot(magicbot.MagicRobot):
     flywheel: shooter.Flywheel
     hopper: shooter.Hopper
     indexer: shooter.Indexer
+    hood: shooter.Hood
     intake: intake.Intake
 
     def createObjects(self) -> None:
@@ -57,6 +58,14 @@ class MyRobot(magicbot.MagicRobot):
         )
         self.indexer_top_motor = phoenix6.hardware.TalonFX(
             shooter.constants.INDEXER_TOP_MOTOR_CAN_ID, "Shooter"
+        )
+
+        # Hood motor and encoder.
+        self.hood_motor = phoenix6.hardware.TalonFX(
+            shooter.constants.HOOD_MOTOR_CAN_ID, "Shooter"
+        )
+        self.hood_encoder = phoenix6.hardware.CANcoder(
+            shooter.constants.HOOD_ENCODER_CAN_ID, "Shooter"
         )
 
         # Intake motors.
@@ -114,6 +123,7 @@ class MyRobot(magicbot.MagicRobot):
         self.controlHopper()
         self.controlIndexer()
         self.controlIntake()
+        self.controlHood()
 
     def driveWithJoysicks(self) -> None:
         """Use the main controller joystick inputs to drive the robot base."""
@@ -166,6 +176,16 @@ class MyRobot(magicbot.MagicRobot):
             self.intake.setMotorSpeed(1.0)
         else:
             self.intake.setMotorSpeed(0.0)
+
+    def controlHood(self) -> None:
+        """Drive the hood motor."""
+        # Zero the hood encoder if the B button was pressed.
+        if self.operator_controller.getBButtonPressed():
+            self.hood.zeroEncoder()
+        # Drive the hood motor at one-fourth duty cycle.
+        self.hood.setSpeed(
+            -filterInput(self.operator_controller.getRightY()) * 0.1
+        )
 
 
 def filterInput(controller_input: float, apply_deadband: bool = True) -> float:
