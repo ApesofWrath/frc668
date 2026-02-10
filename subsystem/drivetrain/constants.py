@@ -229,4 +229,3 @@ MAX_ROTATION_ACCELERATION = 1 / 2  # radians per second squared
 
 MAX_SINGLE_SWERVE_ROTATION_SPEED = 12  # radians per second
 MAX_SINGLE_SWERVE_ROTATION_ACCELERATION = 40  # radians per sec squared
-

@@ -1,5 +1,5 @@
 from . import constants
-from .flywheel import Flywheel
+from .flywheel import Flywheel, FlywheelTuner
 from .hopper import Hopper
 from .indexer import Indexer
 
