@@ -7,7 +7,8 @@ import wpimath
 from phoenix6 import swerve, hardware
 
 import constants
-from subsystem import drivetrain, shooter, intake
+from subsystem import drivetrain
+# , shooter, intake
 
 
 class MyRobot(magicbot.MagicRobot):
@@ -36,29 +37,29 @@ class MyRobot(magicbot.MagicRobot):
             )
         )  # Use open-loop control for drive motors
 
-        # Flywheel motor and encoder.
-        self.flywheel_motor = phoenix6.hardware.TalonFX(
-            shooter.constants.FLYWHEEL_MOTOR_CAN_ID, "Shooter"
-        )
-        self.flywheel_encoder = phoenix6.hardware.CANcoder(
-            shooter.constants.FLYWHEEL_ENCODER_CAN_ID, "Shooter"
-        )
+        # # Flywheel motor and encoder.
+        # self.flywheel_motor = phoenix6.hardware.TalonFX(
+        #     shooter.constants.FLYWHEEL_MOTOR_CAN_ID, "Shooter"
+        # )
+        # self.flywheel_encoder = phoenix6.hardware.CANcoder(
+        #     shooter.constants.FLYWHEEL_ENCODER_CAN_ID, "Shooter"
+        # )
 
-        # Hopper motors.
-        self.hopper_left_motor = phoenix6.hardware.TalonFX(
-            shooter.constants.HOPPER_LEFT_MOTOR_CAN_ID, "rio"
-        )
-        self.hopper_right_motor = phoenix6.hardware.TalonFX(
-            shooter.constants.HOPPER_RIGHT_MOTOR_CAN_ID, "rio"
-        )
+        # # Hopper motors.
+        # self.hopper_left_motor = phoenix6.hardware.TalonFX(
+        #     shooter.constants.HOPPER_LEFT_MOTOR_CAN_ID, "rio"
+        # )
+        # self.hopper_right_motor = phoenix6.hardware.TalonFX(
+        #     shooter.constants.HOPPER_RIGHT_MOTOR_CAN_ID, "rio"
+        # )
 
-        # Indexer motors.
-        self.indexer_bottom_motor = phoenix6.hardware.TalonFX(
-            shooter.constants.INDEXER_BOTTOM_MOTOR_CAN_ID, "Shooter"
-        )
-        self.indexer_top_motor = phoenix6.hardware.TalonFX(
-            shooter.constants.INDEXER_TOP_MOTOR_CAN_ID, "Shooter"
-        )
+        # # Indexer motors.
+        # self.indexer_bottom_motor = phoenix6.hardware.TalonFX(
+        #     shooter.constants.INDEXER_BOTTOM_MOTOR_CAN_ID, "Shooter"
+        # )
+        # self.indexer_top_motor = phoenix6.hardware.TalonFX(
+        #     shooter.constants.INDEXER_TOP_MOTOR_CAN_ID, "Shooter"
+        # )
 
         # Hood motor and encoder.
         self.hood_motor = phoenix6.hardware.TalonFX(
@@ -119,6 +120,8 @@ class MyRobot(magicbot.MagicRobot):
         `use_teleop_in_autonomous=True` in this class' instance.
         """
         # TODO: Handle exceptions so robot code doesn't crash.
+        if self.main_controller.getStartButton():
+            self.drivetrain.seed_field_centric()
         self.driveWithJoysicks()
         self.controlHopper()
         self.controlIndexer()
@@ -156,26 +159,26 @@ class MyRobot(magicbot.MagicRobot):
             .with_rotational_rate(omega)
         )
 
-    def controlHopper(self) -> None:
-        """Drive the hopper motors."""
-        if self.operator_controller.getRightBumper():
-            self.hopper.setMotorSpeed(1.0)
-        else:
-            self.hopper.setMotorSpeed(0.0)
+    # def controlHopper(self) -> None:
+    #     """Drive the hopper motors."""
+    #     if self.operator_controller.getRightBumper():
+    #         self.hopper.setMotorSpeed(1.0)
+    #     else:
+    #         self.hopper.setMotorSpeed(0.0)
 
-    def controlIndexer(self) -> None:
-        """Drive the indexer motors."""
-        if self.operator_controller.getRightBumper():
-            self.indexer.setMotorSpeed(1.0)
-        else:
-            self.indexer.setMotorSpeed(0.0)
+    # def controlIndexer(self) -> None:
+    #     """Drive the indexer motors."""
+    #     if self.operator_controller.getRightBumper():
+    #         self.indexer.setMotorSpeed(1.0)
+    #     else:
+    #         self.indexer.setMotorSpeed(0.0)
 
-    def controlIntake(self) -> None:
-        """Drive the intake motors."""
-        if self.operator_controller.getLeftBumper():
-            self.intake.setMotorSpeed(1.0)
-        else:
-            self.intake.setMotorSpeed(0.0)
+    # def controlIntake(self) -> None:
+    #     """Drive the intake motors."""
+    #     if self.operator_controller.getLeftBumper():
+    #         self.intake.setMotorSpeed(1.0)
+    #     else:
+    #         self.intake.setMotorSpeed(0.0)
 
     def controlHood(self) -> None:
         """Drive the hood motor."""
