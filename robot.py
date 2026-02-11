@@ -31,7 +31,7 @@ class MyRobot(magicbot.MagicRobot):
         self.operator_controller = wpilib.XboxController(1)
 
         self.drive_request = (
-            swerve.requests.RobotCentric().with_drive_request_type(
+            swerve.requests.FieldCentric().with_drive_request_type(
                 swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
             )
         )  # Use open-loop control for drive motors
