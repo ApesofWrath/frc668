@@ -35,6 +35,11 @@ class MyRobot(magicbot.MagicRobot):
                 swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
             )
         )  # Use open-loop control for drive motors
+        
+        # Turret
+        self.turret_moter = hardware.TalonFX(
+            shooter.constants.TURRET_CAN_ID
+        )
 
         # Flywheel motor and encoder.
         self.flywheel_motor = phoenix6.hardware.TalonFX(
