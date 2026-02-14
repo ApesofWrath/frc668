@@ -31,7 +31,7 @@ class MyRobot(magicbot.MagicRobot):
         self.operator_controller = wpilib.XboxController(1)
 
         self.drive_request = (
-            swerve.requests.RobotCentric().with_drive_request_type(
+            swerve.requests.FieldCentric().with_drive_request_type(
                 swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
             )
         )  # Use open-loop control for drive motors
@@ -119,6 +119,8 @@ class MyRobot(magicbot.MagicRobot):
         `use_teleop_in_autonomous=True` in this class' instance.
         """
         # TODO: Handle exceptions so robot code doesn't crash.
+        if self.main_controller.getStartButton():
+            self.drivetrain.seed_field_centric()
         self.driveWithJoysicks()
         self.controlHopper()
         self.controlIndexer()

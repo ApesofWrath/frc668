@@ -1,5 +1,6 @@
 from phoenix6 import CANBus, configs, hardware, signals, swerve, units
 from wpimath.units import inchesToMeters
+from wpimath.geometry import Rotation2d
 
 
 class TunerConstants:
@@ -229,3 +230,8 @@ MAX_ROTATION_ACCELERATION = 1 / 2  # radians per second squared
 
 MAX_SINGLE_SWERVE_ROTATION_SPEED = 12  # radians per second
 MAX_SINGLE_SWERVE_ROTATION_ACCELERATION = 40  # radians per sec squared
+
+# Blue alliance sees forward as 0 degrees (toward red alliance wall)
+BLUE_ALLIANCE_PERSPECTIVE_ROTATION = Rotation2d.fromDegrees(0)
+# Red alliance sees forward as 180 degrees (toward blue alliance wall)
+RED_ALLIANCE_PERSPECTIVE_ROTATION = Rotation2d.fromDegrees(180)
