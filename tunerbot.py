@@ -14,3 +14,4 @@ class TunerBot(robot.MyRobot):
     """
 
     flywheel_tuner: shooter.FlywheelTuner
+    turret_tuner: shooter.TurretTuner
