@@ -21,7 +21,7 @@ class Drivetrain(swerve.SwerveDrivetrain):
             ],
         )
 
-    def setup(self) -> None:
+    def execute(self) -> None:
         """Apply the operator perspective based on alliance color."""
         alliance_color = wpilib.DriverStation.getAlliance()
         if alliance_color is not None:
