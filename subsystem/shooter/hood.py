@@ -1,5 +1,6 @@
 import magicbot
 import phoenix6
+from phoenix6.controls import PositionVoltage
 
 from subsystem import shooter
 
@@ -12,6 +13,8 @@ class Hood:
 
     hood_motor: phoenix6.hardware.TalonFX
     hood_encoder: phoenix6.hardware.CANcoder
+
+    position = magicbot.tunable()
 
     def setup(self) -> None:
         """Set up initial state for the hood.
@@ -46,6 +49,9 @@ class Hood:
         )
         self.hood_encoder.configurator.apply(encoder_configs)
 
+        self.hood_motor.set_control(PositionVoltage(self._hood_position))
+
+
     def execute(self) -> None:
         """Command the motors to the current speed.
 
@@ -54,6 +60,8 @@ class Hood:
         # TODO: Implement position control.
         # TODO: Implement velocity control (for homing).
         self.hood_motor.set(self._hood_speed)
+        
+        self.hood_motor.set_position(self._hood_position)
 
     def on_enable(self) -> None:
         """Reset to a "safe" state when the robot is enabled.
@@ -73,6 +81,10 @@ class Hood:
     def setSpeed(self, speed: float) -> None:
         """Set the speed of the hood."""
         self._hood_speed = speed
+
+    def setPosition(self, position: phoenix6.units.rotation) -> None:
+        """Set the position of the hood"""
+        self._hood_position = position
 
     def zeroEncoder(self) -> None:
         """Zeroes the encoder at its current position."""
