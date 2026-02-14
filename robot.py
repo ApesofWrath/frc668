@@ -39,10 +39,10 @@ class MyRobot(magicbot.MagicRobot):
         
         # Turret
         self.turret_motor = hardware.TalonFX(
-            shooter.constants.TURRET_MOTOR_CAN_ID
+            shooter.constants.TURRET_MOTOR_CAN_ID, "Shooter"
         )
         self.turret_encoder = hardware.CANcoder(
-            shooter.constants.TURRET_ENCODER_CAN_ID
+            shooter.constants.TURRET_ENCODER_CAN_ID, "Shooter"
         )
 
         # Flywheel motor and encoder.
