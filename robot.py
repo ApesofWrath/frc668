@@ -60,17 +60,17 @@ class MyRobot(magicbot.MagicRobot):
             shooter.constants.INDEXER_TOP_MOTOR_CAN_ID, "Shooter"
         )
 
-        # Intake motors.
-        self.intake_motor = phoenix6.hardware.TalonFX(
-            intake.constants.INTAKE_MOTOR_CAN_ID, "rio"
-        )
-
         # Hood motor and encoder.
         self.hood_motor = phoenix6.hardware.TalonFX(
             shooter.constants.HOOD_MOTOR_CAN_ID, "Shooter"
         )
         self.hood_encoder = phoenix6.hardware.CANcoder(
             shooter.constants.HOOD_ENCODER_CAN_ID, "Shooter"
+        )
+
+        # Intake motors.
+        self.intake_motor = phoenix6.hardware.TalonFX(
+            intake.constants.INTAKE_MOTOR_CAN_ID, "rio"
         )
 
     def autonomousInit(self) -> None:
