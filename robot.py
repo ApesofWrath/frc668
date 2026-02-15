@@ -185,10 +185,15 @@ class MyRobot(magicbot.MagicRobot):
         if self.operator_controller.getBButtonPressed():
             self.hood.zeroEncoder()
         # Drive the hood motor at one-fourth duty cycle.
-        self.hood.setSpeed(
-            -filterInput(self.operator_controller.getRightY()) * 0.1
-        )
-
+        if self.operator_controller.getXButtonPressed():
+            self.hood.is_manual = True
+            self.hood.setSpeed(
+                -filterInput(self.operator_controller.getRightY()) * 0.1
+            )
+        # Switch between manual speed v/s position control modes 
+        if self.operator_controller.getYButtonPressed():
+            self.hood.is_manual = False 
+            self.hood.setPosition(18) #to test. later, use shooter interpolated values
 
 def filterInput(controller_input: float, apply_deadband: bool = True) -> float:
     """Filter the controller input with a squared scaling and deadband.
