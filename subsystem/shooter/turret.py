@@ -1,7 +1,7 @@
 import magicbot
 import phoenix6
 
-from phoenix6.controls import PositionVoltage
+from phoenix6.controls import PositionVoltage, VelocityVoltage
 
 from subsystem import shooter
 
@@ -19,6 +19,10 @@ class Turret:
         """
         # Target position for the turret, in degrees. Counter clockwise is positive.
         self._turret_postion_degrees = 0.0
+
+        # Target rotation speed for the turret, in degrees. Counter clockwise is positive.
+        self._turret_velocity_degrees = 0.0
+        self._is_velocity_controlled = False
 
         turret_configs = phoenix6.configs.TalonFXConfiguration()
         turret_configs.feedback.feedback_sensor_source = (
@@ -46,7 +50,10 @@ class Turret:
 
         This method is called at the end of the control loop.
         """
-        self.turret_motor.set_control(PositionVoltage(self._turret_postion_degrees/360))
+        if self._is_velocity_controlled:
+            self.turret_motor.set_control(VelocityVoltage(self._turret_velocity_degrees/360))
+        else:
+            self.turret_motor.set_control(PositionVoltage(self._turret_postion_degrees/360))
 
     def on_enable(self) -> None:
         """Reset to a "safe" state when the robot is enabled.
@@ -55,6 +62,7 @@ class Turret:
         test mode.
         """
         self._turret_postion_degrees = 0.0
+        self._turret_velocity_degrees = 0.0
 
     def on_disable(self) -> None:
         """Reset state when the robot is disabled.
@@ -62,6 +70,7 @@ class Turret:
         This method is called when the robot enters disabled mode.
         """
         self._turret_postion_degrees = 0.0
+        self._turret_velocity_degrees = 0.0
 
     def setPosition(self, pos_degrees: float) -> None:
         """Set the target position of the turret.
@@ -70,6 +79,22 @@ class Turret:
             pos_degrees: The target position for the turret to move to, in degrees.
         """
         self._turret_postion_degrees = pos_degrees
+
+    def setVelocity(self, vel_degrees: float) -> None:
+        """Set the target speed of the turret.
+        
+        Args:
+            vel_degrees: The target speed for the turret to rotate at, in degrees.
+        """
+        self._turret_velocity_degrees = vel_degrees
+
+    def setControlType(self, use_velocity: bool) -> None:
+        """Set the type of turret control to be used: position or velocity
+
+        Args:
+            use_velocity: The type of controler that should be used. True for velocity control, False for position control. 
+        """
+        self._is_velocity_controlled = use_velocity
 
     def zeroEncoder(self) -> None:
         """Zeroes the encoder at its current position."""
@@ -101,6 +126,8 @@ class TurretTuner:
 
     # The target position of the turret.
     target_position = magicbot.tunable(0.0)
+    target_velocity = magicbot.tunable(0.0)
+    use_velocity = magicbot.tunable(False)
 
     def setup(self) -> None:
         """Set up initial state for the turret tuner.
@@ -118,6 +145,8 @@ class TurretTuner:
         This method is called at the end of the control loop.
         """
         self.turret.setPosition(self.target_position)
+        self.turret.setVelocity(self.target_velocity)
+        self.turret.setControlType(self.use_velocity)
 
         # We only want to reapply the gains if they changed. The TalonFX motor
         # doesn't like being reconfigured constantly.
