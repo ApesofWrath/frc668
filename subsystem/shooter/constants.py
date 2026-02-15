@@ -32,3 +32,11 @@ HOOD_ROTOR_TO_SENSOR_GEAR_RATIO = 8
 # Hood range, in degrees.
 HOOD_MAX_ANGLE = 0.01*360
 HOOD_MIN_ANGLE = 0.08*360
+
+# Hood gains. 
+HOOD_K_S = 0
+HOOD_K_V = 0
+HOOD_K_A = 0
+HOOD_K_P = 0
+HOOD_K_I = 0
+HOOD_K_D = 0
