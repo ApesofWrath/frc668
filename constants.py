@@ -16,7 +16,5 @@ TURRET_ENCODER_GEAR_RATIO = 10
 # Shooter limits
 FLYWHEEL_MAX_RPM = 1
 SHOOTER_TURRET_ROTATION_SPEED = 0.12
-HOOD_MIN_TARGET_ANGLE = 0.01  # rotations of the hood
-HOOD_MAX_TARGET_ANGLE = 0.08  # rotations of the hood
 
 DEADBAND = 0.15**2

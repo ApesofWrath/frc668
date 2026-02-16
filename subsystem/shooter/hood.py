@@ -21,7 +21,7 @@ class Hood:
         robot class, and after all components have been created.
         """
         self._hood_speed = 0.0
-        self._hood_position = self.hood_encoder.get_position().value * 360.0
+        self._hood_target_position = self.get_hood_angle()
 
         self.is_manual = False
 
@@ -48,6 +48,7 @@ class Hood:
         hood_configs.slot0.k_p = shooter.constants.HOOD_K_P
         hood_configs.slot0.k_i = shooter.constants.HOOD_K_I
         hood_configs.slot0.k_d = shooter.constants.HOOD_K_D
+        hood_configs.slot0.k_g = shooter.constants.HOOD_K_G
 
         # TODO: Configure soft limits.
         self.hood_motor.configurator.apply(hood_configs)
@@ -59,7 +60,7 @@ class Hood:
         self.hood_encoder.configurator.apply(encoder_configs)
 
         self._request = phoenix6.controls.PositionVoltage(
-            self._hood_position
+            self._hood_target_position / 360.0
         ).with_slot(0)
 
     def execute(self) -> None:
@@ -70,11 +71,15 @@ class Hood:
         # TODO: Implement position control.
         # TODO: Implement velocity control (for homing).
 
+        self._hood_target_position = max(
+            HOOD_MIN_ANGLE, min(HOOD_MAX_ANGLE, self._hood_target_position)
+        )
+
         if self.is_manual:
             self.hood_motor.set(self._hood_speed)
         else:
             self.hood_motor.set_control(
-                self._request.with_position(self._hood_position / 360)
+                self._request.with_position(self._hood_target_position / 360.0)
             )
 
     def on_enable(self) -> None:
@@ -84,7 +89,7 @@ class Hood:
         test mode.
         """
         self._hood_speed = 0.0
-        self._hood_position = self.hood_encoder.get_position().value * 360
+        self._hood_target_position = self.get_hood_angle()
 
     def on_disable(self) -> None:
         """Reset state when the robot is disabled.
@@ -92,7 +97,7 @@ class Hood:
         This method is called when the robot enters disabled mode.
         """
         self._hood_speed = 0.0
-        self._hood_position = self.hood_encoder.get_position().value * 360
+        self._hood_target_position = self.get_hood_angle()
 
     def setSpeed(self, speed: float) -> None:
         """Set the speed of the hood."""
@@ -100,13 +105,13 @@ class Hood:
 
     def setPosition(self, target_position: float) -> None:
         """Set the position (in degrees) of the hood"""
-        self._hood_position = target_position
-        # max(
-        #     HOOD_MIN_ANGLE, min(HOOD_MAX_ANGLE, target_position)
-        # )
+        self._hood_target_position = max(
+            HOOD_MIN_ANGLE, min(HOOD_MAX_ANGLE, target_position)
+        )
 
     def zeroEncoder(self) -> None:
         """Zeroes the encoder at its current position."""
+        self._hood_target_position = 0.0
         self.hood_encoder.set_position(0.0)
 
     @magicbot.feedback
@@ -136,9 +141,10 @@ class HoodTuner:
     k_p = magicbot.tunable(shooter.constants.HOOD_K_P)
     k_i = magicbot.tunable(shooter.constants.HOOD_K_I)
     k_d = magicbot.tunable(shooter.constants.HOOD_K_D)
+    k_g = magicbot.tunable(shooter.constants.HOOD_K_G)
 
     # The target angle of the hood, in degrees.
-    target_angle = magicbot.tunable(0.0)
+    target_angle = magicbot.tunable(20.0)
 
     def setup(self) -> None:
         """Set up initial state for the hood tuner.
@@ -151,6 +157,7 @@ class HoodTuner:
         self.last_k_p = shooter.constants.HOOD_K_P
         self.last_k_i = shooter.constants.HOOD_K_I
         self.last_k_d = shooter.constants.HOOD_K_D
+        self.last_k_g = shooter.constants.HOOD_K_G
 
     def execute(self) -> None:
         """Update the hood speed and gains (if they changed).
@@ -172,6 +179,7 @@ class HoodTuner:
         self.last_k_p = self.k_p
         self.last_k_i = self.k_i
         self.last_k_d = self.k_d
+        self.last_k_g = self.k_g
 
     def gainsChanged(self) -> bool:
         """Detect if any of the gains changed.
@@ -186,6 +194,7 @@ class HoodTuner:
             or self.k_p != self.last_k_p
             or self.k_i != self.last_k_i
             or self.k_d != self.last_k_d
+            or self.k_g != self.last_k_g
         )
 
     def applyGains(self) -> None:
@@ -198,6 +207,7 @@ class HoodTuner:
             .with_k_p(self.k_p)
             .with_k_i(self.k_i)
             .with_k_d(self.k_d)
+            .with_k_g(self.k_g)
         )
         result = self.hood_motor.configurator.apply(slot0_configs)
         if not result.is_ok():
