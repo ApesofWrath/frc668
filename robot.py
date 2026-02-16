@@ -139,6 +139,9 @@ class MyRobot(magicbot.MagicRobot):
         if self.main_controller.getLeftBumperButton():
             modifier = 0.13
 
+        if self.main_controller.getAButton():
+            self.drivetrain.reset_gyro_yaw()        
+        
         if self.drivetrain.isManual():
             vx = (
                 -filterInput(self.main_controller.getLeftY())

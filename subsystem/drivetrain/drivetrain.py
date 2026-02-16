@@ -36,6 +36,10 @@ class Drivetrain(swerve.SwerveDrivetrain):
             # else constants.BLUE_ALLIANCE_PERSPECTIVE_ROTATION
         )
 
+
+    def reset_gyro_yaw(self) -> None:
+        self.reset_rotation(wpimath.geometry.Rotation2d())
+
     def execute(self) -> None:
         pass
 

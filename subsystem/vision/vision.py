@@ -58,13 +58,13 @@ class Vision:
             if pose_estimate.tag_count > 0:
                 synced_timestamp = utils.fpga_to_current_time(pose_estimate.timestamp_seconds)
                 self.drivetrain.add_vision_measurement(
-                    pose_estimate.pose, synced_timestamp , [0.1,0.1,1.0]
+                    pose_estimate.pose, synced_timestamp , (0.1,0.1,1.0)
                 )
                 self.logger.info("Added vision measurement")
 
     @feedback
-    def get_robot_pose(self) -> list[float]:
+    def get_robot_pose(self) -> wpimath.geometry.Pose2d:
         pose: wpimath.geometry.Pose2d = self.drivetrain.get_state().pose
-        if pose != None:
-            return [pose.X(), pose.Y(), pose.rotation().degrees()]
-        return [-1.0,-1.0,-1.0]
+        if pose is not None:
+            return pose
+        return wpimath.geometry.Pose2d(wpimath.geometry.Translation2d(-10.0,-10.0), wpimath.geometry.Rotation2d())
