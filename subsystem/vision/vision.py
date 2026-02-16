@@ -4,6 +4,13 @@ import wpimath
 
 from subsystem import drivetrain, vision
 
+import phoenix6
+
+from phoenix6 import utils
+
+# import magicbot
+from  magicbot import feedback
+
 RADIANS_TO_DEGREES = 180.0 / math.pi
 
 
@@ -33,9 +40,9 @@ class Vision:
                 ll,
                 orientation.Z() * RADIANS_TO_DEGREES,
                 0.0,
-                orientation.Y() * RADIANS_TO_DEGREES,
                 0.0,
-                orientation.X() * RADIANS_TO_DEGREES,
+                0.0,
+                0.0,
                 0.0,
             )
 
@@ -49,13 +56,15 @@ class Vision:
             )
             # TODO: Filter the bad estimates out.
             if pose_estimate.tag_count > 0:
+                synced_timestamp = utils.fpga_to_current_time(pose_estimate.timestamp_seconds)
                 self.drivetrain.add_vision_measurement(
-                    pose_estimate.pose, pose_estimate.timestamp_seconds
+                    pose_estimate.pose, synced_timestamp , [0.1,0.1,1.0]
                 )
+                self.logger.info("Added vision measurement")
 
-    @magicbot.feedback
+    @feedback
     def get_robot_pose(self) -> list[float]:
-        pose: wpimath.geometry.Pose2d = self.drivetrain.sample_pose_at(
-            phoenix6.utils.get_current_time_seconds()
-        )
-        return [pose.X(), pose.Y(), pose.rotation().degrees()]
+        pose: wpimath.geometry.Pose2d = self.drivetrain.get_state().pose
+        if pose != None:
+            return [pose.X(), pose.Y(), pose.rotation().degrees()]
+        return [-1.0,-1.0,-1.0]

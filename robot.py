@@ -7,7 +7,7 @@ import wpimath
 from phoenix6 import swerve, hardware
 
 import constants
-from subsystem import drivetrain, shooter, intake
+from subsystem import drivetrain, shooter, intake, vision
 
 
 class MyRobot(magicbot.MagicRobot):
@@ -19,11 +19,12 @@ class MyRobot(magicbot.MagicRobot):
     """
 
     drivetrain: drivetrain.Drivetrain
-    flywheel: shooter.Flywheel
-    hopper: shooter.Hopper
-    indexer: shooter.Indexer
-    hood: shooter.Hood
-    intake: intake.Intake
+    vision: vision.Vision
+    # flywheel: shooter.Flywheel
+    # hopper: shooter.Hopper
+    # indexer: shooter.Indexer
+    # hood: shooter.Hood
+    # intake: intake.Intake
 
     def createObjects(self) -> None:
         """Create and initialize robot objects."""
@@ -34,44 +35,46 @@ class MyRobot(magicbot.MagicRobot):
             swerve.requests.FieldCentric().with_drive_request_type(
                 swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
             )
-        )  # Use open-loop control for drive motors
+        )
+        
+         # Use open-loop control for drive motors
 
         # Flywheel motor and encoder.
-        self.flywheel_motor = phoenix6.hardware.TalonFX(
-            shooter.constants.FLYWHEEL_MOTOR_CAN_ID, "Shooter"
-        )
-        self.flywheel_encoder = phoenix6.hardware.CANcoder(
-            shooter.constants.FLYWHEEL_ENCODER_CAN_ID, "Shooter"
-        )
+        # self.flywheel_motor = phoenix6.hardware.TalonFX(
+        #     shooter.constants.FLYWHEEL_MOTOR_CAN_ID, "Shooter"
+        # )
+        # self.flywheel_encoder = phoenix6.hardware.CANcoder(
+        #     shooter.constants.FLYWHEEL_ENCODER_CAN_ID, "Shooter"
+        # )
 
-        # Hopper motors.
-        self.hopper_left_motor = phoenix6.hardware.TalonFX(
-            shooter.constants.HOPPER_LEFT_MOTOR_CAN_ID, "rio"
-        )
-        self.hopper_right_motor = phoenix6.hardware.TalonFX(
-            shooter.constants.HOPPER_RIGHT_MOTOR_CAN_ID, "rio"
-        )
+        # # Hopper motors.
+        # self.hopper_left_motor = phoenix6.hardware.TalonFX(
+        #     shooter.constants.HOPPER_LEFT_MOTOR_CAN_ID, "rio"
+        # )
+        # self.hopper_right_motor = phoenix6.hardware.TalonFX(
+        #     shooter.constants.HOPPER_RIGHT_MOTOR_CAN_ID, "rio"
+        # )
 
-        # Indexer motors.
-        self.indexer_bottom_motor = phoenix6.hardware.TalonFX(
-            shooter.constants.INDEXER_BOTTOM_MOTOR_CAN_ID, "Shooter"
-        )
-        self.indexer_top_motor = phoenix6.hardware.TalonFX(
-            shooter.constants.INDEXER_TOP_MOTOR_CAN_ID, "Shooter"
-        )
+        # # Indexer motors.
+        # self.indexer_bottom_motor = phoenix6.hardware.TalonFX(
+        #     shooter.constants.INDEXER_BOTTOM_MOTOR_CAN_ID, "Shooter"
+        # )
+        # self.indexer_top_motor = phoenix6.hardware.TalonFX(
+        #     shooter.constants.INDEXER_TOP_MOTOR_CAN_ID, "Shooter"
+        # )
 
-        # Hood motor and encoder.
-        self.hood_motor = phoenix6.hardware.TalonFX(
-            shooter.constants.HOOD_MOTOR_CAN_ID, "Shooter"
-        )
-        self.hood_encoder = phoenix6.hardware.CANcoder(
-            shooter.constants.HOOD_ENCODER_CAN_ID, "Shooter"
-        )
+        # # Hood motor and encoder.
+        # self.hood_motor = phoenix6.hardware.TalonFX(
+        #     shooter.constants.HOOD_MOTOR_CAN_ID, "Shooter"
+        # )
+        # self.hood_encoder = phoenix6.hardware.CANcoder(
+        #     shooter.constants.HOOD_ENCODER_CAN_ID, "Shooter"
+        # )
 
-        # Intake motors.
-        self.intake_motor = phoenix6.hardware.TalonFX(
-            intake.constants.INTAKE_MOTOR_CAN_ID, "rio"
-        )
+        # # Intake motors.
+        # self.intake_motor = phoenix6.hardware.TalonFX(
+        #     intake.constants.INTAKE_MOTOR_CAN_ID, "rio"
+        # )
 
     def autonomousInit(self) -> None:
         """Initialize autonomous mode.
@@ -122,10 +125,10 @@ class MyRobot(magicbot.MagicRobot):
         if self.main_controller.getStartButton():
             self.drivetrain.seed_field_centric()
         self.driveWithJoysicks()
-        self.controlHopper()
-        self.controlIndexer()
-        self.controlIntake()
-        self.controlHood()
+        # self.controlHopper()
+        # self.controlIndexer()
+        # self.controlIntake()
+        # self.controlHood()
 
     def driveWithJoysicks(self) -> None:
         """Use the main controller joystick inputs to drive the robot base."""

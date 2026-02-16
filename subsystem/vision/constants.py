@@ -1,2 +1,2 @@
-LIMELIGHT_ONE = "limelight-one"
-LIMELIGHT_TWO = "limelight-two"
+LIMELIGHT_ONE = "limelight-foe"
+LIMELIGHT_TWO = "limelight-foc"
