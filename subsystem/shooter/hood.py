@@ -39,9 +39,8 @@ class Hood:
             shooter.constants.HOOD_ROTOR_TO_SENSOR_GEAR_RATIO
         )
         hood_configs.motor_output.inverted = (
-            phoenix6.signals.spn_enums.InvertedValue.CLOCKWISE_POSITIVE
+            phoenix6.signals.spn_enums.InvertedValue.COUNTER_CLOCKWISE_POSITIVE  # CLOCKWISE_POSITIVE
         )
-
         hood_configs.slot0.k_s = shooter.constants.HOOD_K_S
         hood_configs.slot0.k_v = shooter.constants.HOOD_K_V
         hood_configs.slot0.k_a = shooter.constants.HOOD_K_A
@@ -55,7 +54,7 @@ class Hood:
 
         encoder_configs = phoenix6.configs.CANcoderConfiguration()
         encoder_configs.magnet_sensor.sensor_direction = (
-            phoenix6.signals.spn_enums.SensorDirectionValue.CLOCKWISE_POSITIVE
+            phoenix6.signals.spn_enums.SensorDirectionValue.COUNTER_CLOCKWISE_POSITIVE  # CLOCKWISE_POSITIVE
         )
         self.hood_encoder.configurator.apply(encoder_configs)
 
@@ -68,18 +67,18 @@ class Hood:
 
         This method is called at the end of the control loop.
         """
-        # TODO: Implement position control.
         # TODO: Implement velocity control (for homing).
 
         self._hood_target_position = max(
             HOOD_MIN_ANGLE, min(HOOD_MAX_ANGLE, self._hood_target_position)
         )
-
         if self.is_manual:
             self.hood_motor.set(self._hood_speed)
         else:
             self.hood_motor.set_control(
-                self._request.with_position(self._hood_target_position / 360.0)
+                self._request.with_position(
+                    self._hood_target_position / 360.0
+                )
             )
 
     def on_enable(self) -> None:
