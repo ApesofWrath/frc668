@@ -38,6 +38,7 @@ class Drivetrain(swerve.SwerveDrivetrain):
 
 
     def reset_gyro_yaw(self) -> None:
+        self.pigeon2.set_yaw(0.0)
         self.reset_rotation(wpimath.geometry.Rotation2d())
 
     def execute(self) -> None:

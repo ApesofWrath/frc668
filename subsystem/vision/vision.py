@@ -55,12 +55,27 @@ class Vision:
                 )
             )
             # TODO: Filter the bad estimates out.
-            if pose_estimate.tag_count > 0:
-                synced_timestamp = utils.fpga_to_current_time(pose_estimate.timestamp_seconds)
-                self.drivetrain.add_vision_measurement(
-                    pose_estimate.pose, synced_timestamp , (0.1,0.1,1.0)
-                )
-                self.logger.info("Added vision measurement")
+
+            pose = pose_estimate.pose
+            drivetrain_pose = self.drivetrain.get_state().pose
+            if not (pose_estimate.tag_count > 0): 
+                continue           
+            if pose_estimate.avg_tag_dist > 4.5:
+                self.logger.warning(f"{ll}: Rejected too far away pose: {pose_estimate.avg_tag_dist}")
+                continue
+
+            if (-0.2 > pose.X() or pose.X() > 16.55) or (-0.2 > pose.Y() or pose.Y() > 8.07):
+                self.logger.warning(f"{ll}: Rejected out-of-bounds pose: ({pose.X()}, {pose.Y()})")
+                continue
+            
+            if drivetrain_pose.translation().distance(pose.translation()) > 0.5:
+                self.logger.warning(f"{ll}: Rejected large jump: {drivetrain_pose.translation().distance(pose.translation())}m")
+
+            synced_timestamp = utils.fpga_to_current_time(pose_estimate.timestamp_seconds)
+            self.drivetrain.add_vision_measurement(
+                pose_estimate.pose, synced_timestamp , (0.1,0.1,1.0)
+            )
+            self.logger.info("Added vision measurement")
 
     @feedback
     def get_robot_pose(self) -> wpimath.geometry.Pose2d:
@@ -68,3 +83,7 @@ class Vision:
         if pose is not None:
             return pose
         return wpimath.geometry.Pose2d(wpimath.geometry.Translation2d(-10.0,-10.0), wpimath.geometry.Rotation2d())
+    
+    @feedback
+    def get_gyro(self) -> wpimath.geometry.Rotation3d:
+        return self.drivetrain.get_rotation3d()
