@@ -36,7 +36,7 @@ class MyRobot(magicbot.MagicRobot):
                 swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
             )
         )  # Use open-loop control for drive motors
-        
+
         # Turret
         self.turret_motor = hardware.TalonFX(
             shooter.constants.TURRET_MOTOR_CAN_ID, "Shooter"
