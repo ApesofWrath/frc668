@@ -24,6 +24,7 @@ class Hood:
         self._hood_target_position = self.get_hood_angle()
 
         self.is_manual = False
+        self.homing = magicbot.tunable(False)
 
         hood_configs = phoenix6.configs.TalonFXConfiguration()
         hood_configs.feedback.feedback_sensor_source = (
@@ -72,14 +73,16 @@ class Hood:
         self._hood_target_position = max(
             HOOD_MIN_ANGLE, min(HOOD_MAX_ANGLE, self._hood_target_position)
         )
+
         if self.is_manual:
             self.hood_motor.set(self._hood_speed)
         else:
             self.hood_motor.set_control(
-                self._request.with_position(
-                    self._hood_target_position / 360.0
-                )
+                self._request.with_position(self._hood_target_position / 360.0)
             )
+
+        if self.homing == True:
+            self.hood_motor.set(-0.1)
 
     def on_enable(self) -> None:
         """Reset to a "safe" state when the robot is enabled.
@@ -120,6 +123,16 @@ class Hood:
             * 360.0
             / shooter.constants.HOOD_SENSOR_TO_MECHANISM_GEAR_RATIO
         )
+
+    # def homing_routine(self) -> None:
+    # self.hood_motor.set(-0.1)
+    # if (
+    #     self.hood_motor.get_motor_voltage() < 0.05
+    #     or self.hood_motor.get_velocity() < 1 / 360
+    # ):
+    #     self.zeroEncoder()
+    #     self.hood_motor.set(0.0)
+    #     self.homing = False
 
 
 class HoodTuner:
@@ -223,6 +236,14 @@ class HoodTuner:
     @magicbot.feedback
     def get_motor_stator_current(self) -> phoenix6.units.ampere:
         return self.hood_motor.get_stator_current().value
+
+    @magicbot.feedback
+    def get_motor_torque_current(self) -> phoenix6.units.ampere:
+        return self.hood_motor.get_torque_current().value
+
+    @magicbot.feedback
+    def get_motor_stall_current(self) -> phoenix6.units.ampere:
+        return self.hood_motor.get_motor_stall_current().value
 
     @magicbot.feedback
     def get_hood_angle(self) -> float:
