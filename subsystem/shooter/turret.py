@@ -46,7 +46,9 @@ class Turret:
 
         This method is called at the end of the control loop.
         """
-        self.turret_motor.set_control(PositionVoltage(self._turret_postion_degrees/360))
+        self.turret_motor.set_control(
+            PositionVoltage(self._turret_postion_degrees / 360)
+        )
 
     def on_enable(self) -> None:
         """Reset to a "safe" state when the robot is enabled.
@@ -65,7 +67,7 @@ class Turret:
 
     def setPosition(self, pos_degrees: float) -> None:
         """Set the target position of the turret.
-        
+
         Args:
             pos_degrees: The target position for the turret to move to, in degrees.
         """
@@ -82,7 +84,8 @@ class Turret:
             * 360.0
             / shooter.constants.TURRET_SENSOR_TO_MECHANISM_GEAR_RATIO
         )
-    
+
+
 class TurretTuner:
     """Component for tuning the turret gains.
 
