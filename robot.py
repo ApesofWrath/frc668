@@ -24,6 +24,7 @@ class MyRobot(magicbot.MagicRobot):
     indexer: shooter.Indexer
     hood: shooter.Hood
     intake: intake.Intake
+    turret: shooter.Turret
 
     def createObjects(self) -> None:
         """Create and initialize robot objects."""
@@ -35,6 +36,14 @@ class MyRobot(magicbot.MagicRobot):
                 swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
             )
         )  # Use open-loop control for drive motors
+        
+        # Turret
+        self.turret_motor = hardware.TalonFX(
+            shooter.constants.TURRET_MOTOR_CAN_ID, "Shooter"
+        )
+        self.turret_encoder = hardware.CANcoder(
+            shooter.constants.TURRET_ENCODER_CAN_ID, "Shooter"
+        )
 
         # Flywheel motor and encoder.
         self.flywheel_motor = phoenix6.hardware.TalonFX(
