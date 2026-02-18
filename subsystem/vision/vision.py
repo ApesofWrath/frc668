@@ -24,7 +24,7 @@ class Vision:
 
     def execute(self) -> None:
         self._setRobotOrientation()
-        self._updateRobotPose()
+        # self._updateRobotPose()
 
     def _setRobotOrientation(self) -> None:
         """Updates each Limelight with the robot's current orientation.
@@ -73,9 +73,9 @@ class Vision:
 
             synced_timestamp = utils.fpga_to_current_time(pose_estimate.timestamp_seconds)
             self.drivetrain.add_vision_measurement(
-                pose_estimate.pose, synced_timestamp , (0.1,0.1,1.0)
+                pose_estimate.pose, synced_timestamp , (0.1,0.1,math.inf)
             )
-            self.logger.info("Added vision measurement")
+            # self.logger.info("Added vision measurement")
 
     @feedback
     def get_robot_pose(self) -> wpimath.geometry.Pose2d:
@@ -85,5 +85,6 @@ class Vision:
         return wpimath.geometry.Pose2d(wpimath.geometry.Translation2d(-10.0,-10.0), wpimath.geometry.Rotation2d())
     
     @feedback
-    def get_gyro(self) -> wpimath.geometry.Rotation3d:
-        return self.drivetrain.get_rotation3d()
+    def get_gyro(self) -> float:
+        # return self.drivetrain.get_rotation3d().toRotation2d().degrees()
+        return self.drivetrain.pigeon2.getRotation2d().degrees()

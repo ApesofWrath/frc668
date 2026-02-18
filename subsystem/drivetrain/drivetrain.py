@@ -30,6 +30,7 @@ class Drivetrain(swerve.SwerveDrivetrain):
         #     self.logger.error("Failed to get alliance from DriverStation")
         #     return
         # self.logger.info(f"Alliance color {alliance_color}")
+        self.logger.info("Setting blue alliance perspective rotation")
         self.set_operator_perspective_forward(
             constants.BLUE_ALLIANCE_PERSPECTIVE_ROTATION
             # if alliance_color == wpilib.DriverStation.Alliance.kRed
@@ -38,8 +39,9 @@ class Drivetrain(swerve.SwerveDrivetrain):
 
 
     def reset_gyro_yaw(self) -> None:
-        self.pigeon2.set_yaw(0.0)
-        self.reset_rotation(wpimath.geometry.Rotation2d())
+        result = self.pigeon2.set_yaw(0)
+        if not result.is_ok():
+            self.logger.warning("Failed to reset gyro")
 
     def execute(self) -> None:
         pass

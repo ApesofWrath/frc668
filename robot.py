@@ -123,7 +123,9 @@ class MyRobot(magicbot.MagicRobot):
         """
         # TODO: Handle exceptions so robot code doesn't crash.
         if self.main_controller.getStartButton():
+            self.drivetrain.reset_gyro_yaw()
             self.drivetrain.seed_field_centric()
+              
         self.driveWithJoysicks()
         # self.controlHopper()
         # self.controlIndexer()
@@ -139,8 +141,7 @@ class MyRobot(magicbot.MagicRobot):
         if self.main_controller.getLeftBumperButton():
             modifier = 0.13
 
-        if self.main_controller.getAButton():
-            self.drivetrain.reset_gyro_yaw()        
+                  
         
         if self.drivetrain.isManual():
             vx = (
