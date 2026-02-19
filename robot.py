@@ -92,6 +92,7 @@ class MyRobot(magicbot.MagicRobot):
         called.
         """
         self.logger.info("Robot disabled")
+        self.vision._pose_seeded = False
 
     def disabledPeriodic(self) -> None:
         """Run during disabled mode.
@@ -123,8 +124,8 @@ class MyRobot(magicbot.MagicRobot):
         """
         # TODO: Handle exceptions so robot code doesn't crash.
         if self.main_controller.getStartButton():
-            self.drivetrain.reset_gyro_yaw()
-            self.drivetrain.seed_field_centric()
+            self.drivetrain.reset_pose(wpimath.geometry.Pose2d(0,0,0))
+            # self.drivetrain.seed_field_centric()
               
         self.driveWithJoysicks()
         # self.controlHopper()

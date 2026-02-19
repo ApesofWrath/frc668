@@ -30,7 +30,7 @@ class Drivetrain(swerve.SwerveDrivetrain):
         #     self.logger.error("Failed to get alliance from DriverStation")
         #     return
         # self.logger.info(f"Alliance color {alliance_color}")
-        self.logger.info("Setting blue alliance perspective rotation")
+        # self.logger.info("Setting blue alliance perspective rotation")
         self.set_operator_perspective_forward(
             constants.BLUE_ALLIANCE_PERSPECTIVE_ROTATION
             # if alliance_color == wpilib.DriverStation.Alliance.kRed

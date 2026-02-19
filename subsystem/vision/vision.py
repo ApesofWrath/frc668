@@ -21,10 +21,11 @@ class Vision:
         self._limelights: list[str] = []
         self._limelights.append(vision.constants.LIMELIGHT_ONE)
         self._limelights.append(vision.constants.LIMELIGHT_TWO)
+        self._pose_seeded = False
 
     def execute(self) -> None:
         self._setRobotOrientation()
-        # self._updateRobotPose()
+        self._updateRobotPose()
 
     def _setRobotOrientation(self) -> None:
         """Updates each Limelight with the robot's current orientation.
@@ -68,8 +69,15 @@ class Vision:
                 self.logger.warning(f"{ll}: Rejected out-of-bounds pose: ({pose.X()}, {pose.Y()})")
                 continue
             
+            if not self._pose_seeded:
+                self.drivetrain.reset_pose(pose)
+                self._pose_seeded = True
+                self.logger.info(f"Pose seeded from {ll}: ({pose.X()}, {pose.Y()})")
+                continue
+
             if drivetrain_pose.translation().distance(pose.translation()) > 0.5:
                 self.logger.warning(f"{ll}: Rejected large jump: {drivetrain_pose.translation().distance(pose.translation())}m")
+                continue
 
             synced_timestamp = utils.fpga_to_current_time(pose_estimate.timestamp_seconds)
             self.drivetrain.add_vision_measurement(
