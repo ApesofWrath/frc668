@@ -106,7 +106,7 @@ class Indexer:
         Args:
             value: Set to True to enable the motors, False to disable them.
         """
-        self._enabled = True
+        self._enabled = value
 
     @magicbot.feedback
     def get_target_rps(self) -> float:
