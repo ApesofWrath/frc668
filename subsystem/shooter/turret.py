@@ -20,30 +20,38 @@ class Turret:
         # Target position for the turret, in degrees. Counter clockwise is positive.
         self._turret_postion_degrees = 0.0
 
-        # Target rotation speed for the turret, in degrees. Counter clockwise is positive.
-        self._turret_velocity_degrees = 0.0
+        # Target rotation speed for the turret, in degrees per second. Counter clockwise is positive.
+        self._turret_velocity_degrees_per_second = 0.0
         self._is_velocity_controlled = False
 
-        turret_configs = phoenix6.configs.TalonFXConfiguration()
-        turret_configs.feedback.feedback_sensor_source = (
+        self.turret_configs = phoenix6.configs.TalonFXConfiguration()
+        self.turret_configs.feedback.feedback_sensor_source = (
             phoenix6.signals.spn_enums.FeedbackSensorSourceValue.FUSED_CANCODER
         )
-        turret_configs.feedback.feedback_remote_sensor_id = (
+        self.turret_configs.feedback.feedback_remote_sensor_id = (
             shooter.constants.TURRET_ENCODER_CAN_ID
         )
-        turret_configs.feedback.sensor_to_mechanism_ratio = (
+        self.turret_configs.feedback.sensor_to_mechanism_ratio = (
             shooter.constants.TURRET_SENSOR_TO_MECHANISM_GEAR_RATIO
         )
-        turret_configs.feedback.rotor_to_sensor_ratio = (
+        self.turret_configs.feedback.rotor_to_sensor_ratio = (
             shooter.constants.TURRET_ROTOR_TO_SENSOR_GEAR_RATIO
         )
-        turret_configs.motor_output.inverted = (
+        self.turret_configs.motor_output.inverted = (
             phoenix6.signals.spn_enums.InvertedValue.CLOCKWISE_POSITIVE
         )
-        turret_configs.slot0.k_p = shooter.constants.TURRET_K_P
-        turret_configs.slot0.k_i = shooter.constants.TURRET_K_I
-        turret_configs.slot0.k_d = shooter.constants.TURRET_K_D
-        self.turret_motor.configurator.apply(turret_configs)
+        self.turret_configs.slot0.k_p = shooter.constants.TURRET_K_P
+        self.turret_configs.slot0.k_i = shooter.constants.TURRET_K_I
+        self.turret_configs.slot0.k_d = shooter.constants.TURRET_K_D
+
+        
+        self.turret_configs.slot1.k_s = shooter.constants.TURRET_VEL_K_S
+        self.turret_configs.slot1.k_v = shooter.constants.TURRET_VEL_K_V
+        self.turret_configs.slot1.k_a = shooter.constants.TURRET_VEL_K_A
+        self.turret_configs.slot1.k_p = shooter.constants.TURRET_VEL_K_P
+        self.turret_configs.slot1.k_i = shooter.constants.TURRET_VEL_K_I
+        self.turret_configs.slot1.k_d = shooter.constants.TURRET_VEL_K_D
+        self.turret_motor.configurator.apply(self.turret_configs)
 
     def execute(self) -> None:
         """Command the motors to the current speed.
@@ -51,9 +59,9 @@ class Turret:
         This method is called at the end of the control loop.
         """
         if self._is_velocity_controlled:
-            self.turret_motor.set_control(VelocityVoltage(self._turret_velocity_degrees/360))
+            self.turret_motor.set_control(VelocityVoltage(self._turret_velocity_degrees_per_second/360).with_slot(1))
         else:
-            self.turret_motor.set_control(PositionVoltage(self._turret_postion_degrees/360))
+            self.turret_motor.set_control(PositionVoltage(self._turret_postion_degrees/360).with_slot(0))
 
     def on_enable(self) -> None:
         """Reset to a "safe" state when the robot is enabled.
@@ -62,7 +70,7 @@ class Turret:
         test mode.
         """
         self._turret_postion_degrees = 0.0
-        self._turret_velocity_degrees = 0.0
+        self._turret_velocity_degrees_per_second = 0.0
 
     def on_disable(self) -> None:
         """Reset state when the robot is disabled.
@@ -70,7 +78,7 @@ class Turret:
         This method is called when the robot enters disabled mode.
         """
         self._turret_postion_degrees = 0.0
-        self._turret_velocity_degrees = 0.0
+        self._turret_velocity_degrees_per_second = 0.0
 
     def setPosition(self, pos_degrees: float) -> None:
         """Set the target position of the turret.
@@ -84,9 +92,9 @@ class Turret:
         """Set the target speed of the turret.
         
         Args:
-            vel_degrees: The target speed for the turret to rotate at, in degrees.
+            vel_degrees: The target speed for the turret to rotate at, in degrees per second.
         """
-        self._turret_velocity_degrees = vel_degrees
+        self._turret_velocity_degrees_per_second = vel_degrees
 
     def setControlType(self, use_velocity: bool) -> None:
         """Set the type of turret control to be used: position or velocity
@@ -95,6 +103,10 @@ class Turret:
             use_velocity: The type of controler that should be used. True for velocity control, False for position control. 
         """
         self._is_velocity_controlled = use_velocity
+
+    def isControlTypeVelocity(self) -> bool:
+        """Get the type of turret control being used used: position or velocity"""
+        return self._is_velocity_controlled
 
     def zeroEncoder(self) -> None:
         """Zeroes the encoder at its current position."""
@@ -123,6 +135,14 @@ class TurretTuner:
     k_p = magicbot.tunable(shooter.constants.TURRET_K_P)
     k_i = magicbot.tunable(shooter.constants.TURRET_K_I)
     k_d = magicbot.tunable(shooter.constants.TURRET_K_D)
+    
+    # Gains for velocity control of the turret.
+    vel_k_s = magicbot.tunable(shooter.constants.TURRET_VEL_K_S)
+    vel_k_v = magicbot.tunable(shooter.constants.TURRET_VEL_K_V)
+    vel_k_a = magicbot.tunable(shooter.constants.TURRET_VEL_K_A)
+    vel_k_p = magicbot.tunable(shooter.constants.TURRET_VEL_K_P)
+    vel_k_i = magicbot.tunable(shooter.constants.TURRET_VEL_K_I)
+    vel_k_d = magicbot.tunable(shooter.constants.TURRET_VEL_K_D)
 
     # The target position of the turret.
     target_position = magicbot.tunable(0.0)
@@ -138,6 +158,17 @@ class TurretTuner:
         self.last_k_p = shooter.constants.TURRET_K_P
         self.last_k_i = shooter.constants.TURRET_K_I
         self.last_k_d = shooter.constants.TURRET_K_D
+        
+        self.last_use_velocity = self.use_velocity
+
+        self.last_vel_k_s = shooter.constants.TURRET_VEL_K_S
+        self.last_vel_k_v = shooter.constants.TURRET_VEL_K_V
+        self.last_vel_k_a = shooter.constants.TURRET_VEL_K_A
+        self.last_vel_k_p = shooter.constants.TURRET_VEL_K_P
+        self.last_vel_k_i = shooter.constants.TURRET_VEL_K_I
+        self.last_vel_k_d = shooter.constants.TURRET_VEL_K_D
+
+        self.logger.info("Turret initialized")
 
     def execute(self) -> None:
         """Update the turret position and gains (if they changed).
@@ -153,11 +184,21 @@ class TurretTuner:
         if not self.gainsChanged():
             return
 
+        self.logger.info("Gains changed!")
         self.applyGains()
+
+        self.last_use_velocity = self.use_velocity
 
         self.last_k_p = self.k_p
         self.last_k_i = self.k_i
         self.last_k_d = self.k_d
+
+        self.last_vel_k_s = self.vel_k_s
+        self.last_vel_k_v = self.vel_k_v
+        self.last_vel_k_a = self.vel_k_a
+        self.last_vel_k_p = self.vel_k_p
+        self.last_vel_k_i = self.vel_k_i
+        self.last_vel_k_d = self.vel_k_d
 
     def gainsChanged(self) -> bool:
         """Detect if any of the gains changed.
@@ -169,17 +210,33 @@ class TurretTuner:
             self.k_p != self.last_k_p
             or self.k_i != self.last_k_i
             or self.k_d != self.last_k_d
+            or self.vel_k_s != self.last_vel_k_s
+            or self.vel_k_v != self.last_vel_k_v
+            or self.vel_k_a != self.last_vel_k_a
+            or self.vel_k_p != self.last_vel_k_p
+            or self.vel_k_i != self.last_vel_k_i
+            or self.vel_k_d != self.last_vel_k_d
         )
 
     def applyGains(self) -> None:
         """Apply the current gains to the motor."""
+        self.logger.info("applying gains")
+        slot1_configs = (
+            phoenix6.configs.config_groups.Slot1Configs()
+            .with_k_s(self.vel_k_s)
+            .with_k_v(self.vel_k_v)
+            .with_k_a(self.vel_k_a)
+            .with_k_p(self.vel_k_p)
+            .with_k_i(self.vel_k_i)
+            .with_k_d(self.vel_k_d)
+        )
         slot0_configs = (
             phoenix6.configs.config_groups.Slot0Configs()
             .with_k_p(self.k_p)
             .with_k_i(self.k_i)
             .with_k_d(self.k_d)
         )
-        result = self.turret_motor.configurator.apply(slot0_configs)
+        result = self.turret_motor.configurator.apply(self.turret.turret_configs.with_slot0(slot0_configs).with_slot1(slot1_configs))
         if not result.is_ok():
             self.logger.error("Failed to apply new gains to turret motor")
 
@@ -198,3 +255,7 @@ class TurretTuner:
     @magicbot.feedback
     def get_position(self) -> float:
         return self.turret_encoder.get_position().value
+    
+    @magicbot.feedback
+    def get_measured_dps(self) -> float:
+        return self.turret_motor.get_velocity().value * 360

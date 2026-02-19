@@ -106,6 +106,9 @@ class MyRobot(magicbot.MagicRobot):
         disabled mode. This code executes before the `execute` method of all
         components are called.
         """
+        # We dont want to be zeroing the turret while it's moving, so we'll zero it while its disabled
+        if self.operator_controller.getStartButton(): 
+            self.turret.zeroEncoder()
         pass
 
     def teleopInit(self) -> None:
@@ -135,6 +138,7 @@ class MyRobot(magicbot.MagicRobot):
         self.controlIndexer()
         self.controlIntake()
         self.controlHood()
+        self.controlTurret()
 
     def driveWithJoysicks(self) -> None:
         """Use the main controller joystick inputs to drive the robot base."""
@@ -197,6 +201,16 @@ class MyRobot(magicbot.MagicRobot):
         self.hood.setSpeed(
             -filterInput(self.operator_controller.getRightY()) * 0.1
         )
+
+    def controlTurret(self) -> None:
+        """Drive the turret motor."""
+        if self.operator_controller.getXButtonReleased():
+            self.turret.setControlType(not self.turret.isControlTypeVelocity())
+            self.logger.info("Turret control type is now: " + ("velocity" if self.turret.isControlTypeVelocity() else "position"))
+        if self.turret.isControlTypeVelocity():
+            self.turret.setVelocity(
+                filterInput(self.operator_controller.getLeftX()) * 30
+            )
 
 
 def filterInput(controller_input: float, apply_deadband: bool = True) -> float:
