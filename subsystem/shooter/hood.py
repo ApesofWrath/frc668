@@ -1,5 +1,6 @@
 import magicbot
 import phoenix6
+import wpilib
 
 from subsystem import shooter
 from subsystem.shooter.constants import HOOD_MAX_ANGLE, HOOD_MIN_ANGLE
@@ -24,7 +25,7 @@ class Hood:
         self._hood_target_position = self.get_hood_angle()
 
         self.is_manual = False
-        self.homing = False
+        # self.homing = False
 
         hood_configs = phoenix6.configs.TalonFXConfiguration()
         hood_configs.feedback.feedback_sensor_source = (
@@ -120,12 +121,16 @@ class Hood:
             / shooter.constants.HOOD_SENSOR_TO_MECHANISM_GEAR_RATIO
         )
 
-    def homing_routine(self) -> None:
-        self.hood_motor.set(-0.1)
-        if self.hood_motor.get_stator_current >= 8.5:
-            self.zeroEncoder()
-            self.hood_motor.set(0.0)
-            self.homing = False
+    @magicbot.feedback
+    def get_motor_stator_current(self) -> float:
+        return self.hood_motor.get_stator_current().value
+
+    # def homing_routine(self) -> None:
+    #     self.hood_motor.set(-0.1)
+    #     if self.hood_motor.get_stator_current.value >= 8.5:
+    #         self.zeroEncoder()
+    #         self.hood_motor.set(0.0)
+    #         self.homing = False
 
 
 class HoodTuner:
@@ -252,3 +257,47 @@ class HoodTuner:
     @magicbot.feedback
     def get_encoder_position(self) -> float:
         return self.hood_encoder.get_position().value
+
+
+class Homing(magicbot.StateMachine):
+    hood_motor: phoenix6.hardware.TalonFX
+    hood_encoder: phoenix6.hardware.CANcoder
+    hood: Hood
+
+    def __init__(self):
+        self._first_spike = True
+        self._timer = wpilib.Timer()
+
+    def homing_routine(self) -> None:
+        self.engage()
+        self.logger.info(self.current_state)
+
+    @magicbot.state(first=True)
+    def homing(self, state_tm) -> None:
+        self.hood_motor.set(-0.1)
+        if self.hood_motor.get_stator_current().value >= 8.5:
+            if self._first_spike:
+                self._first_spike = False
+                self._timer.start()
+            else:
+                if self._timer.hasElapsed(0.1):
+                    self._first_spike = True
+                    self._timer.reset()
+                    self.next_state("zero")
+        elif state_tm >= 10.0:
+            self.next_state("timeout")
+        else:
+            self.logger.warning(
+                "Neither conditions are met to proceed to next state."
+            )
+
+    @magicbot.state()
+    def zero(self) -> None:
+        self.hood_motor.set(0.0)
+        self.hood_motor.setNeutralMode(0)  # 0 is to coast, 1 is to brake
+        self.hood.zeroEncoder()
+
+    @magicbot.state()
+    def timeout(self) -> None:
+        self.hood_motor.set(0.0)
+        self.logger.warning("Timeout, homing routine incomplete!")

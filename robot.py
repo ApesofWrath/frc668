@@ -24,6 +24,7 @@ class MyRobot(magicbot.MagicRobot):
     indexer: shooter.Indexer
     hood: shooter.Hood
     intake: intake.Intake
+    homing: shooter.hood.Homing
 
     def createObjects(self) -> None:
         """Create and initialize robot objects."""
@@ -107,6 +108,7 @@ class MyRobot(magicbot.MagicRobot):
         called.
         """
         self.logger.info("Entering teleop mode")
+        self.homing.homing_routine()
 
     def teleopPeriodic(self) -> None:
         """Run during teleoperated mode.
@@ -194,8 +196,9 @@ class MyRobot(magicbot.MagicRobot):
         if self.operator_controller.getXButtonPressed():
             self.hood.is_manual = True
         if self.operator_controller.getYButtonPressed():
-            self.hood.is_manual = False 
+            self.hood.is_manual = False
             # self.hood.setPosition(18) #to test. later, use shooter interpolated values
+
 
 def filterInput(controller_input: float, apply_deadband: bool = True) -> float:
     """Filter the controller input with a squared scaling and deadband.
