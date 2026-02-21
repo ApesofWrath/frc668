@@ -36,7 +36,7 @@ class MyRobot(magicbot.MagicRobot):
                 swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
             )
         )  # Use open-loop control for drive motors
-        
+
         # Turret
         self.turret_motor = hardware.TalonFX(
             shooter.constants.TURRET_MOTOR_CAN_ID, "Shooter"
@@ -115,7 +115,7 @@ class MyRobot(magicbot.MagicRobot):
         components are called.
         """
         # We dont want to be zeroing the turret while it's moving, so we'll zero it while its disabled
-        if self.operator_controller.getStartButton(): 
+        if self.operator_controller.getStartButton():
             self.turret.zeroEncoder()
         pass
 
@@ -214,7 +214,14 @@ class MyRobot(magicbot.MagicRobot):
         """Drive the turret motor."""
         if self.operator_controller.getXButtonReleased():
             self.turret.setControlType(not self.turret.isControlTypeVelocity())
-            self.logger.info("Turret control type is now: " + ("velocity" if self.turret.isControlTypeVelocity() else "position"))
+            self.logger.info(
+                "Turret control type is now: "
+                + (
+                    "velocity"
+                    if self.turret.isControlTypeVelocity()
+                    else "position"
+                )
+            )
         if self.turret.isControlTypeVelocity():
             self.turret.setVelocity(
                 filterInput(self.operator_controller.getLeftX()) * 30
