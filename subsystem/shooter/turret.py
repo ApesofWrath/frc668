@@ -44,7 +44,6 @@ class Turret:
         self.turret_configs.slot0.k_i = shooter.constants.TURRET_K_I
         self.turret_configs.slot0.k_d = shooter.constants.TURRET_K_D
 
-        
         self.turret_configs.slot1.k_s = shooter.constants.TURRET_VEL_K_S
         self.turret_configs.slot1.k_v = shooter.constants.TURRET_VEL_K_V
         self.turret_configs.slot1.k_a = shooter.constants.TURRET_VEL_K_A
@@ -59,9 +58,15 @@ class Turret:
         This method is called at the end of the control loop.
         """
         if self._is_velocity_controlled:
-            self.turret_motor.set_control(VelocityVoltage(self._turret_velocity_degrees_per_second/360).with_slot(1))
+            self.turret_motor.set_control(
+                VelocityVoltage(
+                    self._turret_velocity_degrees_per_second / 360
+                ).with_slot(1)
+            )
         else:
-            self.turret_motor.set_control(PositionVoltage(self._turret_postion_degrees/360).with_slot(0))
+            self.turret_motor.set_control(
+                PositionVoltage(self._turret_postion_degrees / 360).with_slot(0)
+            )
 
     def on_enable(self) -> None:
         """Reset to a "safe" state when the robot is enabled.
@@ -82,7 +87,7 @@ class Turret:
 
     def setPosition(self, pos_degrees: float) -> None:
         """Set the target position of the turret.
-        
+
         Args:
             pos_degrees: The target position for the turret to move to, in degrees.
         """
@@ -90,7 +95,7 @@ class Turret:
 
     def setVelocity(self, vel_degrees: float) -> None:
         """Set the target speed of the turret.
-        
+
         Args:
             vel_degrees: The target speed for the turret to rotate at, in degrees per second.
         """
@@ -100,7 +105,7 @@ class Turret:
         """Set the type of turret control to be used: position or velocity
 
         Args:
-            use_velocity: The type of controler that should be used. True for velocity control, False for position control. 
+            use_velocity: The type of controler that should be used. True for velocity control, False for position control.
         """
         self._is_velocity_controlled = use_velocity
 
@@ -119,7 +124,8 @@ class Turret:
             * 360.0
             / shooter.constants.TURRET_SENSOR_TO_MECHANISM_GEAR_RATIO
         )
-    
+
+
 class TurretTuner:
     """Component for tuning the turret gains.
 
@@ -135,7 +141,7 @@ class TurretTuner:
     k_p = magicbot.tunable(shooter.constants.TURRET_K_P)
     k_i = magicbot.tunable(shooter.constants.TURRET_K_I)
     k_d = magicbot.tunable(shooter.constants.TURRET_K_D)
-    
+
     # Gains for velocity control of the turret.
     vel_k_s = magicbot.tunable(shooter.constants.TURRET_VEL_K_S)
     vel_k_v = magicbot.tunable(shooter.constants.TURRET_VEL_K_V)
@@ -158,7 +164,7 @@ class TurretTuner:
         self.last_k_p = shooter.constants.TURRET_K_P
         self.last_k_i = shooter.constants.TURRET_K_I
         self.last_k_d = shooter.constants.TURRET_K_D
-        
+
         self.last_use_velocity = self.use_velocity
 
         self.last_vel_k_s = shooter.constants.TURRET_VEL_K_S
@@ -236,7 +242,11 @@ class TurretTuner:
             .with_k_i(self.k_i)
             .with_k_d(self.k_d)
         )
-        result = self.turret_motor.configurator.apply(self.turret.turret_configs.with_slot0(slot0_configs).with_slot1(slot1_configs))
+        result = self.turret_motor.configurator.apply(
+            self.turret.turret_configs.with_slot0(slot0_configs).with_slot1(
+                slot1_configs
+            )
+        )
         if not result.is_ok():
             self.logger.error("Failed to apply new gains to turret motor")
 
@@ -255,7 +265,7 @@ class TurretTuner:
     @magicbot.feedback
     def get_position(self) -> float:
         return self.turret_encoder.get_position().value
-    
+
     @magicbot.feedback
     def get_measured_dps(self) -> float:
         return self.turret_motor.get_velocity().value * 360

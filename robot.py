@@ -45,6 +45,14 @@ class MyRobot(magicbot.MagicRobot):
             shooter.constants.TURRET_ENCODER_CAN_ID, "Shooter"
         )
 
+        # Turret
+        self.turret_motor = hardware.TalonFX(
+            shooter.constants.TURRET_MOTOR_CAN_ID, "Shooter"
+        )
+        self.turret_encoder = hardware.CANcoder(
+            shooter.constants.TURRET_ENCODER_CAN_ID, "Shooter"
+        )
+
         # Flywheel motor and encoder.
         self.flywheel_motor = phoenix6.hardware.TalonFX(
             shooter.constants.FLYWHEEL_MOTOR_CAN_ID, "Shooter"
@@ -62,11 +70,11 @@ class MyRobot(magicbot.MagicRobot):
         )
 
         # Indexer motors.
-        self.indexer_bottom_motor = phoenix6.hardware.TalonFX(
-            shooter.constants.INDEXER_BOTTOM_MOTOR_CAN_ID, "Shooter"
+        self.indexer_back_motor = phoenix6.hardware.TalonFX(
+            shooter.constants.INDEXER_BACK_MOTOR_CAN_ID, "Shooter"
         )
-        self.indexer_top_motor = phoenix6.hardware.TalonFX(
-            shooter.constants.INDEXER_TOP_MOTOR_CAN_ID, "Shooter"
+        self.indexer_front_motor = phoenix6.hardware.TalonFX(
+            shooter.constants.INDEXER_FRONT_MOTOR_CAN_ID, "Shooter"
         )
 
         # Hood motor and encoder.
@@ -181,9 +189,9 @@ class MyRobot(magicbot.MagicRobot):
     def controlIndexer(self) -> None:
         """Drive the indexer motors."""
         if self.operator_controller.getRightBumper():
-            self.indexer.setMotorSpeed(1.0)
+            self.indexer.setEnabled(True)
         else:
-            self.indexer.setMotorSpeed(0.0)
+            self.indexer.setEnabled(False)
 
     def controlIntake(self) -> None:
         """Drive the intake motors."""
