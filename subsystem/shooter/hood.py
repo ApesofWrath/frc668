@@ -21,7 +21,7 @@ class Hood:
         robot class, and after all components have been created.
         """
         self._hood_speed = 0.0
-        self._hood_target_position = self.get_hood_angle()
+        self._target_position_degrees = self.get_hood_angle()
 
         self.is_manual = False
 
