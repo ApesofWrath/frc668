@@ -24,24 +24,18 @@ class Drivetrain(swerve.SwerveDrivetrain):
 
     def setup(self) -> None:
         """Apply the operator perspective based on alliance color."""
-        # self.logger.info(f"DriverStation attached: {wpilib.DriverStation.isDSAttached()}")
-        # alliance_color = wpilib.DriverStation.getAlliance()
-        # if alliance_color is None:
-        #     self.logger.error("Failed to get alliance from DriverStation")
-        #     return
-        # self.logger.info(f"Alliance color {alliance_color}")
-        # self.logger.info("Setting blue alliance perspective rotation")
+        self.logger.info(f"DriverStation attached: {wpilib.DriverStation.isDSAttached()}")
+        alliance_color = wpilib.DriverStation.getAlliance()
+        if alliance_color is None:
+            self.logger.error("Failed to get alliance from DriverStation")
+            return
+        self.logger.info(f"Alliance color {alliance_color}")
+        self.logger.info("Setting blue alliance perspective rotation")
         self.set_operator_perspective_forward(
             constants.BLUE_ALLIANCE_PERSPECTIVE_ROTATION
-            # if alliance_color == wpilib.DriverStation.Alliance.kRed
-            # else constants.BLUE_ALLIANCE_PERSPECTIVE_ROTATION
+            if alliance_color == wpilib.DriverStation.Alliance.kRed
+            else constants.BLUE_ALLIANCE_PERSPECTIVE_ROTATION
         )
-
-
-    def reset_gyro_yaw(self) -> None:
-        result = self.pigeon2.set_yaw(0)
-        if not result.is_ok():
-            self.logger.warning("Failed to reset gyro")
 
     def execute(self) -> None:
         pass

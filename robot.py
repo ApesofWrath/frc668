@@ -104,7 +104,7 @@ class MyRobot(magicbot.MagicRobot):
         """
         vision.limelight.LimelightHelpers.set_imu_mode(self.vision._limelights[0], 1)
         vision.limelight.LimelightHelpers.set_imu_mode(self.vision._limelights[1], 1)
-        self.logger.info("Set Limelight IMU's to mode: 1")
+        # self.logger.info("Set Limelight IMU's to mode: 1")
         pass
 
     def teleopInit(self) -> None:
