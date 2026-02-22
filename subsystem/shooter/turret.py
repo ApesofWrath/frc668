@@ -190,7 +190,6 @@ class TurretTuner:
         if not self.gainsChanged():
             return
 
-        self.logger.info("Gains changed!")
         self.applyGains()
 
         self.last_use_velocity = self.use_velocity
@@ -226,7 +225,7 @@ class TurretTuner:
 
     def applyGains(self) -> None:
         """Apply the current gains to the motor."""
-        self.logger.info("applying gains")
+        self.logger.info("Applying turret gains...")
         slot1_configs = (
             phoenix6.configs.config_groups.Slot1Configs()
             .with_k_s(self.vel_k_s)
@@ -247,7 +246,9 @@ class TurretTuner:
                 slot1_configs
             )
         )
-        if not result.is_ok():
+        if result.is_ok():
+            self.logger.error("Successfully applied new turret gains")
+        else:
             self.logger.error("Failed to apply new gains to turret motor")
 
     @magicbot.feedback

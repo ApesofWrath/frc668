@@ -117,7 +117,6 @@ class MyRobot(magicbot.MagicRobot):
         # We dont want to be zeroing the turret while it's moving, so we'll zero it while its disabled
         if self.operator_controller.getStartButton():
             self.turret.zeroEncoder()
-        pass
 
     def teleopInit(self) -> None:
         """Initialize teleoperated mode.
