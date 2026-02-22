@@ -288,17 +288,19 @@ class Homing(magicbot.StateMachine):
         elif state_tm >= 10.0:
             self.next_state("timeout")
         else:
-            # self.hood_motor.set(-0.1)
             self.logger.info("Homing incomplete")
 
     @magicbot.state(must_finish=True)
-    def zero(self) -> None:
+    def zero(self):
         self.zeroed = True
         self.logger.info("Entered zeroing state.")
         self.hood_motor.set(0.0)
-        # self.hood_motor.setNeutralMode(0)  # 0 is to coast, 1 is to brake TODO: check if erroneous 
+        self.hood.hood_motor.setNeutralMode(
+            phoenix6.signals.NeutralModeValue.BRAKE, 0.1
+        )
+        # 0 is to coast, 1 is to brake TODO: check if erroneous
         self.hood.zeroEncoder()
-        # TODO: exit state 
+        self.done()
 
     @magicbot.state()
     def timeout(self) -> None:
