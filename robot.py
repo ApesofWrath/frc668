@@ -128,6 +128,8 @@ class MyRobot(magicbot.MagicRobot):
         self.controlIndexer()
         self.controlIntake()
         self.controlHood()
+        if self.operator_controller.getAButtonPressed():
+            self.homing.homing_routine()
 
     def driveWithJoysicks(self) -> None:
         """Use the main controller joystick inputs to drive the robot base."""
@@ -197,7 +199,6 @@ class MyRobot(magicbot.MagicRobot):
             self.hood.is_manual = True
         if self.operator_controller.getYButtonPressed():
             self.hood.is_manual = False
-            # self.hood.setPosition(18) #to test. later, use shooter interpolated values
 
 
 def filterInput(controller_input: float, apply_deadband: bool = True) -> float:

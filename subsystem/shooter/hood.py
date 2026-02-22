@@ -22,7 +22,7 @@ class Hood:
         robot class, and after all components have been created.
         """
         self._hood_speed = 0.0
-        self._hood_target_position = self.get_hood_angle()
+        self._hood_target_position = 0.0  # self.get_hood_angle()
 
         self.is_manual = False
         # self.homing = False
@@ -267,12 +267,13 @@ class Homing(magicbot.StateMachine):
     def __init__(self):
         self._first_spike = True
         self._timer = wpilib.Timer()
+        self.zeroed = False
 
     def homing_routine(self) -> None:
         self.engage()
         self.logger.info(self.current_state)
 
-    @magicbot.state(first=True)
+    @magicbot.state(first=True, must_finish=True)
     def homing(self, state_tm) -> None:
         self.hood_motor.set(-0.1)
         if self.hood_motor.get_stator_current().value >= 8.5:
@@ -287,17 +288,23 @@ class Homing(magicbot.StateMachine):
         elif state_tm >= 10.0:
             self.next_state("timeout")
         else:
-            self.logger.warning(
-                "Neither conditions are met to proceed to next state."
-            )
+            # self.hood_motor.set(-0.1)
+            self.logger.info("Homing incomplete")
 
-    @magicbot.state()
+    @magicbot.state(must_finish=True)
     def zero(self) -> None:
+        self.zeroed = True
+        self.logger.info("Entered zeroing state.")
         self.hood_motor.set(0.0)
-        self.hood_motor.setNeutralMode(0)  # 0 is to coast, 1 is to brake
+        # self.hood_motor.setNeutralMode(0)  # 0 is to coast, 1 is to brake TODO: check if erroneous 
         self.hood.zeroEncoder()
+        # TODO: exit state 
 
     @magicbot.state()
     def timeout(self) -> None:
         self.hood_motor.set(0.0)
         self.logger.warning("Timeout, homing routine incomplete!")
+
+    @magicbot.feedback
+    def zeroed_success(self) -> None:
+        return self.zeroed
