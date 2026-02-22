@@ -24,16 +24,16 @@ class Drivetrain(swerve.SwerveDrivetrain):
 
     def setup(self) -> None:
         """Apply the operator perspective based on alliance color."""
-        # alliance_color = wpilib.DriverStation.getAlliance()
-        # if alliance_color is None:
-        #     self.logger.error("Failed to get alliance from DriverStation")
-        #     return
-        # self.logger.info(f"Alliance color {alliance_color}")
-        # self.set_operator_perspective_forward(
-        #     constants.RED_ALLIANCE_PERSPECTIVE_ROTATION
-        #     if alliance_color == wpilib.DriverStation.Alliance.kRed
-        #     else constants.BLUE_ALLIANCE_PERSPECTIVE_ROTATION
-        # )
+        alliance_color = wpilib.DriverStation.getAlliance()
+        if alliance_color is None:
+            self.logger.error("Failed to get alliance from DriverStation")
+            return
+        self.logger.info(f"Alliance color {alliance_color}")
+        self.set_operator_perspective_forward(
+            constants.RED_ALLIANCE_PERSPECTIVE_ROTATION
+            if alliance_color == wpilib.DriverStation.Alliance.kRed
+            else constants.BLUE_ALLIANCE_PERSPECTIVE_ROTATION
+        )
 
     def execute(self) -> None:
         pass
