@@ -19,12 +19,12 @@ class MyRobot(magicbot.MagicRobot):
     """
 
     drivetrain: drivetrain.Drivetrain
-    vision: vision.Vision
-    # flywheel: shooter.Flywheel
-    # hopper: shooter.Hopper
-    # indexer: shooter.Indexer
-    # hood: shooter.Hood
-    # intake: intake.Intake
+    flywheel: shooter.Flywheel
+    hopper: shooter.Hopper
+    indexer: shooter.Indexer
+    hood: shooter.Hood
+    intake: intake.Intake
+    turret: shooter.Turret
 
     def createObjects(self) -> None:
         """Create and initialize robot objects."""
@@ -35,6 +35,46 @@ class MyRobot(magicbot.MagicRobot):
             swerve.requests.FieldCentric().with_drive_request_type(
                 swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
             )
+        )  # Use open-loop control for drive motors
+
+        # Turret
+        self.turret_motor = hardware.TalonFX(
+            shooter.constants.TURRET_MOTOR_CAN_ID, "Shooter"
+        )
+        self.turret_encoder = hardware.CANcoder(
+            shooter.constants.TURRET_ENCODER_CAN_ID, "Shooter"
+        )
+
+        # Turret
+        self.turret_motor = hardware.TalonFX(
+            shooter.constants.TURRET_MOTOR_CAN_ID, "Shooter"
+        )
+        self.turret_encoder = hardware.CANcoder(
+            shooter.constants.TURRET_ENCODER_CAN_ID, "Shooter"
+        )
+
+        # Flywheel motor and encoder.
+        self.flywheel_motor = phoenix6.hardware.TalonFX(
+            shooter.constants.FLYWHEEL_MOTOR_CAN_ID, "Shooter"
+        )
+        self.flywheel_encoder = phoenix6.hardware.CANcoder(
+            shooter.constants.FLYWHEEL_ENCODER_CAN_ID, "Shooter"
+        )
+
+        # Hopper motors.
+        self.hopper_left_motor = phoenix6.hardware.TalonFX(
+            shooter.constants.HOPPER_LEFT_MOTOR_CAN_ID, "rio"
+        )
+        self.hopper_right_motor = phoenix6.hardware.TalonFX(
+            shooter.constants.HOPPER_RIGHT_MOTOR_CAN_ID, "rio"
+        )
+
+        # Indexer motors.
+        self.indexer_back_motor = phoenix6.hardware.TalonFX(
+            shooter.constants.INDEXER_BACK_MOTOR_CAN_ID, "Shooter"
+        )
+        self.indexer_front_motor = phoenix6.hardware.TalonFX(
+            shooter.constants.INDEXER_FRONT_MOTOR_CAN_ID, "Shooter"
         )
         
          # Use open-loop control for drive motors
@@ -133,10 +173,11 @@ class MyRobot(magicbot.MagicRobot):
             # self.drivetrain.seed_field_centric()
               
         self.driveWithJoysicks()
-        # self.controlHopper()
-        # self.controlIndexer()
-        # self.controlIntake()
-        # self.controlHood()
+        self.controlHopper()
+        self.controlIndexer()
+        self.controlIntake()
+        self.controlHood()
+        self.controlTurret()
 
     def driveWithJoysicks(self) -> None:
         """Use the main controller joystick inputs to drive the robot base."""
@@ -181,9 +222,9 @@ class MyRobot(magicbot.MagicRobot):
     def controlIndexer(self) -> None:
         """Drive the indexer motors."""
         if self.operator_controller.getRightBumper():
-            self.indexer.setMotorSpeed(1.0)
+            self.indexer.setEnabled(True)
         else:
-            self.indexer.setMotorSpeed(0.0)
+            self.indexer.setEnabled(False)
 
     def controlIntake(self) -> None:
         """Drive the intake motors."""
@@ -201,6 +242,23 @@ class MyRobot(magicbot.MagicRobot):
         self.hood.setSpeed(
             -filterInput(self.operator_controller.getRightY()) * 0.1
         )
+
+    def controlTurret(self) -> None:
+        """Drive the turret motor."""
+        if self.operator_controller.getXButtonReleased():
+            self.turret.setControlType(not self.turret.isControlTypeVelocity())
+            self.logger.info(
+                "Turret control type is now: "
+                + (
+                    "velocity"
+                    if self.turret.isControlTypeVelocity()
+                    else "position"
+                )
+            )
+        if self.turret.isControlTypeVelocity():
+            self.turret.setVelocity(
+                filterInput(self.operator_controller.getLeftX()) * 30
+            )
 
 
 def filterInput(controller_input: float, apply_deadband: bool = True) -> float:
