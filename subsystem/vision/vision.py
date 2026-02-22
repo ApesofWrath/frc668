@@ -22,6 +22,7 @@ class Vision:
         self._limelights.append(vision.constants.LIMELIGHT_ONE)
         self._limelights.append(vision.constants.LIMELIGHT_TWO)
         self._pose_seeded = False
+        self.imu_four = False
 
     def execute(self) -> None:
         self._setRobotOrientation()
@@ -33,19 +34,24 @@ class Vision:
         Limelight's MegaTag2 localizer requires that we update it with our
         robot's latest yaw estimate periodically.
         """
-        orientation: wpimath.geometry.Rotation3d = (
-            self.drivetrain.get_rotation3d()
+        orientation: float = (
+            self.drivetrain.get_state().pose.rotation().degrees()
         )
         for ll in self._limelights:
             vision.limelight.LimelightHelpers.set_robot_orientation(
                 ll,
-                orientation.Z() * RADIANS_TO_DEGREES,
+                orientation,
                 0.0,
                 0.0,
                 0.0,
                 0.0,
                 0.0,
             )
+            if not self.imu_four:
+                vision.limelight.LimelightHelpers.set_imu_mode(self._limelights[0], 4)
+                vision.limelight.LimelightHelpers.set_imu_mode(self._limelights[1], 4)
+                self.imu_four = True
+                self.logger.info("Set Limelight IMU's to mode: 4")
 
     def _updateRobotPose(self) -> None:
         """Updates our robot pose estimate with the latest vision measurements."""
@@ -65,7 +71,7 @@ class Vision:
                 self.logger.warning(f"{ll}: Rejected too far away pose: {pose_estimate.avg_tag_dist}")
                 continue
 
-            if (-0.2 > pose.X() or pose.X() > 16.55) or (-0.2 > pose.Y() or pose.Y() > 8.07):
+            if (pose.X() < -0.2 or pose.X() > 16.55) or (pose.Y() < -0.2 or pose.Y() > 8.07):
                 self.logger.warning(f"{ll}: Rejected out-of-bounds pose: ({pose.X()}, {pose.Y()})")
                 continue
             
@@ -79,10 +85,21 @@ class Vision:
                 self.logger.warning(f"{ll}: Rejected large jump: {drivetrain_pose.translation().distance(pose.translation())}m")
                 continue
 
+            
+            xy_std_devs = (pose_estimate.avg_tag_dist ** 2) / pose_estimate.tag_count
+
+            # if pose_estimate.avg_tag_dist < 2.0:
+            #     theta_std_devs = 0.9
+            #     self.logger.info("Set std to 0.9")
+            # else:
+            #     theta_std_devs = math.inf
+            #     self.logger.info("Set std to inf")
+
             synced_timestamp = utils.fpga_to_current_time(pose_estimate.timestamp_seconds)
             self.drivetrain.add_vision_measurement(
-                pose_estimate.pose, synced_timestamp , (0.1,0.1,math.inf)
+                pose_estimate.pose, synced_timestamp , (xy_std_devs,xy_std_devs, math.inf)
             )
+            # self.logger.info(f"Std dev values: {xy_std_devs}")
             # self.logger.info("Added vision measurement")
 
     @feedback
@@ -94,5 +111,4 @@ class Vision:
     
     @feedback
     def get_gyro(self) -> float:
-        # return self.drivetrain.get_rotation3d().toRotation2d().degrees()
-        return self.drivetrain.pigeon2.getRotation2d().degrees()
+        return self.drivetrain.get_state().pose.rotation().degrees()

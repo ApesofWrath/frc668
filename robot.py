@@ -93,6 +93,7 @@ class MyRobot(magicbot.MagicRobot):
         """
         self.logger.info("Robot disabled")
         self.vision._pose_seeded = False
+        self.vision.imu_four = False
 
     def disabledPeriodic(self) -> None:
         """Run during disabled mode.
@@ -101,6 +102,9 @@ class MyRobot(magicbot.MagicRobot):
         disabled mode. This code executes before the `execute` method of all
         components are called.
         """
+        vision.limelight.LimelightHelpers.set_imu_mode(self.vision._limelights[0], 1)
+        vision.limelight.LimelightHelpers.set_imu_mode(self.vision._limelights[1], 1)
+        self.logger.info("Set Limelight IMU's to mode: 1")
         pass
 
     def teleopInit(self) -> None:
@@ -125,6 +129,7 @@ class MyRobot(magicbot.MagicRobot):
         # TODO: Handle exceptions so robot code doesn't crash.
         if self.main_controller.getStartButton():
             self.drivetrain.reset_pose(wpimath.geometry.Pose2d(0,0,0))
+            self.vision._pose_seeded = False
             # self.drivetrain.seed_field_centric()
               
         self.driveWithJoysicks()
