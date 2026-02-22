@@ -205,16 +205,23 @@ class MyRobot(magicbot.MagicRobot):
         if self.operator_controller.getBButtonPressed():
             self.hood.zeroEncoder()
 
-        # Drive the hood motor at one-fourth duty cycle.
-        self.hood.setSpeed(
-            -filterInput(self.operator_controller.getRightY()) * 0.1
-        )
+        # Toggle between manual hood speed control v/s position control.
+        if self.operator_controller.getYButtonReleased():
+            self.hood.setControlType(not self.hood.isControlTypeSpeed())
+            self.logger.info(
+                "Hood control type is now: "
+                + (
+                    "speed"
+                    if self.hood.isControlTypeSpeed()
+                    else "position"
+                )
+            )
 
-        # Switch between manual speed v/s position control modes
-        if self.operator_controller.getXButtonPressed():
-            self.hood.is_manual = True
-        if self.operator_controller.getYButtonPressed():
-            self.hood.is_manual = False
+        # Drive the hood motor at one-fourth duty cycle.
+        if self.hood.isControlTypeSpeed():
+            self.hood.setSpeed(
+                -filterInput(self.operator_controller.getRightY()) * 0.1
+            )
             
     def controlTurret(self) -> None:
         """Drive the turret motor."""

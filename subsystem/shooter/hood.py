@@ -2,8 +2,6 @@ import magicbot
 import phoenix6
 
 from subsystem import shooter
-import subsystem.shooter.constants
-
 
 class Hood:
     """Hood component
@@ -11,7 +9,7 @@ class Hood:
     This class controls the angle of the hood.
     """
 
-    DEGREES_TO_ROTATIONS = 360.0
+    DEGREES_TO_ROTATIONS = 1.0/360.0
     hood_motor: phoenix6.hardware.TalonFX
     hood_encoder: phoenix6.hardware.CANcoder
 
@@ -24,7 +22,7 @@ class Hood:
         self._hood_speed = 0.0
         self._target_position_degrees = self.get_measured_angle_degrees()
 
-        self.is_manual = False
+        self._is_speed_controlled = False
 
         hood_configs = phoenix6.configs.TalonFXConfiguration()
         hood_configs.feedback.feedback_sensor_source = (
@@ -60,7 +58,7 @@ class Hood:
         self.hood_encoder.configurator.apply(encoder_configs)
 
         self._request = phoenix6.controls.PositionVoltage(
-            self._target_position_degrees / self.DEGREES_TO_ROTATIONS
+            self._target_position_degrees * self.DEGREES_TO_ROTATIONS
         ).with_slot(0)
 
     def execute(self) -> None:
@@ -71,17 +69,18 @@ class Hood:
         # TODO: Implement velocity control (for homing).
 
         self._target_position_degrees = max(
-            shooter.constants.HOOD_MIN_ANGLE,
+            shooter.constants.HOOD_MIN_ANGLE_DEGREES,
             min(
-                shooter.constants.HOOD_MAX_ANGLE, self._target_position_degrees
+                shooter.constants.HOOD_MAX_ANGLE_DEGREES,
+                self._target_position_degrees,
             ),
         )
-        if self.is_manual:
+        if self._is_speed_controlled:
             self.hood_motor.set(self._hood_speed)
         else:
             self.hood_motor.set_control(
                 self._request.with_position(
-                    self._target_position_degrees / self.DEGREES_TO_ROTATIONS
+                    self._target_position_degrees * self.DEGREES_TO_ROTATIONS
                 )
             )
 
@@ -109,9 +108,21 @@ class Hood:
     def setPosition(self, target_position_deg: float) -> None:
         """Set the position (in degrees) of the hood"""
         self._target_position_degrees = max(
-            shooter.constants.HOOD_MIN_ANGLE,
-            min(shooter.constants.HOOD_MAX_ANGLE, target_position_deg),
+            shooter.constants.HOOD_MIN_ANGLE_DEGREES,
+            min(shooter.constants.HOOD_MAX_ANGLE_DEGREES, target_position_deg),
         )
+
+    def setControlType(self, use_speed: bool) -> None:
+        """Set the type of hood control to be used: position or speed
+
+        Args:
+            use_speed: The type of controller that should be used. True for manual speed control, False for position control.
+        """
+        self._is_speed_controlled = use_speed
+
+    def isControlTypeSpeed(self) -> bool:
+        """Get the type of hood control being used: position or speed"""
+        return self._is_speed_controlled
 
     def zeroEncoder(self) -> None:
         """Zeroes the encoder at its current position."""
@@ -122,7 +133,7 @@ class Hood:
     def get_measured_angle_degrees(self) -> float:
         return (
             self.hood_encoder.get_position().value
-            * self.DEGREES_TO_ROTATIONS
+            / self.DEGREES_TO_ROTATIONS
             / shooter.constants.HOOD_SENSOR_TO_MECHANISM_GEAR_RATIO
         )
 
