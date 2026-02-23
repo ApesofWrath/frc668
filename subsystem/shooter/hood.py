@@ -10,6 +10,7 @@ class Hood:
     """
 
     DEGREES_TO_ROTATIONS = 1.0/360.0
+    ROTATIONS_TO_DEGREES = 360.0  
     hood_motor: phoenix6.hardware.TalonFX
     hood_encoder: phoenix6.hardware.CANcoder
 
@@ -133,7 +134,7 @@ class Hood:
     def get_measured_angle_degrees(self) -> float:
         return (
             self.hood_encoder.get_position().value
-            / self.DEGREES_TO_ROTATIONS
+            * self.ROTATIONS_TO_DEGREES
             / shooter.constants.HOOD_SENSOR_TO_MECHANISM_GEAR_RATIO
         )
 
