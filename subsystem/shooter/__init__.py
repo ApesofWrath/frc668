@@ -1,5 +1,5 @@
 from . import constants
-from .hood import Hood
+from .hood import Hood, HoodTuner
 from .turret import Turret, TurretTuner
 from .flywheel import Flywheel, FlywheelTuner
 from .hopper import Hopper
@@ -10,6 +10,7 @@ __all__ = [
     "Flywheel",
     "FlywheelTuner",
     "Hood",
+    "HoodTuner",
     "Hopper",
     "Indexer",
     "Turret",
