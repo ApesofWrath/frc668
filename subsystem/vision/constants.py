@@ -1,2 +1,13 @@
 LIMELIGHT_ONE = "limelight-fr"
 LIMELIGHT_TWO = "limelight-fl"
+
+# In field bounds
+POSE_X_MIN = -0.2
+POSE_X_MAX = 16.55
+POSE_Y_MIN = -0.2
+POSE_Y_MAX = 8.07
+
+
+AVG_TAG_DISTANCE_THRESHOLD = 4.5
+MAX_DIFF_FROM_ROBOT_POSE = 0.5
+
