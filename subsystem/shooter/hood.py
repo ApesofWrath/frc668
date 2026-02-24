@@ -3,14 +3,15 @@ import phoenix6
 
 from subsystem import shooter
 
+
 class Hood:
     """Hood component
 
     This class controls the angle of the hood.
     """
 
-    DEGREES_TO_ROTATIONS = 1.0/360.0
-    ROTATIONS_TO_DEGREES = 360.0  
+    DEGREES_TO_ROTATIONS = 1.0 / 360.0
+    ROTATIONS_TO_DEGREES = 360.0
     hood_motor: phoenix6.hardware.TalonFX
     hood_encoder: phoenix6.hardware.CANcoder
 

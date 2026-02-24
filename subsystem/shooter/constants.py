@@ -66,7 +66,7 @@ HOOD_K_A = 0.0
 HOOD_K_P = 330
 HOOD_K_I = 0.0
 HOOD_K_D = 0.1
-HOOD_K_G = 0.0 
+HOOD_K_G = 0.0
 
 # Turret PID gains.
 TURRET_K_P = 70

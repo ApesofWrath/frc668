@@ -210,11 +210,7 @@ class MyRobot(magicbot.MagicRobot):
             self.hood.setControlType(not self.hood.isControlTypeSpeed())
             self.logger.info(
                 "Hood control type is now: "
-                + (
-                    "speed"
-                    if self.hood.isControlTypeSpeed()
-                    else "position"
-                )
+                + ("speed" if self.hood.isControlTypeSpeed() else "position")
             )
 
         # Drive the hood motor at one-fourth duty cycle.
@@ -222,7 +218,7 @@ class MyRobot(magicbot.MagicRobot):
             self.hood.setSpeed(
                 -filterInput(self.operator_controller.getRightY()) * 0.1
             )
-            
+
     def controlTurret(self) -> None:
         """Drive the turret motor."""
         if self.operator_controller.getXButtonReleased():
