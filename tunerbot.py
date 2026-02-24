@@ -16,3 +16,6 @@ class TunerBot(robot.MyRobot):
     flywheel_tuner: shooter.FlywheelTuner
     indexer_tuner: shooter.IndexerTuner
     turret_tuner: shooter.TurretTuner
+    hood_tuner: shooter.HoodTuner
+
+    # to run, type in the terminal: py -3 -m robotpy --main tunerbot.py deploy

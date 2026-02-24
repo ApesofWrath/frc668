@@ -161,7 +161,9 @@ class TunerConstants:
     _back_left_encoder_id = 9
     _back_left_encoder_offset: units.rotation = -0.05835  # 55 / 360
     _back_left_steer_motor_inverted = False
-    _back_left_encoder_inverted = True  # False
+    _back_left_encoder_inverted = (
+        True  # False in test chassis, True for alphabot
+    )
 
     _back_left_x_pos: units.meter = inchesToMeters(-13.75)  # -11.5
     _back_left_y_pos: units.meter = inchesToMeters(13.75)  # 11.5
@@ -172,7 +174,9 @@ class TunerConstants:
     _back_right_encoder_id = 11
     _back_right_encoder_offset: units.rotation = 0.38794  # 250 / 360
     _back_right_steer_motor_inverted = False
-    _back_right_encoder_inverted = True  # False
+    _back_right_encoder_inverted = (
+        True  # False in test chassis, True for alphabot
+    )
 
     _back_right_x_pos: units.meter = inchesToMeters(-13.75)  # -11.5
     _back_right_y_pos: units.meter = inchesToMeters(-13.75)  # -11.5
