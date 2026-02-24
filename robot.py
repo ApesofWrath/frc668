@@ -6,7 +6,6 @@ import wpilib
 import wpimath
 from phoenix6 import swerve, hardware
 
-import constants
 from subsystem import drivetrain, shooter, intake
 
 DEADBAND = 0.15**2
@@ -38,14 +37,6 @@ class MyRobot(magicbot.MagicRobot):
                 swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
             )
         )  # Use open-loop control for drive motors
-
-        # Turret
-        self.turret_motor = hardware.TalonFX(
-            shooter.constants.TURRET_MOTOR_CAN_ID, "Shooter"
-        )
-        self.turret_encoder = hardware.CANcoder(
-            shooter.constants.TURRET_ENCODER_CAN_ID, "Shooter"
-        )
 
         # Turret
         self.turret_motor = hardware.TalonFX(

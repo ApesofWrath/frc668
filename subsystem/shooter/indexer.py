@@ -146,7 +146,7 @@ class IndexerTuner:
 
     # The target rotational speed of the indexer.
     target_rps = magicbot.tunable(0.0)
-    # Whether or not the hopper motors should run.
+    # Whether or not the indexer motors should run.
     enabled = magicbot.tunable(False)
 
     def setup(self) -> None:
