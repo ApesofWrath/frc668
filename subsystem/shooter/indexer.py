@@ -112,6 +112,10 @@ class Indexer:
     def get_target_rps(self) -> float:
         return self._target_rps
 
+    @magicbot.feedback
+    def get_enabled(self) -> bool:
+        return self._enabled
+
 
 class IndexerTuner:
     """Component for tuning indexer gains.
@@ -142,6 +146,8 @@ class IndexerTuner:
 
     # The target rotational speed of the indexer.
     target_rps = magicbot.tunable(0.0)
+    # Whether or not the indexer motors should run.
+    enabled = magicbot.tunable(False)
 
     def setup(self) -> None:
         self._current_back_gains = (
@@ -165,6 +171,7 @@ class IndexerTuner:
 
     def execute(self) -> None:
         self.indexer.setTargetRps(self.target_rps)
+        self.indexer.setEnabled(self.enabled)
 
         # We only want to reapply the gains if they changed. The TalonFX motor
         # doesn't like being reconfigured constantly.
@@ -180,14 +187,6 @@ class IndexerTuner:
             True if any of the gains changed, False if the gains didn't change
                 or if the current gains couldn't be read from the motor.
         """
-        result = self.indexer_back_motor.configurator.refresh(
-            self._current_back_gains, 0.02
-        )
-        if not result.is_ok():
-            self.logger.error(
-                f"Failed to retrieve slot0 configs from indexer back motor: {result.name}: {result.description}"
-            )
-            return True
         return (
             self.back_k_s != self._current_back_gains.k_s
             or self.back_k_v != self._current_back_gains.k_v
@@ -203,14 +202,6 @@ class IndexerTuner:
         Returns:
             True if any of the gains changed, False otherwise.
         """
-        result = self.indexer_front_motor.configurator.refresh(
-            self._current_front_gains, 0.02
-        )
-        if not result.is_ok():
-            self.logger.error(
-                f"Failed to retrieve slot0 configs from indexer front motor: {result.name}: {result.description}"
-            )
-            return True
         return (
             self.front_k_s != self._current_front_gains.k_s
             or self.front_k_v != self._current_front_gains.k_v

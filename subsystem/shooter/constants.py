@@ -28,6 +28,25 @@ FLYWHEEL_K_P = 0.25
 FLYWHEEL_K_I = 0.0
 FLYWHEEL_K_D = 0.0
 
+# Hopper left motor gains.
+HOPPER_LEFT_K_S = 0.5
+HOPPER_LEFT_K_V = 0.123
+HOPPER_LEFT_K_A = 0.0
+HOPPER_LEFT_K_P = 0.5
+HOPPER_LEFT_K_I = 0.0
+HOPPER_LEFT_K_D = 0.0
+
+# Hopper right motor gains.
+HOPPER_RIGHT_K_S = 0.2
+HOPPER_RIGHT_K_V = 0.123
+HOPPER_RIGHT_K_A = 0.0
+HOPPER_RIGHT_K_P = 0.5
+HOPPER_RIGHT_K_I = 0.0
+HOPPER_RIGHT_K_D = 0.0
+
+# Default speed (in rotations per second) for hopper motors.
+HOPPER_MOTORS_RPS_DEFAULT = 30.0
+
 # Indexer back motor gains.
 INDEXER_BACK_K_S = 0.4
 INDEXER_BACK_K_V = 0.12

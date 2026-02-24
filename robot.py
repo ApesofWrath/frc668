@@ -6,8 +6,9 @@ import wpilib
 import wpimath
 from phoenix6 import swerve, hardware
 
-import constants
 from subsystem import drivetrain, shooter, intake
+
+DEADBAND = 0.15**2
 
 
 class MyRobot(magicbot.MagicRobot):
@@ -36,14 +37,6 @@ class MyRobot(magicbot.MagicRobot):
                 swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
             )
         )  # Use open-loop control for drive motors
-
-        # Turret
-        self.turret_motor = hardware.TalonFX(
-            shooter.constants.TURRET_MOTOR_CAN_ID, "Shooter"
-        )
-        self.turret_encoder = hardware.CANcoder(
-            shooter.constants.TURRET_ENCODER_CAN_ID, "Shooter"
-        )
 
         # Turret
         self.turret_motor = hardware.TalonFX(
@@ -89,6 +82,8 @@ class MyRobot(magicbot.MagicRobot):
         self.intake_motor = phoenix6.hardware.TalonFX(
             intake.constants.INTAKE_MOTOR_CAN_ID, "rio"
         )
+
+        self._tuning_mode = False
 
     def autonomousInit(self) -> None:
         """Initialize autonomous mode.
@@ -180,13 +175,17 @@ class MyRobot(magicbot.MagicRobot):
 
     def controlHopper(self) -> None:
         """Drive the hopper motors."""
+        if self._tuning_mode:
+            return
         if self.operator_controller.getRightBumper():
-            self.hopper.setMotorSpeed(1.0)
+            self.hopper.setEnabled(True)
         else:
-            self.hopper.setMotorSpeed(0.0)
+            self.hopper.setEnabled(False)
 
     def controlIndexer(self) -> None:
         """Drive the indexer motors."""
+        if self._tuning_mode:
+            return
         if self.operator_controller.getRightBumper():
             self.indexer.setEnabled(True)
         else:
@@ -258,8 +257,6 @@ def filterInput(controller_input: float, apply_deadband: bool = True) -> float:
     )
 
     if apply_deadband:
-        return wpimath.applyDeadband(
-            controller_input_corrected, constants.DEADBAND
-        )
+        return wpimath.applyDeadband(controller_input_corrected, DEADBAND)
     else:
         return controller_input_corrected
