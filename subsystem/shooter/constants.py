@@ -45,7 +45,7 @@ HOPPER_RIGHT_K_I = 0.0
 HOPPER_RIGHT_K_D = 0.0
 
 # Default speed (in rotations per second) for hopper motors.
-HOPPER_MOTORS_RPS_DEFAULT = 15.0
+HOPPER_MOTORS_RPS_DEFAULT = 30.0
 
 # Indexer back motor gains.
 INDEXER_BACK_K_S = 0.4
