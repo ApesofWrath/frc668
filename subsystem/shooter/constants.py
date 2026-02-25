@@ -28,6 +28,25 @@ FLYWHEEL_K_P = 0.25
 FLYWHEEL_K_I = 0.0
 FLYWHEEL_K_D = 0.0
 
+# Hopper left motor gains.
+HOPPER_LEFT_K_S = 0.5
+HOPPER_LEFT_K_V = 0.123
+HOPPER_LEFT_K_A = 0.0
+HOPPER_LEFT_K_P = 0.5
+HOPPER_LEFT_K_I = 0.0
+HOPPER_LEFT_K_D = 0.0
+
+# Hopper right motor gains.
+HOPPER_RIGHT_K_S = 0.2
+HOPPER_RIGHT_K_V = 0.123
+HOPPER_RIGHT_K_A = 0.0
+HOPPER_RIGHT_K_P = 0.5
+HOPPER_RIGHT_K_I = 0.0
+HOPPER_RIGHT_K_D = 0.0
+
+# Default speed (in rotations per second) for hopper motors.
+HOPPER_MOTORS_RPS_DEFAULT = 30.0
+
 # Indexer back motor gains.
 INDEXER_BACK_K_S = 0.4
 INDEXER_BACK_K_V = 0.12
@@ -54,6 +73,19 @@ HOOD_ENCODER_CAN_ID = 17
 # Hood gear ratios.
 HOOD_SENSOR_TO_MECHANISM_GEAR_RATIO = 19
 HOOD_ROTOR_TO_SENSOR_GEAR_RATIO = 8
+
+# Hood range, in degrees.
+HOOD_MIN_ANGLE_DEGREES = 3.6
+HOOD_MAX_ANGLE_DEGREES = 28.8
+
+# Hood gains.
+HOOD_K_S = 0.0
+HOOD_K_V = 0.0
+HOOD_K_A = 0.0
+HOOD_K_P = 330
+HOOD_K_I = 0.0
+HOOD_K_D = 0.1
+HOOD_K_G = 0.0
 
 # Turret PID gains.
 TURRET_K_P = 70

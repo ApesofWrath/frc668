@@ -1,8 +1,11 @@
-# simulation stuff
+# Simulation stuff
 ctre_sim/
 simgui-ds.json
 simgui-window.json
 simgui.json
+
+# VS Code Settings
+.vscode 
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
