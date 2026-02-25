@@ -51,11 +51,10 @@ class Turret:
         self.turret_configs.slot1.k_i = shooter.constants.TURRET_VEL_K_I
         self.turret_configs.slot1.k_d = shooter.constants.TURRET_VEL_K_D
 
+        self.turret_configs.motion_magic.motion_magic_cruise_velocity = magicbot.tunable(40) # Target cruise velocity of 40 rps
+        self.turret_configs.motion_magic.motion_magic_acceleration = magicbot.tunable(80) # Target acceleration of 80 rps/s (0.5 seconds)
+        self.turret_configs.motion_magic.motion_magic_jerk = magicbot.tunable(800) # Target jerk of 800 rps/s/s (0.1 seconds)
         self.turret_motor.configurator.apply(self.turret_configs)
-
-        self.turret_configs.motion_magic_configs.motion_magic_cruise_velocity = 40 # Target cruise velocity of 40 rps
-        self.turret_configs.motion_magic_configs.motion_magic_acceleration = 80 # Target acceleration of 80 rps/s (0.5 seconds)
-        self.turret_configs.motion_magic_configs.motion_magic_jerk = 800 # Target jerk of 800 rps/s/s (0.1 seconds)
 
     def execute(self) -> None:
         """Command the motors to the current speed.
