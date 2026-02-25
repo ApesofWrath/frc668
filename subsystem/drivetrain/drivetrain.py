@@ -1,6 +1,8 @@
 import logging
+import typing
+
 import wpilib
-from phoenix6 import configs, hardware, swerve
+from phoenix6 import hardware, swerve, units
 
 from subsystem import drivetrain
 
@@ -102,22 +104,58 @@ class Drivetrain(swerve.SwerveDrivetrain):
         )
 
         self.logger = logging.getLogger(__name__)
+        self._alliance: typing.Optional[wpilib.DriverStation.Alliance] = None
 
     def setup(self) -> None:
-        """Apply the operator perspective based on alliance color."""
-        alliance_color = wpilib.DriverStation.getAlliance()
-        if alliance_color is None:
-            self.logger.error("Failed to get alliance from DriverStation")
-            return
-        self.logger.info(f"Alliance color {alliance_color}")
-        self.set_operator_perspective_forward(
-            drivetrain.constants.RED_ALLIANCE_PERSPECTIVE_ROTATION
-            if alliance_color == wpilib.DriverStation.Alliance.kRed
-            else drivetrain.constants.BLUE_ALLIANCE_PERSPECTIVE_ROTATION
+        """Set up initial state for the drivetrain.
+
+        This method is called after createObjects has been called in the main
+        robot class, and after all components have been created.
+        """
+        # Try to apply operator perspective forward based on alliance.
+        self.maybeSetOperatorPerspectiveForward()
+
+        self._drive_request = (
+            swerve.requests.FieldCentric().with_drive_request_type(
+                swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
+            )
         )
 
     def execute(self) -> None:
-        pass
+        """Command the drivetrain to the current speeds.
+
+        This method is called at the end of the control loop.
+        """
+        if not self._alliance:
+            self.logger.error(
+                "Failed to apply operator prespective based on alliance."
+            )
+        self.set_control(self._drive_request)
+
+    def maybeSetOperatorPerspectiveForward(self) -> None:
+        # If we have our alliance, we already set operator perspective.
+        if self._alliance:
+            return
+        # If not, try to get the alliance.
+        self._alliance = wpilib.DriverStation.getAlliance()
+        # If we got it, set the operator perspective.
+        if self._alliance:
+            self.logger.info(f"We are alliance: {self._alliance}")
+            self.set_operator_perspective_forward(
+                drivetrain.constants.RED_ALLIANCE_PERSPECTIVE_ROTATION
+                if self._alliance == wpilib.DriverStation.Alliance.kRed
+                else drivetrain.constants.BLUE_ALLIANCE_PERSPECTIVE_ROTATION
+            )
+
+    def setSpeeds(
+        self,
+        velocity_x: units.meters_per_second,
+        velocity_y: units.meters_per_second,
+        rotational_rate: units.radians_per_second,
+    ) -> None:
+        self._drive_request.with_velocity_x(velocity_x).with_velocity_y(
+            velocity_y
+        ).with_rotational_rate(rotational_rate)
 
     def isManual(self):
         return True
