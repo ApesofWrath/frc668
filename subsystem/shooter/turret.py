@@ -1,7 +1,7 @@
 import magicbot
 import phoenix6
 
-from phoenix6.controls import PositionVoltage, VelocityVoltage
+from phoenix6.controls import PositionVoltage, VelocityVoltage, MotionMagicVoltage 
 
 from subsystem import shooter
 
@@ -51,10 +51,11 @@ class Turret:
         self.turret_configs.slot1.k_i = shooter.constants.TURRET_VEL_K_I
         self.turret_configs.slot1.k_d = shooter.constants.TURRET_VEL_K_D
 
-        self.turret_configs.motion_magic_cruise_velocity = 40
-        self.turret_configs.motion_magic_acceleration = 80
-        self.turret_configs.motion_magic_jerk = 800
         self.turret_motor.configurator.apply(self.turret_configs)
+
+        self.turret_configs.motion_magic_configs.motion_magic_cruise_velocity = 40 # Target cruise velocity of 40 rps
+        self.turret_configs.motion_magic_configs.motion_magic_acceleration = 80 # Target acceleration of 80 rps/s (0.5 seconds)
+        self.turret_configs.motion_magic_configs.motion_magic_jerk = 800 # Target jerk of 800 rps/s/s (0.1 seconds)
 
     def execute(self) -> None:
         """Command the motors to the current speed.
@@ -69,7 +70,7 @@ class Turret:
             )
         else:
             self.turret_motor.set_control(
-                PositionVoltage(self._turret_postion_degrees / 360).with_slot(0)
+                MotionMagicVoltage(self._turret_postion_degrees / 360).with_slot(0)
             )
 
     def on_enable(self) -> None:
