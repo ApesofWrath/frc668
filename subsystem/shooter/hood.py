@@ -3,8 +3,6 @@ import phoenix6
 import wpilib
 
 from subsystem import shooter
-from subsystem.shooter.constants import HOOD_MAX_ANGLE, HOOD_MIN_ANGLE
-
 
 class Hood:
     """Hood component
@@ -145,6 +143,9 @@ class Hood:
     def get_motor_stator_current(self) -> float:
         return self.hood_motor.get_stator_current().value
 
+    @magicbot.feedback
+    def get_target_position_deg(self) -> float:
+        return self._target_position_degrees
     # def homing_routine(self) -> None:
     #     self.hood_motor.set(-0.1)
     #     if self.hood_motor.get_stator_current.value >= 8.5:
@@ -175,6 +176,7 @@ class HoodTuner:
 
     # The target angle of the hood, in degrees.
     target_angle_deg = magicbot.tunable(20.0)
+    #TODO: replace the default target_angle_deg with the hood's get_measured_angle_degrees()
     homing = magicbot.tunable(False)
 
     def setup(self) -> None:
@@ -196,8 +198,8 @@ class HoodTuner:
         This method is called at the end of the control loop.
         """
         self.hood.setPosition(self.target_angle_deg)
-        if self.homing == True:
-            self.hood.homing_routine()
+        # if self.homing == True:
+        #     self.hood.homing_routine()
 
         # We only want to reapply the gains if they changed. The TalonFX motor
         # doesn't like being reconfigured constantly.
@@ -267,14 +269,6 @@ class HoodTuner:
         return self.hood_motor.get_motor_stall_current().value
 
     @magicbot.feedback
-    def get_hood_angle(self) -> float:
-        return (
-            self.hood_encoder.get_position().value
-            * 360.0
-            / shooter.constants.HOOD_SENSOR_TO_MECHANISM_GEAR_RATIO
-        )
-
-    @magicbot.feedback
     def get_encoder_position(self) -> float:
         return self.hood_encoder.get_position().value
 
@@ -289,12 +283,13 @@ class Homing(magicbot.StateMachine):
         self._timer = wpilib.Timer()
         self.zeroed = False
 
-    def homing_routine(self) -> None:
+    def homing_routine(self) -> None: 
         self.engage()
         self.logger.info(self.current_state)
 
     @magicbot.state(first=True, must_finish=True)
     def homing(self, state_tm) -> None:
+        self.zeroed = False 
         self.hood_motor.set(-0.1)
         if self.hood_motor.get_stator_current().value >= 8.5:
             if self._first_spike:
@@ -304,29 +299,33 @@ class Homing(magicbot.StateMachine):
                 if self._timer.hasElapsed(0.1):
                     self._first_spike = True
                     self._timer.reset()
-                    self.next_state("zero")
+                    self.next_state("relax")
         elif state_tm >= 10.0:
             self.next_state("timeout")
         else:
             self.logger.info("Homing incomplete")
 
+    @magicbot.timed_state(duration=0.1, next_state="zero", must_finish=True)
+    def relax(self):
+        self.logger.info("Entered relaxing state.")
+
     @magicbot.state(must_finish=True)
     def zero(self):
         self.zeroed = True
         self.logger.info("Entered zeroing state.")
-        self.hood_motor.set(0.0)
-        self.hood.hood_motor.setNeutralMode(
-            phoenix6.signals.NeutralModeValue.BRAKE, 0.1
-        )
-        # 0 is to coast, 1 is to brake TODO: check if erroneous
         self.hood.zeroEncoder()
+        self.hood_motor.set(0.0)
         self.done()
 
     @magicbot.state()
     def timeout(self) -> None:
-        self.hood_motor.set(0.0)
         self.logger.warning("Timeout, homing routine incomplete!")
+        self.hood_motor.set(0.0)
 
     @magicbot.feedback
     def zeroed_success(self) -> None:
         return self.zeroed
+    
+    @magicbot.feedback
+    def timestamp(self) -> None:
+        return self._timer.get()

@@ -144,6 +144,7 @@ class MyRobot(magicbot.MagicRobot):
         self.controlHood()
         if self.operator_controller.getAButtonPressed():
             self.homing.homing_routine()
+            
         self.controlTurret()
 
     def driveWithJoysicks(self) -> None:
@@ -209,8 +210,9 @@ class MyRobot(magicbot.MagicRobot):
             self.hood.zeroEncoder()
 
         # Toggle between manual hood speed control v/s position control.
-        if self.operator_controller.getYButtonReleased():
+        if self.operator_controller.getYButtonPressed():
             self.hood.setControlType(not self.hood.isControlTypeSpeed())
+            self.hood._target_position_degrees = self.hood.get_measured_angle_degrees()
             self.logger.info(
                 "Hood control type is now: "
                 + ("speed" if self.hood.isControlTypeSpeed() else "position")
@@ -238,13 +240,6 @@ class MyRobot(magicbot.MagicRobot):
             self.turret.setVelocity(
                 filterInput(self.operator_controller.getLeftX()) * 30
             )
-
-        # Switch between manual speed v/s position control modes
-        if self.operator_controller.getXButtonPressed():
-            self.hood.is_manual = True
-        if self.operator_controller.getYButtonPressed():
-            self.hood.is_manual = False
-
 
 def filterInput(controller_input: float, apply_deadband: bool = True) -> float:
     """Filter the controller input with a squared scaling and deadband.
