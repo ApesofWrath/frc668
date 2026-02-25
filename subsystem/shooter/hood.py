@@ -12,6 +12,8 @@ class Hood:
     This class controls the angle of the hood.
     """
 
+    DEGREES_TO_ROTATIONS = 1.0 / 360.0
+    ROTATIONS_TO_DEGREES = 360.0
     hood_motor: phoenix6.hardware.TalonFX
     hood_encoder: phoenix6.hardware.CANcoder
 
@@ -22,10 +24,9 @@ class Hood:
         robot class, and after all components have been created.
         """
         self._hood_speed = 0.0
-        self._hood_target_position = 0.0  # self.get_hood_angle()
+        self._target_position_degrees = self.get_measured_angle_degrees()
 
-        self.is_manual = False
-        # self.homing = False
+        self._is_speed_controlled = False
 
         hood_configs = phoenix6.configs.TalonFXConfiguration()
         hood_configs.feedback.feedback_sensor_source = (
@@ -41,7 +42,7 @@ class Hood:
             shooter.constants.HOOD_ROTOR_TO_SENSOR_GEAR_RATIO
         )
         hood_configs.motor_output.inverted = (
-            phoenix6.signals.spn_enums.InvertedValue.COUNTER_CLOCKWISE_POSITIVE  # CLOCKWISE_POSITIVE
+            phoenix6.signals.spn_enums.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
         )
         hood_configs.slot0.k_s = shooter.constants.HOOD_K_S
         hood_configs.slot0.k_v = shooter.constants.HOOD_K_V
@@ -56,12 +57,12 @@ class Hood:
 
         encoder_configs = phoenix6.configs.CANcoderConfiguration()
         encoder_configs.magnet_sensor.sensor_direction = (
-            phoenix6.signals.spn_enums.SensorDirectionValue.COUNTER_CLOCKWISE_POSITIVE  # CLOCKWISE_POSITIVE
+            phoenix6.signals.spn_enums.SensorDirectionValue.COUNTER_CLOCKWISE_POSITIVE
         )
         self.hood_encoder.configurator.apply(encoder_configs)
 
         self._request = phoenix6.controls.PositionVoltage(
-            self._hood_target_position / 360.0
+            self._target_position_degrees * self.DEGREES_TO_ROTATIONS
         ).with_slot(0)
 
     def execute(self) -> None:
@@ -69,16 +70,22 @@ class Hood:
 
         This method is called at the end of the control loop.
         """
+        # TODO: Implement velocity control (for homing).
 
-        self._hood_target_position = max(
-            HOOD_MIN_ANGLE, min(HOOD_MAX_ANGLE, self._hood_target_position)
+        self._target_position_degrees = max(
+            shooter.constants.HOOD_MIN_ANGLE_DEGREES,
+            min(
+                shooter.constants.HOOD_MAX_ANGLE_DEGREES,
+                self._target_position_degrees,
+            ),
         )
-
-        if self.is_manual:
+        if self._is_speed_controlled:
             self.hood_motor.set(self._hood_speed)
         else:
             self.hood_motor.set_control(
-                self._request.with_position(self._hood_target_position / 360.0)
+                self._request.with_position(
+                    self._target_position_degrees * self.DEGREES_TO_ROTATIONS
+                )
             )
 
     def on_enable(self) -> None:
@@ -88,7 +95,7 @@ class Hood:
         test mode.
         """
         self._hood_speed = 0.0
-        self._hood_target_position = self.get_hood_angle()
+        self._target_position_degrees = self.get_measured_angle_degrees()
 
     def on_disable(self) -> None:
         """Reset state when the robot is disabled.
@@ -96,28 +103,41 @@ class Hood:
         This method is called when the robot enters disabled mode.
         """
         self._hood_speed = 0.0
-        self._hood_target_position = self.get_hood_angle()
+        self._target_position_degrees = self.get_measured_angle_degrees()
 
     def setSpeed(self, speed: float) -> None:
         """Set the speed of the hood."""
         self._hood_speed = speed
 
-    def setPosition(self, target_position: float) -> None:
+    def setPosition(self, target_position_deg: float) -> None:
         """Set the position (in degrees) of the hood"""
-        self._hood_target_position = max(
-            HOOD_MIN_ANGLE, min(HOOD_MAX_ANGLE, target_position)
+        self._target_position_degrees = max(
+            shooter.constants.HOOD_MIN_ANGLE_DEGREES,
+            min(shooter.constants.HOOD_MAX_ANGLE_DEGREES, target_position_deg),
         )
+
+    def setControlType(self, use_speed: bool) -> None:
+        """Set the type of hood control to be used: position or speed
+
+        Args:
+            use_speed: The type of controller that should be used. True for manual speed control, False for position control.
+        """
+        self._is_speed_controlled = use_speed
+
+    def isControlTypeSpeed(self) -> bool:
+        """Get the type of hood control being used: position or speed"""
+        return self._is_speed_controlled
 
     def zeroEncoder(self) -> None:
         """Zeroes the encoder at its current position."""
-        self._hood_target_position = 0.0
+        self._target_position_degrees = 0.0
         self.hood_encoder.set_position(0.0)
 
     @magicbot.feedback
-    def get_hood_angle(self) -> float:
+    def get_measured_angle_degrees(self) -> float:
         return (
             self.hood_encoder.get_position().value
-            * 360.0
+            * self.ROTATIONS_TO_DEGREES
             / shooter.constants.HOOD_SENSOR_TO_MECHANISM_GEAR_RATIO
         )
 
@@ -154,7 +174,7 @@ class HoodTuner:
     k_g = magicbot.tunable(shooter.constants.HOOD_K_G)
 
     # The target angle of the hood, in degrees.
-    target_angle = magicbot.tunable(20.0)
+    target_angle_deg = magicbot.tunable(20.0)
     homing = magicbot.tunable(False)
 
     def setup(self) -> None:
@@ -175,7 +195,7 @@ class HoodTuner:
 
         This method is called at the end of the control loop.
         """
-        self.hood.setPosition(self.target_angle)
+        self.hood.setPosition(self.target_angle_deg)
         if self.homing == True:
             self.hood.homing_routine()
 
