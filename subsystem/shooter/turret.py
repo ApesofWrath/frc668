@@ -50,6 +50,10 @@ class Turret:
         self.turret_configs.slot1.k_p = shooter.constants.TURRET_VEL_K_P
         self.turret_configs.slot1.k_i = shooter.constants.TURRET_VEL_K_I
         self.turret_configs.slot1.k_d = shooter.constants.TURRET_VEL_K_D
+
+        self.turret_configs.motion_magic_cruise_velocity = 40
+        self.turret_configs.motion_magic_acceleration = 80
+        self.turret_configs.motion_magic_jerk = 800
         self.turret_motor.configurator.apply(self.turret_configs)
 
     def execute(self) -> None:
