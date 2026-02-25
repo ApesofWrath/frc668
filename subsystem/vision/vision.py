@@ -54,7 +54,7 @@ class Vision:
             # Makes limelights use internal IMU
             if not self._imu_mode_is_four:
                 for ll in self._limelights:
-                    vision.limelight.LimelightHelpers.set_imu_mode(ll)
+                    vision.limelight.LimelightHelpers.set_imu_mode(ll, 4)
                 self._imu_mode_is_four = True
                 self.logger.info("Set Limelight's IMUs to mode: 4")
 
@@ -76,7 +76,7 @@ class Vision:
                 self.logger.warning(f"{ll}: Rejected too far away pose: {pose_estimate.avg_tag_dist}")
                 continue
 
-            if (pose.X() < vision.constants.POSE_X_MIN or pose.X() > vision.constants.POSE_X_MAX) or (pose.Y() < - vision.constants.POSE_Y_MIN or pose.Y() > vision.constants.POSE_Y_MAX):
+            if (pose.X() < vision.constants.POSE_X_MIN or pose.X() > vision.constants.POSE_X_MAX) or (pose.Y() < vision.constants.POSE_Y_MIN or pose.Y() > vision.constants.POSE_Y_MAX):
                 self.logger.warning(f"{ll}: Rejected out-of-bounds pose: ({pose.X()}, {pose.Y()})")
                 continue
 
@@ -91,6 +91,10 @@ class Vision:
                 continue
 
             # Dynamic stds for position, could add for rotation
+            # Accuracy of position decreases exponential with distance: According to Abbas et al. (2019) in Sensors, AprilTag precision degrades by multiple manifolds as a function of distance and yaw angle, with errors spiking from sub-centimeter levels to over 100 cm [1.1].
+            # The research indicates that a non-linear probabilistic sensor model using Gaussian Processes is required to account for the rapid, non-linear increase in uncertainty at range [1.1]. Read the full analysis at PMC6960891.
+            # I added the divide by tag count as if you had more tags visable you can be more certain
+
             xy_std_devs = (pose_estimate.avg_tag_dist ** 2) / pose_estimate.tag_count
             
 

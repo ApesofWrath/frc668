@@ -25,6 +25,7 @@ class MyRobot(magicbot.MagicRobot):
     hood: shooter.Hood
     intake: intake.Intake
     turret: shooter.Turret
+    vision: vision.Vision
 
     def createObjects(self) -> None:
         """Create and initialize robot objects."""
@@ -36,14 +37,6 @@ class MyRobot(magicbot.MagicRobot):
                 swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
             )
         )  # Use open-loop control for drive motors
-
-        # Turret
-        self.turret_motor = hardware.TalonFX(
-            shooter.constants.TURRET_MOTOR_CAN_ID, "Shooter"
-        )
-        self.turret_encoder = hardware.CANcoder(
-            shooter.constants.TURRET_ENCODER_CAN_ID, "Shooter"
-        )
 
         # Turret
         self.turret_motor = hardware.TalonFX(
@@ -77,44 +70,18 @@ class MyRobot(magicbot.MagicRobot):
             shooter.constants.INDEXER_FRONT_MOTOR_CAN_ID, "Shooter"
         )
         
-         # Use open-loop control for drive motors
+        # Hood motor and encoder.
+        self.hood_motor = phoenix6.hardware.TalonFX(
+            shooter.constants.HOOD_MOTOR_CAN_ID, "Shooter"
+        )
+        self.hood_encoder = phoenix6.hardware.CANcoder(
+            shooter.constants.HOOD_ENCODER_CAN_ID, "Shooter"
+        )
 
-        # Flywheel motor and encoder.
-        # self.flywheel_motor = phoenix6.hardware.TalonFX(
-        #     shooter.constants.FLYWHEEL_MOTOR_CAN_ID, "Shooter"
-        # )
-        # self.flywheel_encoder = phoenix6.hardware.CANcoder(
-        #     shooter.constants.FLYWHEEL_ENCODER_CAN_ID, "Shooter"
-        # )
-
-        # # Hopper motors.
-        # self.hopper_left_motor = phoenix6.hardware.TalonFX(
-        #     shooter.constants.HOPPER_LEFT_MOTOR_CAN_ID, "rio"
-        # )
-        # self.hopper_right_motor = phoenix6.hardware.TalonFX(
-        #     shooter.constants.HOPPER_RIGHT_MOTOR_CAN_ID, "rio"
-        # )
-
-        # # Indexer motors.
-        # self.indexer_bottom_motor = phoenix6.hardware.TalonFX(
-        #     shooter.constants.INDEXER_BOTTOM_MOTOR_CAN_ID, "Shooter"
-        # )
-        # self.indexer_top_motor = phoenix6.hardware.TalonFX(
-        #     shooter.constants.INDEXER_TOP_MOTOR_CAN_ID, "Shooter"
-        # )
-
-        # # Hood motor and encoder.
-        # self.hood_motor = phoenix6.hardware.TalonFX(
-        #     shooter.constants.HOOD_MOTOR_CAN_ID, "Shooter"
-        # )
-        # self.hood_encoder = phoenix6.hardware.CANcoder(
-        #     shooter.constants.HOOD_ENCODER_CAN_ID, "Shooter"
-        # )
-
-        # # Intake motors.
-        # self.intake_motor = phoenix6.hardware.TalonFX(
-        #     intake.constants.INTAKE_MOTOR_CAN_ID, "rio"
-        # )
+        # Intake motor.
+        self.intake_motor = phoenix6.hardware.TalonFX(
+            intake.constants.INTAKE_MOTOR_CAN_ID, "rio"
+        )
 
     def autonomousInit(self) -> None:
         """Initialize autonomous mode.
@@ -142,8 +109,8 @@ class MyRobot(magicbot.MagicRobot):
         disabled mode. This code executes before the `execute` method of all
         components are called.
         """
-        vision.limelight.LimelightHelpers.set_imu_mode(self.vision._limelights[0], 1)
-        vision.limelight.LimelightHelpers.set_imu_mode(self.vision._limelights[1], 1)
+        for ll in self.vision._limelights:
+            vision.limelight.LimelightHelpers.set_imu_mode(ll, 1)
         # self.logger.info("Set Limelight IMU's to mode: 1")
         pass
 
