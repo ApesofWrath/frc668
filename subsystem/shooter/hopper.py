@@ -1,6 +1,7 @@
 import magicbot
 import phoenix6
 
+import constants
 from subsystem import shooter
 
 
@@ -11,6 +12,7 @@ class Hopper:
     indexer.
     """
 
+    robot_constants: constants.RobotConstants
     hopper_left_motor: phoenix6.hardware.TalonFX
     hopper_right_motor: phoenix6.hardware.TalonFX
 
@@ -20,29 +22,43 @@ class Hopper:
         This method is called after createObjects has been called in the main
         robot class, and after all components have been created.
         """
-        left_motor_configs = phoenix6.configs.TalonFXConfiguration()
-        left_motor_configs.slot0.k_s = shooter.constants.HOPPER_LEFT_K_S
-        left_motor_configs.slot0.k_v = shooter.constants.HOPPER_LEFT_K_V
-        left_motor_configs.slot0.k_a = shooter.constants.HOPPER_LEFT_K_A
-        left_motor_configs.slot0.k_p = shooter.constants.HOPPER_LEFT_K_P
-        left_motor_configs.slot0.k_i = shooter.constants.HOPPER_LEFT_K_I
-        left_motor_configs.slot0.k_d = shooter.constants.HOPPER_LEFT_K_D
-        left_motor_configs.motor_output.inverted = (
-            phoenix6.signals.spn_enums.InvertedValue.CLOCKWISE_POSITIVE
+        hopper_constants: shooter.HopperConstants = (
+            self.robot_constants.shooter.hopper
         )
-        self.hopper_left_motor.configurator.apply(left_motor_configs)
-
-        right_motor_configs = phoenix6.configs.TalonFXConfiguration()
-        right_motor_configs.slot0.k_s = shooter.constants.HOPPER_RIGHT_K_S
-        right_motor_configs.slot0.k_v = shooter.constants.HOPPER_RIGHT_K_V
-        right_motor_configs.slot0.k_a = shooter.constants.HOPPER_RIGHT_K_A
-        right_motor_configs.slot0.k_p = shooter.constants.HOPPER_RIGHT_K_P
-        right_motor_configs.slot0.k_i = shooter.constants.HOPPER_RIGHT_K_I
-        right_motor_configs.slot0.k_d = shooter.constants.HOPPER_RIGHT_K_D
-        right_motor_configs.motor_output.inverted = (
-            phoenix6.signals.spn_enums.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
+        self.hopper_left_motor.configurator.apply(
+            phoenix6.configs.TalonFXConfiguration()
+            .with_motor_output(
+                phoenix6.configs.MotorOutputConfigs().with_inverted(
+                    hopper_constants.left_motor_inverted
+                )
+            )
+            .with_slot0(
+                phoenix6.configs.Slot0Configs()
+                .with_k_s(hopper_constants.left_k_s)
+                .with_k_v(hopper_constants.left_k_v)
+                .with_k_a(hopper_constants.left_k_a)
+                .with_k_p(hopper_constants.left_k_p)
+                .with_k_i(hopper_constants.left_k_i)
+                .with_k_d(hopper_constants.left_k_d)
+            )
         )
-        self.hopper_right_motor.configurator.apply(right_motor_configs)
+        self.hopper_right_motor.configurator.apply(
+            phoenix6.configs.TalonFXConfiguration()
+            .with_motor_output(
+                phoenix6.configs.MotorOutputConfigs().with_inverted(
+                    hopper_constants.right_motor_inverted
+                )
+            )
+            .with_slot0(
+                phoenix6.configs.Slot0Configs()
+                .with_k_s(hopper_constants.right_k_s)
+                .with_k_v(hopper_constants.right_k_v)
+                .with_k_a(hopper_constants.right_k_a)
+                .with_k_p(hopper_constants.right_k_p)
+                .with_k_i(hopper_constants.right_k_i)
+                .with_k_d(hopper_constants.right_k_d)
+            )
+        )
 
         # The target speed (in rotations per second) to request the hopper
         # motors to run at.
@@ -78,7 +94,7 @@ class Hopper:
         This method is called when the robot enters autonomous, teleoperated, or
         test mode.
         """
-        self._target_rps = shooter.constants.HOPPER_MOTORS_RPS_DEFAULT
+        self._target_rps = self.robot_constants.shooter.hopper.default_speed_rps
         self._enabled = False
 
     def on_disable(self) -> None:
@@ -121,25 +137,26 @@ class HopperTuner:
     on AdvantageScope. It also provides a settable hopper target speed.
     """
 
+    robot_constants: constants.RobotConstants
     hopper_left_motor: phoenix6.hardware.TalonFX
     hopper_right_motor: phoenix6.hardware.TalonFX
     hopper: Hopper
 
     # Gains for velocity control of the left hopper motor.
-    left_k_s = magicbot.tunable(shooter.constants.HOPPER_LEFT_K_S)
-    left_k_v = magicbot.tunable(shooter.constants.HOPPER_LEFT_K_V)
-    left_k_a = magicbot.tunable(shooter.constants.HOPPER_LEFT_K_A)
-    left_k_p = magicbot.tunable(shooter.constants.HOPPER_LEFT_K_P)
-    left_k_i = magicbot.tunable(shooter.constants.HOPPER_LEFT_K_I)
-    left_k_d = magicbot.tunable(shooter.constants.HOPPER_LEFT_K_D)
+    left_k_s = magicbot.tunable(0.0)
+    left_k_v = magicbot.tunable(0.0)
+    left_k_a = magicbot.tunable(0.0)
+    left_k_p = magicbot.tunable(0.0)
+    left_k_i = magicbot.tunable(0.0)
+    left_k_d = magicbot.tunable(0.0)
 
     # Gains for velocity control of the right hopper motor.
-    right_k_s = magicbot.tunable(shooter.constants.HOPPER_RIGHT_K_S)
-    right_k_v = magicbot.tunable(shooter.constants.HOPPER_RIGHT_K_V)
-    right_k_a = magicbot.tunable(shooter.constants.HOPPER_RIGHT_K_A)
-    right_k_p = magicbot.tunable(shooter.constants.HOPPER_RIGHT_K_P)
-    right_k_i = magicbot.tunable(shooter.constants.HOPPER_RIGHT_K_I)
-    right_k_d = magicbot.tunable(shooter.constants.HOPPER_RIGHT_K_D)
+    right_k_s = magicbot.tunable(0.0)
+    right_k_v = magicbot.tunable(0.0)
+    right_k_a = magicbot.tunable(0.0)
+    right_k_p = magicbot.tunable(0.0)
+    right_k_i = magicbot.tunable(0.0)
+    right_k_d = magicbot.tunable(0.0)
 
     # The target rotational speed of the hopper.
     target_rps = magicbot.tunable(0.0)
@@ -147,6 +164,24 @@ class HopperTuner:
     enabled = magicbot.tunable(False)
 
     def setup(self) -> None:
+        hopper_constants: shooter.HopperConstants = (
+            self.robot_constants.shooter.hopper
+        )
+
+        self.left_k_s = hopper_constants.left_k_s
+        self.left_k_v = hopper_constants.left_k_v
+        self.left_k_a = hopper_constants.left_k_a
+        self.left_k_p = hopper_constants.left_k_p
+        self.left_k_i = hopper_constants.left_k_i
+        self.left_k_d = hopper_constants.left_k_d
+
+        self.right_k_s = hopper_constants.right_k_s
+        self.right_k_v = hopper_constants.right_k_v
+        self.right_k_a = hopper_constants.right_k_a
+        self.right_k_p = hopper_constants.right_k_p
+        self.right_k_i = hopper_constants.right_k_i
+        self.right_k_d = hopper_constants.right_k_d
+
         self._current_left_gains = (
             phoenix6.configs.config_groups.Slot0Configs()
             .with_k_s(self.left_k_s)
