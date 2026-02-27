@@ -1,7 +1,14 @@
+import enum
+
 import magicbot
 import phoenix6
 
 from subsystem import shooter
+
+
+class FlywheelControlType(enum.Enum):
+    VOLTAGE = 0
+    TORQUE_CURRENT_FOC = 1
 
 
 class Flywheel:
@@ -19,59 +26,99 @@ class Flywheel:
         This method is called after createObjects has been called in the main
         robot class, and after all components have been created.
         """
-        # Configure the feedback sensor to use and the feedforward + feedback
-        # gains.
-        self._flywheel_configs = phoenix6.configs.TalonFXConfiguration()
-        self._flywheel_configs.feedback.feedback_sensor_source = (
-            phoenix6.signals.spn_enums.FeedbackSensorSourceValue.REMOTE_CANCODER
+        # Configure the motor.
+        # https://api.ctr-electronics.com/phoenix6/stable/python/autoapi/phoenix6/configs/talon_fx_configs/index.html
+        self.flywheel_motor.configurator.apply(
+            phoenix6.configs.TalonFXConfiguration()
+            .with_feedback(
+                phoenix6.configs.FeedbackConfigs()
+                .with_feedback_sensor_source(
+                    phoenix6.signals.FeedbackSensorSourceValue.FUSED_CANCODER
+                )
+                .with_feedback_remote_sensor_id(
+                    shooter.constants.FLYWHEEL_ENCODER_CAN_ID
+                )
+            )
+            .with_motor_output(
+                phoenix6.configs.MotorOutputConfigs()
+                .with_inverted(
+                    phoenix6.signals.InvertedValue.CLOCKWISE_POSITIVE
+                )
+                .with_neutral_mode(phoenix6.signals.NeutralModeValue.COAST)
+            )
+            .with_slot0(
+                # Use slot 0 for voltage control gains.
+                phoenix6.configs.Slot0Configs()
+                .with_k_p(shooter.constants.FLYWHEEL_VOLTAGE_K_P)
+                .with_k_i(shooter.constants.FLYWHEEL_VOLTAGE_K_I)
+                .with_k_d(shooter.constants.FLYWHEEL_VOLTAGE_K_D)
+                .with_k_s(shooter.constants.FLYWHEEL_VOLTAGE_K_S)
+                .with_k_v(shooter.constants.FLYWHEEL_VOLTAGE_K_V)
+                .with_k_a(shooter.constants.FLYWHEEL_VOLTAGE_K_A)
+            )
+            .with_slot1(
+                # Use slot 1 for torque current FOC gains.
+                phoenix6.configs.Slot1Configs()
+                .with_k_p(shooter.constants.FLYWHEEL_CURRENT_K_P)
+                .with_k_i(shooter.constants.FLYWHEEL_CURRENT_K_I)
+                .with_k_d(shooter.constants.FLYWHEEL_CURRENT_K_D)
+                .with_k_s(shooter.constants.FLYWHEEL_CURRENT_K_S)
+                .with_k_v(shooter.constants.FLYWHEEL_CURRENT_K_V)
+                .with_k_a(shooter.constants.FLYWHEEL_CURRENT_K_A)
+            )
+            .with_motion_magic(
+                phoenix6.configs.MotionMagicConfigs()
+                .with_motion_magic_acceleration(
+                    shooter.constants.FLYWHEEL_MAX_ACCELERATION_RPS2
+                )
+                .with_motion_magic_jerk(
+                    shooter.constants.FLYWHEEL_MAX_JERK_RPS3
+                )
+            )
         )
-        self._flywheel_configs.feedback.feedback_remote_sensor_id = (
-            shooter.constants.FLYWHEEL_ENCODER_CAN_ID
-        )
-        self._flywheel_configs.motor_output.inverted = (
-            phoenix6.signals.spn_enums.InvertedValue.CLOCKWISE_POSITIVE
-        )
-        self._flywheel_configs.motor_output.neutral_mode = (
-            phoenix6.signals.spn_enums.NeutralModeValue.COAST
-        )
-        # Output to overcome static friction
-        self._flywheel_configs.slot0.k_s = shooter.constants.FLYWHEEL_K_S
-        # A target of 1 rps results in this output
-        self._flywheel_configs.slot0.k_v = shooter.constants.FLYWHEEL_K_V
-        # An acceleration of 1 rps/s requires this output
-        self._flywheel_configs.slot0.k_a = shooter.constants.FLYWHEEL_K_A
-        # An error of 1 rps results in this output
-        self._flywheel_configs.slot0.k_p = shooter.constants.FLYWHEEL_K_P
-        # Accumulated error of 1 rps results in this output
-        self._flywheel_configs.slot0.k_i = shooter.constants.FLYWHEEL_K_I
-        # A rate of change of error of 1 rps/s results in this output
-        self._flywheel_configs.slot0.k_d = shooter.constants.FLYWHEEL_K_D
-        self.flywheel_motor.configurator.apply(self._flywheel_configs)
 
-        self._flywheel_encoder_configs = (
-            phoenix6.configs.CANcoderConfiguration()
+        # Configure the encoder.
+        # https://api.ctr-electronics.com/phoenix6/stable/python/autoapi/phoenix6/configs/cancoder_configs/index.html
+        self.flywheel_encoder.configurator.apply(
+            phoenix6.configs.CANcoderConfiguration().with_magnet_sensor(
+                phoenix6.configs.MagnetSensorConfigs().with_sensor_direction(
+                    phoenix6.signals.SensorDirectionValue.COUNTER_CLOCKWISE_POSITIVE
+                )
+            )
         )
-        self._flywheel_encoder_configs.magnet_sensor.sensor_direction = (
-            phoenix6.signals.spn_enums.SensorDirectionValue.COUNTER_CLOCKWISE_POSITIVE
-        )
-        self.flywheel_encoder.configurator.apply(self._flywheel_encoder_configs)
 
         self._target_rps: float = 0.0
+        self._max_acceleration_rps2: float = (
+            shooter.constants.FLYWHEEL_MAX_ACCELERATION_RPS2
+        )
+        self._control_type: FlywheelControlType = FlywheelControlType.VOLTAGE
 
-        # Create a velocity closed-loop request with voltage output and slot 0
-        # configs.
-        self._request = phoenix6.controls.VelocityVoltage(
+        # Create requests for voltage and current control, using the appropriate
+        # slots.
+        self._voltage_request = phoenix6.controls.VelocityVoltage(
             self._target_rps
         ).with_slot(0)
+        self._current_request = (
+            phoenix6.controls.MotionMagicVelocityTorqueCurrentFOC(
+                self._target_rps
+            ).with_slot(1)
+        )
 
     def execute(self) -> None:
         """Command the motors to the current speed.
 
         This method is called at the end of the control loop.
         """
-        self.flywheel_motor.set_control(
-            self._request.with_velocity(self._target_rps)
-        )
+        if self._control_type == FlywheelControlType.VOLTAGE:
+            self.flywheel_motor.set_control(
+                self._voltage_request.with_velocity(self._target_rps)
+            )
+        elif self._control_type == FlywheelControlType.TORQUE_CURRENT_FOC:
+            self.flywheel_motor.set_control(
+                self._current_request.with_velocity(
+                    self._target_rps
+                ).with_acceleration(self._max_acceleration_rps2)
+            )
 
     def on_enable(self) -> None:
         """Reset to a "safe" state when the robot is enabled.
@@ -91,9 +138,19 @@ class Flywheel:
     def setTargetRps(self, target_rps: float) -> None:
         self._target_rps = target_rps
 
+    def setMaxAccelerationRps2(self, max_acceleration_rps2: float) -> None:
+        self._max_acceleration_rps2 = max_acceleration_rps2
+
+    def setControlType(self, control_type: FlywheelControlType) -> None:
+        self._control_type = control_type
+
     @magicbot.feedback
     def get_target_rps(self) -> float:
         return self._target_rps
+
+    @magicbot.feedback
+    def get_control_type(self) -> int:
+        return self._control_type.value
 
 
 class FlywheelTuner:
@@ -107,16 +164,30 @@ class FlywheelTuner:
     flywheel_encoder: phoenix6.hardware.CANcoder
     flywheel: Flywheel
 
-    # Gains for velocity control of the flywheel.
-    k_s = magicbot.tunable(shooter.constants.FLYWHEEL_K_S)
-    k_v = magicbot.tunable(shooter.constants.FLYWHEEL_K_V)
-    k_a = magicbot.tunable(shooter.constants.FLYWHEEL_K_A)
-    k_p = magicbot.tunable(shooter.constants.FLYWHEEL_K_P)
-    k_i = magicbot.tunable(shooter.constants.FLYWHEEL_K_I)
-    k_d = magicbot.tunable(shooter.constants.FLYWHEEL_K_D)
+    # Voltage control gains.
+    voltage_k_p = magicbot.tunable(shooter.constants.FLYWHEEL_VOLTAGE_K_P)
+    voltage_k_i = magicbot.tunable(shooter.constants.FLYWHEEL_VOLTAGE_K_I)
+    voltage_k_d = magicbot.tunable(shooter.constants.FLYWHEEL_VOLTAGE_K_D)
+    voltage_k_s = magicbot.tunable(shooter.constants.FLYWHEEL_VOLTAGE_K_S)
+    voltage_k_v = magicbot.tunable(shooter.constants.FLYWHEEL_VOLTAGE_K_V)
+    voltage_k_a = magicbot.tunable(shooter.constants.FLYWHEEL_VOLTAGE_K_A)
+
+    # Torque current FOC gains.
+    current_k_p = magicbot.tunable(shooter.constants.FLYWHEEL_CURRENT_K_P)
+    current_k_i = magicbot.tunable(shooter.constants.FLYWHEEL_CURRENT_K_I)
+    current_k_d = magicbot.tunable(shooter.constants.FLYWHEEL_CURRENT_K_D)
+    current_k_s = magicbot.tunable(shooter.constants.FLYWHEEL_CURRENT_K_S)
+    current_k_v = magicbot.tunable(shooter.constants.FLYWHEEL_CURRENT_K_V)
+    current_k_a = magicbot.tunable(shooter.constants.FLYWHEEL_CURRENT_K_A)
 
     # The target rotational velocity of the flywheel.
     target_rps = magicbot.tunable(shooter.constants.FLYWHEEL_ENABLE_RPS)
+    # The max acceleration allowed for the flywheel.
+    max_acceleration_rps2 = magicbot.tunable(
+        shooter.constants.FLYWHEEL_MAX_ACCELERATION_RPS2
+    )
+    # The control request type to use.
+    control_type = magicbot.tunable(FlywheelControlType.VOLTAGE.value)
 
     def setup(self) -> None:
         """Set up initial state for the flywheel tuner.
@@ -124,12 +195,24 @@ class FlywheelTuner:
         This method is called after createObjects has been called in the main
         robot class, and after all components have been created.
         """
-        self.last_k_s = shooter.constants.FLYWHEEL_K_S
-        self.last_k_v = shooter.constants.FLYWHEEL_K_V
-        self.last_k_a = shooter.constants.FLYWHEEL_K_A
-        self.last_k_p = shooter.constants.FLYWHEEL_K_P
-        self.last_k_i = shooter.constants.FLYWHEEL_K_I
-        self.last_k_d = shooter.constants.FLYWHEEL_K_D
+        self._voltage_gains = (
+            phoenix6.configs.Slot0Configs()
+            .with_k_p(shooter.constants.FLYWHEEL_VOLTAGE_K_P)
+            .with_k_i(shooter.constants.FLYWHEEL_VOLTAGE_K_I)
+            .with_k_d(shooter.constants.FLYWHEEL_VOLTAGE_K_D)
+            .with_k_s(shooter.constants.FLYWHEEL_VOLTAGE_K_S)
+            .with_k_v(shooter.constants.FLYWHEEL_VOLTAGE_K_V)
+            .with_k_a(shooter.constants.FLYWHEEL_VOLTAGE_K_A)
+        )
+        self._current_gains = (
+            phoenix6.configs.Slot1Configs()
+            .with_k_p(shooter.constants.FLYWHEEL_CURRENT_K_P)
+            .with_k_i(shooter.constants.FLYWHEEL_CURRENT_K_I)
+            .with_k_d(shooter.constants.FLYWHEEL_CURRENT_K_D)
+            .with_k_s(shooter.constants.FLYWHEEL_CURRENT_K_S)
+            .with_k_v(shooter.constants.FLYWHEEL_CURRENT_K_V)
+            .with_k_a(shooter.constants.FLYWHEEL_CURRENT_K_A)
+        )
 
     def execute(self) -> None:
         """Update the flywheel speed and gains (if they changed).
@@ -137,54 +220,90 @@ class FlywheelTuner:
         This method is called at the end of the control loop.
         """
         self.flywheel.setTargetRps(self.target_rps)
+        self.flywheel.setMaxAccelerationRps2(self.max_acceleration_rps2)
+        try:
+            self.flywheel.setControlType(FlywheelControlType(self.control_type))
+        except ValueError as e:
+            self.logger.error(e)
 
-        # We only want to reapply the gains if they changed. The TalonFX motor
-        # doesn't like being reconfigured constantly.
-        if not self.gainsChanged():
-            return
+        # We only want to reapply the gains if they changed. TalonFX doesn't
+        # like being reconfigured constantly.
+        if self.voltageGainsChanged():
+            self.applyVoltageGains()
+        if self.currentGainsChanged():
+            self.applyCurrentGains()
 
-        self.applyGains()
-
-        self.last_k_s = self.k_s
-        self.last_k_v = self.k_v
-        self.last_k_a = self.k_a
-        self.last_k_p = self.k_p
-        self.last_k_i = self.k_i
-        self.last_k_d = self.k_d
-
-    def gainsChanged(self) -> bool:
-        """Detect if any of the gains changed.
+    def voltageGainsChanged(self) -> bool:
+        """Detect if any of the voltage control gains changed.
 
         Returns:
             True if any of the gains changed, False otherwise.
         """
         return (
-            self.k_s != self.last_k_s
-            or self.k_v != self.last_k_v
-            or self.k_a != self.last_k_a
-            or self.k_p != self.last_k_p
-            or self.k_i != self.last_k_i
-            or self.k_d != self.last_k_d
+            self.voltage_k_p != self._voltage_gains.k_p
+            or self.voltage_k_i != self._voltage_gains.k_i
+            or self.voltage_k_d != self._voltage_gains.k_d
+            or self.voltage_k_s != self._voltage_gains.k_s
+            or self.voltage_k_v != self._voltage_gains.k_v
+            or self.voltage_k_a != self._voltage_gains.k_a
         )
 
-    def applyGains(self) -> None:
-        """Apply the current gains to the motor."""
-        slot0_configs = (
-            phoenix6.configs.config_groups.Slot0Configs()
-            .with_k_s(self.k_s)
-            .with_k_v(self.k_v)
-            .with_k_a(self.k_a)
-            .with_k_p(self.k_p)
-            .with_k_i(self.k_i)
-            .with_k_d(self.k_d)
+    def currentGainsChanged(self) -> bool:
+        """Detect if any of the current control gains changed.
+
+        Returns:
+            True if any of the gains changed, False otherwise.
+        """
+        return (
+            self.current_k_p != self._current_gains.k_p
+            or self.current_k_i != self._current_gains.k_i
+            or self.current_k_d != self._current_gains.k_d
+            or self.current_k_s != self._current_gains.k_s
+            or self.current_k_v != self._current_gains.k_v
+            or self.current_k_a != self._current_gains.k_a
         )
-        result = self.flywheel_motor.configurator.apply(slot0_configs)
+
+    def applyVoltageGains(self) -> None:
+        """Apply the latest voltage gains to the motor."""
+        result = self.flywheel_motor.configurator.apply(
+            self._voltage_gains.with_k_s(self.voltage_k_s)
+            .with_k_v(self.voltage_k_v)
+            .with_k_a(self.voltage_k_a)
+            .with_k_p(self.voltage_k_p)
+            .with_k_i(self.voltage_k_i)
+            .with_k_d(self.voltage_k_d)
+        )
         if not result.is_ok():
-            self.logger.error("Failed to apply new gains to flywheel motor")
+            self.logger.error(
+                f"Failed to apply new voltage gains to flywheel motor: {result.name}: {result.description}"
+            )
+
+    def applyCurrentGains(self) -> None:
+        """Apply the latest current gains to the motor."""
+        result = self.flywheel_motor.configurator.apply(
+            self._current_gains.with_k_s(self.current_k_s)
+            .with_k_v(self.current_k_v)
+            .with_k_a(self.current_k_a)
+            .with_k_p(self.current_k_p)
+            .with_k_i(self.current_k_i)
+            .with_k_d(self.current_k_d)
+        )
+        if not result.is_ok():
+            self.logger.error(
+                f"Failed to apply new current gains to flywheel motor: {result.name}: {result.description}"
+            )
+
+    @magicbot.feedback
+    def get_motor_duty_cycle(self) -> float:
+        return self.flywheel_motor.get_duty_cycle().value
 
     @magicbot.feedback
     def get_motor_voltage(self) -> phoenix6.units.volt:
         return self.flywheel_motor.get_motor_voltage().value
+
+    @magicbot.feedback
+    def get_motor_supply_voltage(self) -> phoenix6.units.volt:
+        return self.flywheel_motor.get_supply_voltage().value
 
     @magicbot.feedback
     def get_motor_supply_current(self) -> phoenix6.units.ampere:
