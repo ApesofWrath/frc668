@@ -146,13 +146,6 @@ class Hood:
     @magicbot.feedback
     def get_target_position_deg(self) -> float:
         return self._target_position_degrees
-    # def homing_routine(self) -> None:
-    #     self.hood_motor.set(-0.1)
-    #     if self.hood_motor.get_stator_current.value >= 8.5:
-    #         self.zeroEncoder()
-    #         self.hood_motor.set(0.0)
-    #         self.homing = False
-
 
 class HoodTuner:
     """Component for tuning the hood gains.
