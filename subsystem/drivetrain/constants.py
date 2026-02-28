@@ -118,6 +118,24 @@ class DriveOptions:
     max_angular_acceleration_radians_per_second_squared: float = 0.5
 
 
+# Constants for vision.
+@dataclass(frozen=True)
+class VisionConstants:
+    limelights: list[str]
+    # Limits in field coordinates. Vision estimates beyond these thresholds will
+    # be discarded.
+    pose_x_min: float = -0.2
+    pose_x_max: float = 16.55
+    pose_y_min: float = -0.2
+    pose_y_max: float = 8.07
+    # Average tag distance limit. Vision estimates whose average tag distance
+    # exceeds this will be discarded.
+    average_tag_distance_threshold: float = 4.5
+    # Vision estimates that differ by more than this from the current robot pose
+    # estimate will be discarded.
+    max_diff_from_robot_pose: float = 0.5
+
+
 # Collection of all drivetrain-related constants for the robot.
 @dataclass(frozen=True)
 class DrivetrainConstants:
@@ -128,6 +146,7 @@ class DrivetrainConstants:
     back_right: SwerveModuleConstants = SwerveModuleConstants()
     drivetrain: SwerveDrivetrainConstants = SwerveDrivetrainConstants()
     drive_options: DriveOptions = DriveOptions()
+    vision: VisionConstants = VisionConstants(limelights=[])
 
 
 # Constants per robot serial number.
@@ -251,6 +270,7 @@ DRIVETRAIN_CONSTANTS: dict[str, DrivetrainConstants] = {
             encoder_inverted=True,
         ),
         drivetrain=SwerveDrivetrainConstants(pigeon2_id=22),
+        vision=VisionConstants(limelights=["limelight-fl", "limelight-fr"]),
     ),
 }
 

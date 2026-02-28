@@ -8,7 +8,8 @@ from phoenix6 import swerve, hardware
 
 import constants
 from common import joystick
-from subsystem import drivetrain, shooter, intake, vision
+from subsystem import drivetrain, shooter, intake
+from subsystem.drivetrain import limelight
 
 DEADBAND = 0.15**2
 
@@ -28,7 +29,7 @@ class MyRobot(magicbot.MagicRobot):
     hood: shooter.Hood
     intake: intake.Intake
     turret: shooter.Turret
-    vision: vision.Vision
+    vision: drivetrain.Vision
 
     def createObjects(self) -> None:
         """Create and initialize robot objects."""
@@ -87,7 +88,7 @@ class MyRobot(magicbot.MagicRobot):
         self.indexer_front_motor = phoenix6.hardware.TalonFX(
             self.robot_constants.shooter.indexer.front_motor_can_id, "Shooter"
         )
-        
+
         # Hood motor and encoder.
         self.hood_motor = phoenix6.hardware.TalonFX(
             self.robot_constants.shooter.hood.motor_can_id, "Shooter"
@@ -118,14 +119,18 @@ class MyRobot(magicbot.MagicRobot):
         # add our Drivetrain component to magicbot's internal list so its
         # on_enable, on_disable, and execute methods are called appropriately.
         self._components.append(("drivetrain", self.drivetrain))
-    
+
     def robotPeriodic(self) -> None:
         if wpilib.DriverStation.isEnabled():
+            # Use external IMU assist when enabled.
             for ll in self.vision._limelights:
-                vision.limelight.LimelightHelpers.set_imu_mode(ll, 4)
+                limelight.LimelightHelpers.set_imu_mode(ll, 4)
         else:
+            # Hard reset each limelight's yaw to the external IMU when disabled.
             for ll in self.vision._limelights:
-                vision.limelight.LimelightHelpers.set_imu_mode(ll, 1)
+                limelight.LimelightHelpers.set_imu_mode(ll, 1)
+                # We call this here because the Vision component's execute
+                # method does not get called when disabled.
                 self.vision.setRobotOrientation()
 
     def autonomousInit(self) -> None:
@@ -155,7 +160,7 @@ class MyRobot(magicbot.MagicRobot):
         components are called.
         """
         for ll in self.vision._limelights:
-            vision.limelight.LimelightHelpers.set_imu_mode(ll, 1)
+            limelight.LimelightHelpers.set_imu_mode(ll, 1)
             self.vision.setRobotOrientation()
 
         # Periodically try to set operator perspective, in case we weren't able
@@ -187,7 +192,7 @@ class MyRobot(magicbot.MagicRobot):
         """
         # TODO: Handle exceptions so robot code doesn't crash.
         if self.driver_controller.shouldResetOrientation():
-            self.drivetrain.reset_pose(wpimath.geometry.Pose2d(0,0,0))
+            self.drivetrain.reset_pose(wpimath.geometry.Pose2d(0, 0, 0))
             self.vision._pose_seeded = False
         self.driveWithJoysicks()
         self.controlHopper()
