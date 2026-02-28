@@ -50,6 +50,16 @@ class Hood:
         hood_configs.slot0.k_d = shooter.constants.HOOD_K_D
         hood_configs.slot0.k_g = shooter.constants.HOOD_K_G
 
+        hood_configs.motion_magic.motion_magic_cruise_velocity = (
+            shooter.constants.HOOD_MM_CRUISE_VELOCITY
+        )
+        hood_configs.motion_magic.motion_magic_acceleration = (
+            shooter.constants.HOOD_MM_ACCELERATION
+        )
+        hood_configs.motion_magic.motion_magic_jerk = (
+            shooter.constants.HOOD_MM_JERK
+        )
+
         # TODO: Configure soft limits.
         self.hood_motor.configurator.apply(hood_configs)
 
@@ -59,7 +69,7 @@ class Hood:
         )
         self.hood_encoder.configurator.apply(encoder_configs)
 
-        self._request = phoenix6.controls.PositionVoltage(
+        self._request = phoenix6.controls.MotionMagicVoltage(
             self._target_position_degrees * self.DEGREES_TO_ROTATIONS
         ).with_slot(0)
 
@@ -160,6 +170,11 @@ class HoodTuner:
     k_d = magicbot.tunable(shooter.constants.HOOD_K_D)
     k_g = magicbot.tunable(shooter.constants.HOOD_K_G)
 
+    # Motion Magic parameters for smooth trajectory generation
+    mm_cruise_velocity = magicbot.tunable(shooter.constants.HOOD_MM_CRUISE_VELOCITY)
+    mm_acceleration = magicbot.tunable(shooter.constants.HOOD_MM_ACCELERATION)
+    mm_jerk = magicbot.tunable(shooter.constants.HOOD_MM_JERK)
+
     # The target angle of the hood, in degrees.
     target_angle_deg = magicbot.tunable(20.0)
 
@@ -175,6 +190,9 @@ class HoodTuner:
         self.last_k_i = shooter.constants.HOOD_K_I
         self.last_k_d = shooter.constants.HOOD_K_D
         self.last_k_g = shooter.constants.HOOD_K_G
+        self.last_mm_cruise_velocity = shooter.constants.HOOD_MM_CRUISE_VELOCITY
+        self.last_mm_acceleration = shooter.constants.HOOD_MM_ACCELERATION
+        self.last_mm_jerk = shooter.constants.HOOD_MM_JERK
 
     def execute(self) -> None:
         """Update the hood speed and gains (if they changed).
@@ -197,6 +215,9 @@ class HoodTuner:
         self.last_k_i = self.k_i
         self.last_k_d = self.k_d
         self.last_k_g = self.k_g
+        self.last_mm_cruise_velocity = self.mm_cruise_velocity
+        self.last_mm_acceleration = self.mm_acceleration
+        self.last_mm_jerk = self.mm_jerk
 
     def gainsChanged(self) -> bool:
         """Detect if any of the gains changed.
@@ -212,6 +233,9 @@ class HoodTuner:
             or self.k_i != self.last_k_i
             or self.k_d != self.last_k_d
             or self.k_g != self.last_k_g
+            or self.mm_cruise_velocity != self.last_mm_cruise_velocity
+            or self.mm_acceleration != self.last_mm_acceleration
+            or self.mm_jerk != self.last_mm_jerk
         )
 
     def applyGains(self) -> None:
@@ -226,9 +250,21 @@ class HoodTuner:
             .with_k_d(self.k_d)
             .with_k_g(self.k_g)
         )
+        
+        motion_magic_configs = (
+            phoenix6.configs.config_groups.MotionMagicConfigs()
+            .with_motion_magic_cruise_velocity(self.mm_cruise_velocity)
+            .with_motion_magic_acceleration(self.mm_acceleration)
+            .with_motion_magic_jerk(self.mm_jerk)
+        )
+        
         result = self.hood_motor.configurator.apply(slot0_configs)
         if not result.is_ok():
             self.logger.error("Failed to apply new gains to hood motor")
+        
+        result = self.hood_motor.configurator.apply(motion_magic_configs)
+        if not result.is_ok():
+            self.logger.error("Failed to apply new motion magic config to hood motor")
 
     @magicbot.feedback
     def get_motor_voltage(self) -> phoenix6.units.volt:
