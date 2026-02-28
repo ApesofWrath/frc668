@@ -33,7 +33,7 @@ class DriverController:
         self._options: "subsystem.drivetrain.constants.DriveOptions" = options
         self._command: DriveCommand = DriveCommand()
 
-    def should_reset_orientation(self) -> bool:
+    def shouldResetOrientation(self) -> bool:
         """Returns True if the robot's orientation should be reset.
 
         When the user releases the start button, it is an indication that the
@@ -42,7 +42,7 @@ class DriverController:
         """
         return self._controller.getStartButtonReleased()
 
-    def get_drive_command(self) -> DriveCommand:
+    def getDriveCommand(self) -> DriveCommand:
         """Returns the drivetrain commands corresponding to current user input.
 
         The raw inputs from the joystick are filtered and normalized to the
@@ -50,23 +50,23 @@ class DriverController:
         """
         modifier = self.SLOW if self._controller.getLeftBumper() else self.FAST
         self._command.vx = (
-            -self._filter_input(self._controller.getLeftY())
+            -self._filterInput(self._controller.getLeftY())
             * self._options.max_linear_speed_meters_per_second
             * modifier
         )
         self._command.vy = (
-            -self._filter_input(self._controller.getLeftX())
+            -self._filterInput(self._controller.getLeftX())
             * self._options.max_linear_speed_meters_per_second
             * modifier
         )
         self._command.omega = (
-            -self._filter_input(self._controller.getRightX())
+            -self._filterInput(self._controller.getRightX())
             * self._options.max_angular_speed_radians_per_second
             * modifier
         )
         return self._command
 
-    def _filter_input(self, input: float, apply_deadband: bool = True) -> None:
+    def _filterInput(self, input: float, apply_deadband: bool = True) -> float:
         """Filter the joystick input with a squared scaling and deadband.
 
         This function squares the input while preserving its sign to provide

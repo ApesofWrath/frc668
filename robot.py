@@ -170,7 +170,7 @@ class MyRobot(magicbot.MagicRobot):
         `use_teleop_in_autonomous=True` in this class' instance.
         """
         # TODO: Handle exceptions so robot code doesn't crash.
-        if self.driver_controller.should_reset_orientation():
+        if self.driver_controller.shouldResetOrientation():
             self.drivetrain.seed_field_centric()
         self.driveWithJoysicks()
         self.controlHopper()
@@ -181,7 +181,7 @@ class MyRobot(magicbot.MagicRobot):
 
     def driveWithJoysicks(self) -> None:
         """Use the main controller joystick inputs to drive the robot base."""
-        command = self.driver_controller.get_drive_command()
+        command = self.driver_controller.getDriveCommand()
         self.drivetrain.setSpeeds(command)
 
     def controlHopper(self) -> None:
