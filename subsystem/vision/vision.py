@@ -26,11 +26,9 @@ class Vision:
         self._limelights.append(vision.constants.LIMELIGHT_TWO)
 
         self._pose_seeded = False
-        self._imu_mode_is_four = False
         self._last_known_pose = wpimath.geometry.Pose2d()
 
     def execute(self) -> None:
-        self._setImuModeFour()
         self.setRobotOrientation()
         self._updateRobotPose()
 
@@ -52,11 +50,6 @@ class Vision:
                 0.0,
                 0.0,
             )
-
-    def _setImuModeFour(self) -> None:
-        # Makes limelights use internal IMU
-        for ll in self._limelights:
-            vision.limelight.LimelightHelpers.set_imu_mode(ll, 3)
 
     def _updateRobotPose(self) -> None:
         """Updates our robot pose estimate with the latest vision measurements."""

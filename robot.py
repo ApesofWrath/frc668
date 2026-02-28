@@ -118,6 +118,15 @@ class MyRobot(magicbot.MagicRobot):
         # add our Drivetrain component to magicbot's internal list so its
         # on_enable, on_disable, and execute methods are called appropriately.
         self._components.append(("drivetrain", self.drivetrain))
+    
+    def robotPeriodic(self) -> None:
+        if wpilib.DriverStation.isEnabled():
+            for ll in self.vision._limelights:
+                vision.limelight.LimelightHelpers.set_imu_mode(ll, 4)
+        else:
+            for ll in self.vision._limelights:
+                vision.limelight.LimelightHelpers.set_imu_mode(ll, 1)
+                self.vision.setRobotOrientation()
 
     def autonomousInit(self) -> None:
         """Initialize autonomous mode.
