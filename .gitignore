@@ -216,3 +216,6 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# pyenv may add this in your project directory sometimes.
+.python-version

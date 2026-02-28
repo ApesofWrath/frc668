@@ -31,6 +31,24 @@ class MyRobot(magicbot.MagicRobot):
 
     def createObjects(self) -> None:
         """Create and initialize robot objects."""
+        self.robot_constants: constants.RobotConstants = (
+            constants.get_robot_constants()
+        )
+
+        # We instantiate the Drivetrain component manually, because magicbot
+        # does not allow accessing injected variables from component
+        # constructors. Our Drivetrain component needs to access robot constants
+        # in the constructor to properly initialize its parent class
+        # (phoenix6.swerve.SwerveDrivetrain). Therefore we cannot rely on
+        # self.robot_constants being injected automatically into Drivetrain, and
+        # must pass the constants into the constructor manually.
+        #
+        # Since we manually instantiate drivetrain, magicbot will not attempt to
+        # auto-instantiate it for us. Keeping the annotation above is helpful so
+        # that other components can benefit from automatic injection of
+        # Drivetrain, and other benefits like IDE autocomplete/type checking.
+        self.drivetrain = drivetrain.Drivetrain(self.robot_constants.drivetrain)
+
         self.main_controller = wpilib.XboxController(0)
         self.operator_controller = wpilib.XboxController(1)
 
@@ -42,50 +60,54 @@ class MyRobot(magicbot.MagicRobot):
 
         # Turret
         self.turret_motor = hardware.TalonFX(
-            shooter.constants.TURRET_MOTOR_CAN_ID, "Shooter"
+            self.robot_constants.shooter.turret.motor_can_id, "Shooter"
         )
         self.turret_encoder = hardware.CANcoder(
-            shooter.constants.TURRET_ENCODER_CAN_ID, "Shooter"
+            self.robot_constants.shooter.turret.encoder_can_id, "Shooter"
         )
 
         # Flywheel motor and encoder.
         self.flywheel_motor = phoenix6.hardware.TalonFX(
-            shooter.constants.FLYWHEEL_MOTOR_CAN_ID, "Shooter"
+            self.robot_constants.shooter.flywheel.motor_can_id, "Shooter"
         )
         self.flywheel_encoder = phoenix6.hardware.CANcoder(
-            shooter.constants.FLYWHEEL_ENCODER_CAN_ID, "Shooter"
+            self.robot_constants.shooter.flywheel.encoder_can_id, "Shooter"
         )
 
         # Hopper motors.
         self.hopper_left_motor = phoenix6.hardware.TalonFX(
-            shooter.constants.HOPPER_LEFT_MOTOR_CAN_ID, "rio"
+            self.robot_constants.shooter.hopper.left_motor_can_id, "rio"
         )
         self.hopper_right_motor = phoenix6.hardware.TalonFX(
-            shooter.constants.HOPPER_RIGHT_MOTOR_CAN_ID, "rio"
+            self.robot_constants.shooter.hopper.right_motor_can_id, "rio"
         )
 
         # Indexer motors.
         self.indexer_back_motor = phoenix6.hardware.TalonFX(
-            shooter.constants.INDEXER_BACK_MOTOR_CAN_ID, "Shooter"
+            self.robot_constants.shooter.indexer.back_motor_can_id, "Shooter"
         )
         self.indexer_front_motor = phoenix6.hardware.TalonFX(
-            shooter.constants.INDEXER_FRONT_MOTOR_CAN_ID, "Shooter"
+            self.robot_constants.shooter.indexer.front_motor_can_id, "Shooter"
         )
         
         # Hood motor and encoder.
         self.hood_motor = phoenix6.hardware.TalonFX(
-            shooter.constants.HOOD_MOTOR_CAN_ID, "Shooter"
+            self.robot_constants.shooter.hood.motor_can_id, "Shooter"
         )
         self.hood_encoder = phoenix6.hardware.CANcoder(
-            shooter.constants.HOOD_ENCODER_CAN_ID, "Shooter"
+            self.robot_constants.shooter.hood.encoder_can_id, "Shooter"
         )
 
         # Intake motor.
         self.intake_motor = phoenix6.hardware.TalonFX(
-            intake.constants.INTAKE_MOTOR_CAN_ID, "rio"
+            self.robot_constants.intake.motor_can_id, "rio"
         )
 
         self._tuning_mode = False
+
+        # Since we manually instantiate Drivetrain, magicbot will not call setup
+        # for us.
+        self.drivetrain.setup()
 
     def autonomousInit(self) -> None:
         """Initialize autonomous mode.

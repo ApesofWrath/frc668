@@ -1,6 +1,7 @@
 import magicbot
 import phoenix6
 
+import constants
 from subsystem import shooter
 
 
@@ -10,6 +11,7 @@ class Indexer:
     This class drives the indexer motors that feed fuel into the flywheel.
     """
 
+    robot_constants: constants.RobotConstants
     indexer_back_motor: phoenix6.hardware.TalonFX
     indexer_front_motor: phoenix6.hardware.TalonFX
 
@@ -19,31 +21,45 @@ class Indexer:
         This method is called after createObjects has been called in the main
         robot class, and after all components have been created.
         """
+        indexer_constants: shooter.IndexerConstants = (
+            self.robot_constants.shooter.indexer
+        )
         # Configuration settings for back motor.
-        back_motor_configs = phoenix6.configs.TalonFXConfiguration()
-        back_motor_configs.slot0.k_s = shooter.constants.INDEXER_BACK_K_S
-        back_motor_configs.slot0.k_v = shooter.constants.INDEXER_BACK_K_V
-        back_motor_configs.slot0.k_a = shooter.constants.INDEXER_BACK_K_A
-        back_motor_configs.slot0.k_p = shooter.constants.INDEXER_BACK_K_P
-        back_motor_configs.slot0.k_i = shooter.constants.INDEXER_BACK_K_I
-        back_motor_configs.slot0.k_d = shooter.constants.INDEXER_BACK_K_D
-        back_motor_configs.motor_output.inverted = (
-            phoenix6.signals.spn_enums.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
+        self.indexer_back_motor.configurator.apply(
+            phoenix6.configs.TalonFXConfiguration()
+            .with_motor_output(
+                phoenix6.configs.MotorOutputConfigs().with_inverted(
+                    indexer_constants.back_motor_inverted
+                )
+            )
+            .with_slot0(
+                phoenix6.configs.Slot0Configs()
+                .with_k_s(indexer_constants.back_k_s)
+                .with_k_v(indexer_constants.back_k_v)
+                .with_k_a(indexer_constants.back_k_a)
+                .with_k_p(indexer_constants.back_k_p)
+                .with_k_i(indexer_constants.back_k_i)
+                .with_k_d(indexer_constants.back_k_d)
+            )
         )
-        self.indexer_back_motor.configurator.apply(back_motor_configs)
-
         # Configuration settings for front motor.
-        front_motor_configs = phoenix6.configs.TalonFXConfiguration()
-        front_motor_configs.slot0.k_s = shooter.constants.INDEXER_FRONT_K_S
-        front_motor_configs.slot0.k_v = shooter.constants.INDEXER_FRONT_K_V
-        front_motor_configs.slot0.k_a = shooter.constants.INDEXER_FRONT_K_A
-        front_motor_configs.slot0.k_p = shooter.constants.INDEXER_FRONT_K_P
-        front_motor_configs.slot0.k_i = shooter.constants.INDEXER_FRONT_K_I
-        front_motor_configs.slot0.k_d = shooter.constants.INDEXER_FRONT_K_D
-        front_motor_configs.motor_output.inverted = (
-            phoenix6.signals.spn_enums.InvertedValue.CLOCKWISE_POSITIVE
+        self.indexer_front_motor.configurator.apply(
+            phoenix6.configs.TalonFXConfiguration()
+            .with_motor_output(
+                phoenix6.configs.MotorOutputConfigs().with_inverted(
+                    indexer_constants.front_motor_inverted
+                )
+            )
+            .with_slot0(
+                phoenix6.configs.Slot0Configs()
+                .with_k_s(indexer_constants.front_k_s)
+                .with_k_v(indexer_constants.front_k_v)
+                .with_k_a(indexer_constants.front_k_a)
+                .with_k_p(indexer_constants.front_k_p)
+                .with_k_i(indexer_constants.front_k_i)
+                .with_k_d(indexer_constants.front_k_d)
+            )
         )
-        self.indexer_front_motor.configurator.apply(front_motor_configs)
 
         # The target speed (in rotations per second) to request the indexer
         # motors to run at.
@@ -81,7 +97,9 @@ class Indexer:
         This method is called when the robot enters autonomous, teleoperated, or
         test mode.
         """
-        self._target_rps = shooter.constants.INDEXER_MOTORS_RPS_DEFAULT
+        self._target_rps = (
+            self.robot_constants.shooter.indexer.default_speed_rps
+        )
         self._enabled = False
 
     def on_disable(self) -> None:
@@ -124,25 +142,26 @@ class IndexerTuner:
     on AdvantageScope. It also provides a settable indexer target speed.
     """
 
+    robot_constants: constants.RobotConstants
     indexer_back_motor: phoenix6.hardware.TalonFX
     indexer_front_motor: phoenix6.hardware.TalonFX
     indexer: Indexer
 
     # Gains for velocity control of the back indexer motor.
-    back_k_s = magicbot.tunable(shooter.constants.INDEXER_BACK_K_S)
-    back_k_v = magicbot.tunable(shooter.constants.INDEXER_BACK_K_V)
-    back_k_a = magicbot.tunable(shooter.constants.INDEXER_BACK_K_A)
-    back_k_p = magicbot.tunable(shooter.constants.INDEXER_BACK_K_P)
-    back_k_i = magicbot.tunable(shooter.constants.INDEXER_BACK_K_I)
-    back_k_d = magicbot.tunable(shooter.constants.INDEXER_BACK_K_D)
+    back_k_s = magicbot.tunable(0.0)
+    back_k_v = magicbot.tunable(0.0)
+    back_k_a = magicbot.tunable(0.0)
+    back_k_p = magicbot.tunable(0.0)
+    back_k_i = magicbot.tunable(0.0)
+    back_k_d = magicbot.tunable(0.0)
 
     # Gains for velocity control of the front indexer motor.
-    front_k_s = magicbot.tunable(shooter.constants.INDEXER_FRONT_K_S)
-    front_k_v = magicbot.tunable(shooter.constants.INDEXER_FRONT_K_V)
-    front_k_a = magicbot.tunable(shooter.constants.INDEXER_FRONT_K_A)
-    front_k_p = magicbot.tunable(shooter.constants.INDEXER_FRONT_K_P)
-    front_k_i = magicbot.tunable(shooter.constants.INDEXER_FRONT_K_I)
-    front_k_d = magicbot.tunable(shooter.constants.INDEXER_FRONT_K_D)
+    front_k_s = magicbot.tunable(0.0)
+    front_k_v = magicbot.tunable(0.0)
+    front_k_a = magicbot.tunable(0.0)
+    front_k_p = magicbot.tunable(0.0)
+    front_k_i = magicbot.tunable(0.0)
+    front_k_d = magicbot.tunable(0.0)
 
     # The target rotational speed of the indexer.
     target_rps = magicbot.tunable(0.0)
@@ -150,6 +169,24 @@ class IndexerTuner:
     enabled = magicbot.tunable(False)
 
     def setup(self) -> None:
+        indexer_constants: shooter.IndexerConstants = (
+            self.robot_constants.shooter.indexer
+        )
+
+        self.back_k_s = indexer_constants.back_k_s
+        self.back_k_v = indexer_constants.back_k_v
+        self.back_k_a = indexer_constants.back_k_a
+        self.back_k_p = indexer_constants.back_k_p
+        self.back_k_i = indexer_constants.back_k_i
+        self.back_k_d = indexer_constants.back_k_d
+
+        self.front_k_s = indexer_constants.front_k_s
+        self.front_k_v = indexer_constants.front_k_v
+        self.front_k_a = indexer_constants.front_k_a
+        self.front_k_p = indexer_constants.front_k_p
+        self.front_k_i = indexer_constants.front_k_i
+        self.front_k_d = indexer_constants.front_k_d
+
         self._current_back_gains = (
             phoenix6.configs.config_groups.Slot0Configs()
             .with_k_s(self.back_k_s)
