@@ -111,9 +111,9 @@ class Drivetrain(swerve.SwerveDrivetrain):
             return
         self.logger.info(f"Alliance color {alliance_color}")
         self.set_operator_perspective_forward(
-            constants.RED_ALLIANCE_PERSPECTIVE_ROTATION
+            drivetrain.constants.RED_ALLIANCE_PERSPECTIVE_ROTATION
             if alliance_color == wpilib.DriverStation.Alliance.kRed
-            else constants.BLUE_ALLIANCE_PERSPECTIVE_ROTATION
+            else drivetrain.constants.BLUE_ALLIANCE_PERSPECTIVE_ROTATION
         )
 
     def execute(self) -> None:
