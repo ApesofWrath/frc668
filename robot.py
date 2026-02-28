@@ -7,6 +7,7 @@ import wpimath
 from phoenix6 import swerve, hardware
 
 import constants
+from common import joystick
 from subsystem import drivetrain, shooter, intake
 
 DEADBAND = 0.15**2
@@ -48,7 +49,10 @@ class MyRobot(magicbot.MagicRobot):
         # Drivetrain, and other benefits like IDE autocomplete/type checking.
         self.drivetrain = drivetrain.Drivetrain(self.robot_constants.drivetrain)
 
-        self.main_controller = wpilib.XboxController(0)
+        self.driver_controller = joystick.DriverController(
+            wpilib.XboxController(0),
+            self.robot_constants.drivetrain.drive_options,
+        )
         self.operator_controller = wpilib.XboxController(1)
 
         # Turret
@@ -166,7 +170,7 @@ class MyRobot(magicbot.MagicRobot):
         `use_teleop_in_autonomous=True` in this class' instance.
         """
         # TODO: Handle exceptions so robot code doesn't crash.
-        if self.main_controller.getStartButton():
+        if self.driver_controller.shouldResetOrientation():
             self.drivetrain.seed_field_centric()
         self.driveWithJoysicks()
         self.controlHopper()
@@ -177,31 +181,8 @@ class MyRobot(magicbot.MagicRobot):
 
     def driveWithJoysicks(self) -> None:
         """Use the main controller joystick inputs to drive the robot base."""
-        omega = 0
-        vx = 0
-        vy = 0
-        modifier = 1
-        if self.main_controller.getLeftBumperButton():
-            modifier = 0.13
-
-        if self.drivetrain.isManual():
-            vx = (
-                -filterInput(self.main_controller.getLeftY())
-                * drivetrain.constants.MAX_LINEAR_SPEED
-                * modifier
-            )
-            vy = (
-                -filterInput(self.main_controller.getLeftX())
-                * drivetrain.constants.MAX_LINEAR_SPEED
-                * modifier
-            )
-            omega = (
-                -filterInput(self.main_controller.getRightX())
-                * drivetrain.constants.MAX_ROTATION_SPEED
-                * modifier
-            )
-
-        self.drivetrain.setSpeeds(vx, vy, omega)
+        command = self.driver_controller.getDriveCommand()
+        self.drivetrain.setSpeeds(command)
 
     def controlHopper(self) -> None:
         """Drive the hopper motors."""
