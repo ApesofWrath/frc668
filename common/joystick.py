@@ -36,11 +36,18 @@ class DriverController:
     def shouldResetOrientation(self) -> bool:
         """Returns True if the robot's orientation should be reset.
 
-        When the user releases the start button, it is an indication that the
+        When the driver releases the start button, it is an indication that the
         robot's orientation must be reset, typically with the seed_field_centric
         method on the drivetrain class.
         """
         return self._controller.getStartButtonReleased()
+
+    def runIntake(self) -> bool:
+        """Returns True if the intake should be run.
+
+        When the driver holds down the right bumper, we want to run the intake.
+        """
+        return self._controller.getRightBumper()
 
     def getDriveCommand(self) -> DriveCommand:
         """Returns the drivetrain commands corresponding to current user input.

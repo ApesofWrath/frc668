@@ -230,7 +230,7 @@ class MyRobot(magicbot.MagicRobot):
 
     def controlIntake(self) -> None:
         """Drive the intake motors."""
-        if self.operator_controller.getLeftBumper():
+        if self.driver_controller.runIntake():
             self.intake.setMotorSpeed(1.0)
         else:
             self.intake.setMotorSpeed(0.0)
