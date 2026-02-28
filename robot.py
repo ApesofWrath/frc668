@@ -9,6 +9,7 @@ from phoenix6 import swerve, hardware
 import constants
 from common import joystick
 from subsystem import drivetrain, shooter, intake
+from subsystem.drivetrain import limelight
 
 DEADBAND = 0.15**2
 
@@ -28,6 +29,7 @@ class MyRobot(magicbot.MagicRobot):
     hood: shooter.Hood
     intake: intake.Intake
     turret: shooter.Turret
+    vision: drivetrain.Vision
 
     def createObjects(self) -> None:
         """Create and initialize robot objects."""
@@ -95,7 +97,7 @@ class MyRobot(magicbot.MagicRobot):
             self.robot_constants.shooter.hood.encoder_can_id, "Shooter"
         )
 
-        # Intake motors.
+        # Intake motor.
         self.intake_motor = phoenix6.hardware.TalonFX(
             self.robot_constants.intake.motor_can_id, "rio"
         )
@@ -118,6 +120,19 @@ class MyRobot(magicbot.MagicRobot):
         # on_enable, on_disable, and execute methods are called appropriately.
         self._components.append(("drivetrain", self.drivetrain))
 
+    def robotPeriodic(self) -> None:
+        if wpilib.DriverStation.isEnabled():
+            # Use external IMU assist when enabled.
+            for ll in self.vision._limelights:
+                limelight.LimelightHelpers.set_imu_mode(ll, 4)
+        else:
+            # Hard reset each limelight's yaw to the external IMU when disabled.
+            for ll in self.vision._limelights:
+                limelight.LimelightHelpers.set_imu_mode(ll, 1)
+                # We call this here because the Vision component's execute
+                # method does not get called when disabled.
+                self.vision.setRobotOrientation()
+
     def autonomousInit(self) -> None:
         """Initialize autonomous mode.
 
@@ -134,6 +149,8 @@ class MyRobot(magicbot.MagicRobot):
         called.
         """
         self.logger.info("Robot disabled")
+        self.vision._pose_seeded = False
+        self.vision.imu_four = False
 
     def disabledPeriodic(self) -> None:
         """Run during disabled mode.
@@ -142,6 +159,10 @@ class MyRobot(magicbot.MagicRobot):
         disabled mode. This code executes before the `execute` method of all
         components are called.
         """
+        for ll in self.vision._limelights:
+            limelight.LimelightHelpers.set_imu_mode(ll, 1)
+            self.vision.setRobotOrientation()
+
         # Periodically try to set operator perspective, in case we weren't able
         # to during setup.
         self.drivetrain.maybeSetOperatorPerspectiveForward()
@@ -171,7 +192,8 @@ class MyRobot(magicbot.MagicRobot):
         """
         # TODO: Handle exceptions so robot code doesn't crash.
         if self.driver_controller.shouldResetOrientation():
-            self.drivetrain.seed_field_centric()
+            self.drivetrain.reset_pose(wpimath.geometry.Pose2d(0, 0, 0))
+            self.vision._pose_seeded = False
         self.driveWithJoysicks()
         self.controlHopper()
         self.controlIndexer()
