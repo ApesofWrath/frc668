@@ -52,12 +52,6 @@ class MyRobot(magicbot.MagicRobot):
         self.main_controller = wpilib.XboxController(0)
         self.operator_controller = wpilib.XboxController(1)
 
-        self.drive_request = (
-            swerve.requests.FieldCentric().with_drive_request_type(
-                swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
-            )
-        )  # Use open-loop control for drive motors
-
         # Turret
         self.turret_motor = hardware.TalonFX(
             self.robot_constants.shooter.turret.motor_can_id, "Shooter"
@@ -109,6 +103,18 @@ class MyRobot(magicbot.MagicRobot):
         # for us.
         self.drivetrain.setup()
 
+    def robotInit(self) -> None:
+        """MagicBot internal API
+
+        Do NOT add anything in here!
+        """
+        super().robotInit()
+
+        # Technically, we shouldn't be overriding this method. But we need to
+        # add our Drivetrain component to magicbot's internal list so its
+        # on_enable, on_disable, and execute methods are called appropriately.
+        self._components.append(("drivetrain", self.drivetrain))
+
     def autonomousInit(self) -> None:
         """Initialize autonomous mode.
 
@@ -133,7 +139,11 @@ class MyRobot(magicbot.MagicRobot):
         disabled mode. This code executes before the `execute` method of all
         components are called.
         """
-        # We dont want to be zeroing the turret while it's moving, so we'll zero it while its disabled
+        # Periodically try to set operator perspective, in case we weren't able
+        # to during setup.
+        self.drivetrain.maybeSetOperatorPerspectiveForward()
+        # We dont want to be zeroing the turret while it's moving, so we'll zero
+        # it while its disabled
         if self.operator_controller.getStartButton():
             self.turret.zeroEncoder()
 
@@ -195,11 +205,8 @@ class MyRobot(magicbot.MagicRobot):
                 * drivetrain.constants.MAX_ROTATION_SPEED
                 * modifier
             )
-        self.drivetrain.set_control(
-            self.drive_request.with_velocity_x(vx)
-            .with_velocity_y(vy)
-            .with_rotational_rate(omega)
-        )
+
+        self.drivetrain.setSpeeds(vx, vy, omega)
 
     def controlHopper(self) -> None:
         """Drive the hopper motors."""
