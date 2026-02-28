@@ -1,12 +1,14 @@
 import magicbot
 import phoenix6
 
-from phoenix6.controls import PositionVoltage, VelocityVoltage
+from phoenix6.controls import PositionVoltage, VelocityVoltage, MotionMagicVoltage
 
 from subsystem import shooter
 
 
 class Turret:
+    DEGREES_TO_ROTATIONS = 1.0 / 360.0
+    ROTATIONS_TO_DEGREES = 360.0
 
     turret_motor: phoenix6.hardware.TalonFX
     turret_encoder: phoenix6.hardware.CANcoder
@@ -50,7 +52,22 @@ class Turret:
         self.turret_configs.slot1.k_p = shooter.constants.TURRET_VEL_K_P
         self.turret_configs.slot1.k_i = shooter.constants.TURRET_VEL_K_I
         self.turret_configs.slot1.k_d = shooter.constants.TURRET_VEL_K_D
+        # Motion Magic configuration
+        self.turret_configs.motion_magic.motion_magic_cruise_velocity = (
+            shooter.constants.TURRET_MM_CRUISE_VELOCITY
+        )
+        self.turret_configs.motion_magic.motion_magic_acceleration = (
+            shooter.constants.TURRET_MM_ACCELERATION
+        )
+        self.turret_configs.motion_magic.motion_magic_jerk = (
+            shooter.constants.TURRET_MM_JERK
+        )
         self.turret_motor.configurator.apply(self.turret_configs)
+
+        # Initial Motion Magic request (position expressed in rotations)
+        self._request = MotionMagicVoltage(
+            self._turret_postion_degrees * self.DEGREES_TO_ROTATIONS
+        ).with_slot(0)
 
     def execute(self) -> None:
         """Command the motors to the current speed.
@@ -64,8 +81,11 @@ class Turret:
                 ).with_slot(1)
             )
         else:
+            # Use Motion Magic for smooth position control
             self.turret_motor.set_control(
-                PositionVoltage(self._turret_postion_degrees / 360).with_slot(0)
+                self._request.with_position(
+                    self._turret_postion_degrees * self.DEGREES_TO_ROTATIONS
+                )
             )
 
     def on_enable(self) -> None:
@@ -149,6 +169,9 @@ class TurretTuner:
     vel_k_p = magicbot.tunable(shooter.constants.TURRET_VEL_K_P)
     vel_k_i = magicbot.tunable(shooter.constants.TURRET_VEL_K_I)
     vel_k_d = magicbot.tunable(shooter.constants.TURRET_VEL_K_D)
+    mm_cruise_velocity = magicbot.tunable(getattr(shooter.constants, 'TURRET_MM_CRUISE_VELOCITY', 10.0))
+    mm_acceleration = magicbot.tunable(getattr(shooter.constants, 'TURRET_MM_ACCELERATION', 20.0))
+    mm_jerk = magicbot.tunable(getattr(shooter.constants, 'TURRET_MM_JERK', 100.0))
 
     # The target position of the turret.
     target_position = magicbot.tunable(0.0)
@@ -173,6 +196,14 @@ class TurretTuner:
         self.last_vel_k_p = shooter.constants.TURRET_VEL_K_P
         self.last_vel_k_i = shooter.constants.TURRET_VEL_K_I
         self.last_vel_k_d = shooter.constants.TURRET_VEL_K_D
+
+        self.last_mm_cruise_velocity = getattr(
+            shooter.constants, "TURRET_MM_CRUISE_VELOCITY", 10.0
+        )
+        self.last_mm_acceleration = getattr(
+            shooter.constants, "TURRET_MM_ACCELERATION", 20.0
+        )
+        self.last_mm_jerk = getattr(shooter.constants, "TURRET_MM_JERK", 100.0)
 
         self.logger.info("Turret initialized")
 
@@ -221,6 +252,9 @@ class TurretTuner:
             or self.vel_k_p != self.last_vel_k_p
             or self.vel_k_i != self.last_vel_k_i
             or self.vel_k_d != self.last_vel_k_d
+            or self.mm_cruise_velocity != self.last_mm_cruise_velocity
+            or self.mm_acceleration != self.last_mm_acceleration
+            or self.mm_jerk != self.last_mm_jerk
         )
 
     def applyGains(self) -> None:
@@ -246,10 +280,18 @@ class TurretTuner:
                 slot1_configs
             )
         )
-        if result.is_ok():
-            self.logger.error("Successfully applied new turret gains")
-        else:
+        if not result.is_ok():
             self.logger.error("Failed to apply new gains to turret motor")
+
+        motion_magic_configs = (
+            phoenix6.configs.config_groups.MotionMagicConfigs()
+            .with_motion_magic_cruise_velocity(self.mm_cruise_velocity)
+            .with_motion_magic_acceleration(self.mm_acceleration)
+            .with_motion_magic_jerk(self.mm_jerk)
+        )
+        result = self.turret_motor.configurator.apply(motion_magic_configs)
+        if not result.is_ok():
+            self.logger.error("Failed to apply new motion magic config to turret motor")
 
     @magicbot.feedback
     def get_motor_voltage(self) -> phoenix6.units.volt:
