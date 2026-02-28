@@ -6,8 +6,12 @@ import wpilib
 import wpimath
 from phoenix6 import swerve, hardware
 
+from magicbot import MagicRobot
+from wpilib import DriverStation
+
 import constants
 from subsystem import drivetrain, shooter, intake
+from autonomous import AutoHelper
 
 
 class MyRobot(magicbot.MagicRobot):
@@ -25,6 +29,9 @@ class MyRobot(magicbot.MagicRobot):
     hood: shooter.Hood
     intake: intake.Intake
     turret: shooter.Turret
+
+    AutoHelper: AutoHelper.AutoHelper
+
 
     def createObjects(self) -> None:
         """Create and initialize robot objects."""
@@ -81,6 +88,7 @@ class MyRobot(magicbot.MagicRobot):
         self.intake_motor = phoenix6.hardware.TalonFX(
             intake.constants.INTAKE_MOTOR_CAN_ID, "rio"
         )
+
 
     def autonomousInit(self) -> None:
         """Initialize autonomous mode.

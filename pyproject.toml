@@ -20,6 +20,7 @@ components = [
 # Other pip packages to install
 requires = [
     "phoenix6",
+    "sleipnirgroup-choreolib",
 ]
 
 [tool.black]

@@ -1,10 +1,13 @@
+
+#THIS IS NOT BEING USED AND IS JUT FOR REFERENCE
+
 from magicbot import AutonomousStateMachine, state, timed_state
 from subsystem import drivetrain
 from phoenix6 import swerve
 
 class Auton_Test(AutonomousStateMachine):
     MODE_NAME = "Test"
-    DEFAULT = True
+    DEFAULT = False
 
     drivetrain: drivetrain.Drivetrain
     drive_request: swerve.requests.FieldCentric

@@ -2,7 +2,10 @@ import math
 
 import wpilib
 import wpimath
+from wpimath.geometry import Pose2d
+# from wpimath.kinematics import ChassisSpeeds
 from phoenix6 import hardware, swerve
+from phoenix6.swerve.requests import ApplyRobotSpeeds
 
 from subsystem.drivetrain import constants
 
@@ -40,3 +43,19 @@ class Drivetrain(swerve.SwerveDrivetrain):
 
     def isManual(self):
         return True
+    
+    # def get_pose(self) -> Pose2d:
+    #     return self.get_state().pose
+
+    def reset_odometry(self, pose: Pose2d):
+        self.seed_field_centric(pose.rotation())
+
+    # def get_speeds(self) -> ChassisSpeeds:
+    #     return self.get_state().speeds
+    
+    # def drive_robot_relative(self, speeds: ChassisSpeeds, feedforwards: DriveFeedforwards):
+    #     req = ApplyRobotSpeeds()
+    #     req.speeds = speeds
+    #     req.
+    #     self.set_control(req)
+    
