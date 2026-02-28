@@ -109,6 +109,15 @@ class SwerveDrivetrainConstants:
     pigeon2_configs: typing.Optional[configs.Pigeon2Configuration] = None
 
 
+# Options related to drivetrain limits.
+@dataclass(frozen=True)
+class DriveOptions:
+    max_linear_speed_meters_per_second: float = 6.0
+    max_linear_acceleration_meters_per_second_squared: float = 3.0
+    max_angular_speed_radians_per_second: float = 6.0
+    max_angular_acceleration_radians_per_second_squared: float = 0.5
+
+
 # Collection of all drivetrain-related constants for the robot.
 @dataclass(frozen=True)
 class DrivetrainConstants:
@@ -118,6 +127,7 @@ class DrivetrainConstants:
     back_left: SwerveModuleConstants = SwerveModuleConstants()
     back_right: SwerveModuleConstants = SwerveModuleConstants()
     drivetrain: SwerveDrivetrainConstants = SwerveDrivetrainConstants()
+    drive_options: DriveOptions = DriveOptions()
 
 
 # Constants per robot serial number.
@@ -168,7 +178,7 @@ DRIVETRAIN_CONSTANTS: dict[str, DrivetrainConstants] = {
             location_y=wpimath.units.inchesToMeters(13.75),
             drive_motor_inverted=True,
             steer_motor_inverted=False,
-            encoder_inverted=True,
+            encoder_inverted=False,
         ),
         back_right=SwerveModuleConstants(
             steer_motor_id=6,
@@ -179,7 +189,7 @@ DRIVETRAIN_CONSTANTS: dict[str, DrivetrainConstants] = {
             location_y=wpimath.units.inchesToMeters(-13.75),
             drive_motor_inverted=False,
             steer_motor_inverted=False,
-            encoder_inverted=True,
+            encoder_inverted=False,
         ),
         drivetrain=SwerveDrivetrainConstants(pigeon2_id=22),
     ),
