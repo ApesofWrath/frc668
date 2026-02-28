@@ -259,3 +259,7 @@ DRIVETRAIN_CONSTANTS: dict[str, DrivetrainConstants] = {
 BLUE_ALLIANCE_PERSPECTIVE_ROTATION = wpimath.geometry.Rotation2d.fromDegrees(0)
 # Red alliance sees forward as 180 degrees (toward blue alliance wall)
 RED_ALLIANCE_PERSPECTIVE_ROTATION = wpimath.geometry.Rotation2d.fromDegrees(180)
+
+# Coordinates of hubs relative to the blue alliance coordinate system
+BLUE_ALLIANCE_HUB_COORDINATES = wpimath.geometry.Translation2d(4.625594, 4.034663)
+RED_ALLIANCE_HUB_COORDINATES = wpimath.geometry.Translation2d(11.915394, 4.034663)

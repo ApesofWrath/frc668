@@ -3,9 +3,15 @@ import typing
 
 import wpilib
 from phoenix6 import hardware, swerve, units
+import magicbot
 
 from common import joystick
 from subsystem import drivetrain
+
+import constants
+import configs
+
+import math
 
 
 class Drivetrain(swerve.SwerveDrivetrain):
@@ -158,3 +164,11 @@ class Drivetrain(swerve.SwerveDrivetrain):
 
     def isManual(self):
         return True
+    
+    @magicbot.feedback
+    def turret_angle_to_hub(self) -> int:
+        pose = self.get_state().pose
+        difference_in_x = constants.BLUE_ALLIANCE_HUB_COORDINATES.X() - pose.X()
+        difference_in_y = constants.BLUE_ALLIANCE_HUB_COORDINATES.Y() - pose.Y()
+        angle_to_robot = math.atan(difference_in_y / difference_in_x)
+        return angle_to_robot - pose.rotation()
