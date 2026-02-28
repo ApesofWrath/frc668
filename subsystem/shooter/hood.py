@@ -2,6 +2,7 @@ import magicbot
 import phoenix6
 import wpilib
 
+import constants
 from subsystem import shooter
 
 class Hood:
@@ -12,6 +13,8 @@ class Hood:
 
     DEGREES_TO_ROTATIONS = 1.0 / 360.0
     ROTATIONS_TO_DEGREES = 360.0
+
+    robot_constants: constants.RobotConstants
     hood_motor: phoenix6.hardware.TalonFX
     hood_encoder: phoenix6.hardware.CANcoder
 
@@ -26,38 +29,47 @@ class Hood:
 
         self._is_speed_controlled = False
 
-        hood_configs = phoenix6.configs.TalonFXConfiguration()
-        hood_configs.feedback.feedback_sensor_source = (
-            phoenix6.signals.spn_enums.FeedbackSensorSourceValue.REMOTE_CANCODER
+        hood_constants: shooter.HoodConstants = (
+            self.robot_constants.shooter.hood
         )
-        hood_configs.feedback.feedback_remote_sensor_id = (
-            shooter.constants.HOOD_ENCODER_CAN_ID
-        )
-        hood_configs.feedback.sensor_to_mechanism_ratio = (
-            shooter.constants.HOOD_SENSOR_TO_MECHANISM_GEAR_RATIO
-        )
-        hood_configs.feedback.rotor_to_sensor_ratio = (
-            shooter.constants.HOOD_ROTOR_TO_SENSOR_GEAR_RATIO
-        )
-        hood_configs.motor_output.inverted = (
-            phoenix6.signals.spn_enums.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
-        )
-        hood_configs.slot0.k_s = shooter.constants.HOOD_K_S
-        hood_configs.slot0.k_v = shooter.constants.HOOD_K_V
-        hood_configs.slot0.k_a = shooter.constants.HOOD_K_A
-        hood_configs.slot0.k_p = shooter.constants.HOOD_K_P
-        hood_configs.slot0.k_i = shooter.constants.HOOD_K_I
-        hood_configs.slot0.k_d = shooter.constants.HOOD_K_D
-        hood_configs.slot0.k_g = shooter.constants.HOOD_K_G
-
         # TODO: Configure soft limits.
-        self.hood_motor.configurator.apply(hood_configs)
-
-        encoder_configs = phoenix6.configs.CANcoderConfiguration()
-        encoder_configs.magnet_sensor.sensor_direction = (
-            phoenix6.signals.spn_enums.SensorDirectionValue.COUNTER_CLOCKWISE_POSITIVE
+        self.hood_motor.configurator.apply(
+            phoenix6.configs.TalonFXConfiguration()
+            .with_feedback(
+                phoenix6.configs.FeedbackConfigs()
+                .with_feedback_sensor_source(
+                    phoenix6.signals.FeedbackSensorSourceValue.REMOTE_CANCODER
+                )
+                .with_feedback_remote_sensor_id(hood_constants.encoder_can_id)
+                .with_sensor_to_mechanism_ratio(
+                    hood_constants.sensor_to_mechanism_ratio
+                )
+                .with_rotor_to_sensor_ratio(
+                    hood_constants.rotor_to_sensor_ratio
+                )
+            )
+            .with_motor_output(
+                phoenix6.configs.MotorOutputConfigs().with_inverted(
+                    hood_constants.motor_inverted
+                )
+            )
+            .with_slot0(
+                phoenix6.configs.Slot0Configs()
+                .with_k_s(hood_constants.k_s)
+                .with_k_v(hood_constants.k_v)
+                .with_k_a(hood_constants.k_a)
+                .with_k_p(hood_constants.k_p)
+                .with_k_i(hood_constants.k_i)
+                .with_k_d(hood_constants.k_d)
+            )
         )
-        self.hood_encoder.configurator.apply(encoder_configs)
+        self.hood_encoder.configurator.apply(
+            phoenix6.configs.CANcoderConfiguration().with_magnet_sensor(
+                phoenix6.configs.MagnetSensorConfigs().with_sensor_direction(
+                    hood_constants.encoder_direction
+                )
+            )
+        )
 
         self._request = phoenix6.controls.PositionVoltage(
             self._target_position_degrees * self.DEGREES_TO_ROTATIONS
@@ -68,12 +80,11 @@ class Hood:
 
         This method is called at the end of the control loop.
         """
-        # TODO: Implement velocity control (for homing).
-
+        # Ensure soft limits for target position.
         self._target_position_degrees = max(
-            shooter.constants.HOOD_MIN_ANGLE_DEGREES,
+            self.robot_constants.shooter.hood.min_angle_degrees,
             min(
-                shooter.constants.HOOD_MAX_ANGLE_DEGREES,
+                self.robot_constants.shooter.hood.max_angle_degrees,
                 self._target_position_degrees,
             ),
         )
@@ -110,8 +121,11 @@ class Hood:
     def setPosition(self, target_position_deg: float) -> None:
         """Set the position (in degrees) of the hood"""
         self._target_position_degrees = max(
-            shooter.constants.HOOD_MIN_ANGLE_DEGREES,
-            min(shooter.constants.HOOD_MAX_ANGLE_DEGREES, target_position_deg),
+            self.robot_constants.shooter.hood.min_angle_degrees,
+            min(
+                self.robot_constants.shooter.hood.max_angle_degrees,
+                target_position_deg,
+            ),
         )
 
     def setControlType(self, use_speed: bool) -> None:
@@ -136,7 +150,7 @@ class Hood:
         return (
             self.hood_encoder.get_position().value
             * self.ROTATIONS_TO_DEGREES
-            / shooter.constants.HOOD_SENSOR_TO_MECHANISM_GEAR_RATIO
+            / self.robot_constants.shooter.hood.sensor_to_mechanism_ratio
         )
 
     @magicbot.feedback
@@ -154,18 +168,19 @@ class HoodTuner:
     on AdvantageScope. It also provides a settable hood target angle position.
     """
 
+    robot_constants: constants.RobotConstants
     hood_motor: phoenix6.hardware.TalonFX
     hood_encoder: phoenix6.hardware.CANcoder
     hood: Hood
 
     # Gains for position control of the hood.
-    k_s = magicbot.tunable(shooter.constants.HOOD_K_S)
-    k_v = magicbot.tunable(shooter.constants.HOOD_K_V)
-    k_a = magicbot.tunable(shooter.constants.HOOD_K_A)
-    k_p = magicbot.tunable(shooter.constants.HOOD_K_P)
-    k_i = magicbot.tunable(shooter.constants.HOOD_K_I)
-    k_d = magicbot.tunable(shooter.constants.HOOD_K_D)
-    k_g = magicbot.tunable(shooter.constants.HOOD_K_G)
+    k_s = magicbot.tunable(0.0)
+    k_v = magicbot.tunable(0.0)
+    k_a = magicbot.tunable(0.0)
+    k_g = magicbot.tunable(0.0)
+    k_p = magicbot.tunable(0.0)
+    k_i = magicbot.tunable(0.0)
+    k_d = magicbot.tunable(0.0)
 
     # The target angle of the hood, in degrees.
     target_angle_deg = magicbot.tunable(20.0)
@@ -177,13 +192,25 @@ class HoodTuner:
         This method is called after createObjects has been called in the main
         robot class, and after all components have been created.
         """
-        self.last_k_s = shooter.constants.HOOD_K_S
-        self.last_k_v = shooter.constants.HOOD_K_V
-        self.last_k_a = shooter.constants.HOOD_K_A
-        self.last_k_p = shooter.constants.HOOD_K_P
-        self.last_k_i = shooter.constants.HOOD_K_I
-        self.last_k_d = shooter.constants.HOOD_K_D
-        self.last_k_g = shooter.constants.HOOD_K_G
+        hood_constants: shooter.HoodConstants = (
+            self.robot_constants.shooter.hood
+        )
+
+        self.k_s = hood_constants.k_s
+        self.k_v = hood_constants.k_v
+        self.k_a = hood_constants.k_a
+        self.k_g = hood_constants.k_g
+        self.k_p = hood_constants.k_p
+        self.k_i = hood_constants.k_i
+        self.k_d = hood_constants.k_d
+
+        self.last_k_s = self.k_s
+        self.last_k_v = self.k_v
+        self.last_k_a = self.k_a
+        self.last_k_g = self.k_g
+        self.last_k_p = self.k_p
+        self.last_k_i = self.k_i
+        self.last_k_d = self.k_d
 
     def execute(self) -> None:
         """Update the hood speed and gains (if they changed).
@@ -227,7 +254,7 @@ class HoodTuner:
 
     def applyGains(self) -> None:
         """Apply the current gains to the motor."""
-        slot0_configs = (
+        result = self.hood_motor.configurator.apply(
             phoenix6.configs.config_groups.Slot0Configs()
             .with_k_s(self.k_s)
             .with_k_v(self.k_v)
@@ -237,17 +264,12 @@ class HoodTuner:
             .with_k_d(self.k_d)
             .with_k_g(self.k_g)
         )
-        result = self.hood_motor.configurator.apply(slot0_configs)
         if not result.is_ok():
             self.logger.error("Failed to apply new gains to hood motor")
 
     @magicbot.feedback
     def get_motor_voltage(self) -> phoenix6.units.volt:
         return self.hood_motor.get_motor_voltage().value
-
-    @magicbot.feedback
-    def get_motor_supply_current(self) -> phoenix6.units.ampere:
-        return self.hood_motor.get_supply_current().value
 
     @magicbot.feedback
     def get_motor_stator_current(self) -> phoenix6.units.ampere:
