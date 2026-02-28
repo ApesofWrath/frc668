@@ -1,7 +1,9 @@
 import logging
 import typing
 
+import magicbot
 import wpilib
+import wpimath
 from phoenix6 import hardware, swerve, units
 
 from common import joystick
@@ -158,3 +160,7 @@ class Drivetrain(swerve.SwerveDrivetrain):
 
     def isManual(self):
         return True
+
+    @magicbot.feedback
+    def get_robot_pose(self) -> wpimath.geometry.Pose2d:
+        return self.get_state().pose

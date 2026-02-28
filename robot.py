@@ -119,6 +119,10 @@ class MyRobot(magicbot.MagicRobot):
         # add our Drivetrain component to magicbot's internal list so its
         # on_enable, on_disable, and execute methods are called appropriately.
         self._components.append(("drivetrain", self.drivetrain))
+        # And we need to register its feedback methods.
+        self._feedbacks += magicbot.magic_tunable.collect_feedbacks(
+            self.drivetrain, "drivetrain", "components"
+        )
 
     def robotPeriodic(self) -> None:
         if wpilib.DriverStation.isEnabled():
