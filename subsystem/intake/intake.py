@@ -1,5 +1,7 @@
 import phoenix6
 
+import constants
+
 
 class Intake:
     """Intake component
@@ -7,6 +9,7 @@ class Intake:
     This class drives the intake motors that pick up fuel into the hopper.
     """
 
+    robot_constants: constants.RobotConstants
     intake_motor: phoenix6.hardware.TalonFX
 
     def setup(self) -> None:
@@ -17,11 +20,13 @@ class Intake:
         """
         self._motor_speed = 0.0
 
-        intake_motor_configs = phoenix6.configs.TalonFXConfiguration()
-        intake_motor_configs.motor_output.inverted = (
-            phoenix6.signals.spn_enums.InvertedValue.CLOCKWISE_POSITIVE
+        self.intake_motor.configurator.apply(
+            phoenix6.configs.TalonFXConfiguration().with_motor_output(
+                phoenix6.configs.MotorOutputConfigs().with_inverted(
+                    self.robot_constants.intake.motor_inverted
+                )
+            )
         )
-        self.intake_motor.configurator.apply(intake_motor_configs)
 
     def execute(self) -> None:
         """Command the motors to the current speed.

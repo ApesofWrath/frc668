@@ -11,7 +11,19 @@ class TunerBot(robot.MyRobot):
 
     This class extends the base robot by adding components that help us tune
     various mechanisms, and provides more diagnostic information.
+
+    Deploy the TunerBot program to the RoboRIO with the command:
+    ```
+    py -3 -m robotpy --main tunerbot.py deploy
+    ```
     """
 
     flywheel_tuner: shooter.FlywheelTuner
+    hood_tuner: shooter.HoodTuner
+    hopper_tuner: shooter.HopperTuner
+    indexer_tuner: shooter.IndexerTuner
     turret_tuner: shooter.TurretTuner
+
+    def createObjects(self) -> None:
+        super().createObjects()
+        self._tuning_mode = True
