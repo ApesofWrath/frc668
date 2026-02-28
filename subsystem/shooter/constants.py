@@ -1,100 +1,190 @@
-# Hopper motor CAN IDs.
-HOPPER_LEFT_MOTOR_CAN_ID = 55
-HOPPER_RIGHT_MOTOR_CAN_ID = 59
+from dataclasses import dataclass
 
-# Indexer motor CAN IDs.
-INDEXER_BACK_MOTOR_CAN_ID = 18
-INDEXER_FRONT_MOTOR_CAN_ID = 19
+from phoenix6 import signals, units
 
-# Flywheel CAN IDs.
-FLYWHEEL_MOTOR_CAN_ID = 15
-FLYWHEEL_ENCODER_CAN_ID = 60
 
-# Turret CAN IDs.
-TURRET_MOTOR_CAN_ID = 13
-TURRET_ENCODER_CAN_ID = 16
+@dataclass(frozen=True)
+class HopperConstants:
+    left_motor_can_id: int = 0
+    left_motor_inverted: signals.InvertedValue = (
+        signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
+    )
+    left_k_s: float = 0.0
+    left_k_v: float = 0.0
+    left_k_a: float = 0.0
+    left_k_p: float = 0.0
+    left_k_i: float = 0.0
+    left_k_d: float = 0.0
+    right_motor_can_id: int = 0
+    right_motor_inverted: signals.InvertedValue = (
+        signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
+    )
+    right_k_s: float = 0.0
+    right_k_v: float = 0.0
+    right_k_a: float = 0.0
+    right_k_p: float = 0.0
+    right_k_i: float = 0.0
+    right_k_d: float = 0.0
+    default_speed_rps: units.rotations_per_second = 30.0
 
-TURRET_SENSOR_TO_MECHANISM_GEAR_RATIO = 10
-TURRET_ROTOR_TO_SENSOR_GEAR_RATIO = 4.167
 
-# Flywheel speed on robot enable.
-FLYWHEEL_ENABLE_RPS = 1.0
+@dataclass(frozen=True)
+class IndexerConstants:
+    back_motor_can_id: int = 0
+    back_motor_inverted: signals.InvertedValue = (
+        signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
+    )
+    back_k_s: float = 0.0
+    back_k_v: float = 0.0
+    back_k_a: float = 0.0
+    back_k_p: float = 0.0
+    back_k_i: float = 0.0
+    back_k_d: float = 0.0
+    front_motor_can_id: int = 0
+    front_motor_inverted: signals.InvertedValue = (
+        signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
+    )
+    front_k_s: float = 0.0
+    front_k_v: float = 0.0
+    front_k_a: float = 0.0
+    front_k_p: float = 0.0
+    front_k_i: float = 0.0
+    front_k_d: float = 0.0
+    default_speed_rps: units.rotations_per_second = 20.0
 
-# Flywheel gains.
-FLYWHEEL_K_S = 0.2
-FLYWHEEL_K_V = 0.13
-FLYWHEEL_K_A = 0.0
-FLYWHEEL_K_P = 0.25
-FLYWHEEL_K_I = 0.0
-FLYWHEEL_K_D = 0.0
 
-# Hopper left motor gains.
-HOPPER_LEFT_K_S = 0.5
-HOPPER_LEFT_K_V = 0.123
-HOPPER_LEFT_K_A = 0.0
-HOPPER_LEFT_K_P = 0.5
-HOPPER_LEFT_K_I = 0.0
-HOPPER_LEFT_K_D = 0.0
+@dataclass(frozen=True)
+class FlywheelConstants:
+    encoder_can_id: int = 0
+    encoder_direction: signals.SensorDirectionValue = (
+        signals.SensorDirectionValue.COUNTER_CLOCKWISE_POSITIVE
+    )
+    motor_can_id: int = 0
+    motor_inverted: signals.InvertedValue = (
+        signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
+    )
+    k_s: float = 0.0
+    k_v: float = 0.0
+    k_a: float = 0.0
+    k_p: float = 0.0
+    k_i: float = 0.0
+    k_d: float = 0.0
+    default_speed_rps: units.rotations_per_second = 1.0
 
-# Hopper right motor gains.
-HOPPER_RIGHT_K_S = 0.2
-HOPPER_RIGHT_K_V = 0.123
-HOPPER_RIGHT_K_A = 0.0
-HOPPER_RIGHT_K_P = 0.5
-HOPPER_RIGHT_K_I = 0.0
-HOPPER_RIGHT_K_D = 0.0
 
-# Default speed (in rotations per second) for hopper motors.
-HOPPER_MOTORS_RPS_DEFAULT = 30.0
+@dataclass(frozen=True)
+class TurretConstants:
+    sensor_to_mechanism_ratio: float = 10.0
+    rotor_to_sensor_ratio: float = 4.167
+    encoder_can_id: int = 0
+    encoder_direction: signals.SensorDirectionValue = (
+        signals.SensorDirectionValue.COUNTER_CLOCKWISE_POSITIVE
+    )
+    motor_can_id: int = 0
+    motor_inverted: signals.InvertedValue = (
+        signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
+    )
+    # Gains for position control.
+    position_k_s: float = 0.0
+    position_k_v: float = 0.0
+    position_k_a: float = 0.0
+    position_k_p: float = 0.0
+    position_k_i: float = 0.0
+    position_k_d: float = 0.0
+    # Gains for velocity control.
+    velocity_k_s: float = 0.0
+    velocity_k_v: float = 0.0
+    velocity_k_a: float = 0.0
+    velocity_k_p: float = 0.0
+    velocity_k_i: float = 0.0
+    velocity_k_d: float = 0.0
 
-# Indexer back motor gains.
-INDEXER_BACK_K_S = 0.4
-INDEXER_BACK_K_V = 0.12
-INDEXER_BACK_K_A = 0.0
-INDEXER_BACK_K_P = 0.25
-INDEXER_BACK_K_I = 0.0
-INDEXER_BACK_K_D = 0.0
 
-# Indexer front motor gains.
-INDEXER_FRONT_K_S = 0.35
-INDEXER_FRONT_K_V = 0.105
-INDEXER_FRONT_K_A = 0.0
-INDEXER_FRONT_K_P = 0.2
-INDEXER_FRONT_K_I = 0.0
-INDEXER_FRONT_K_D = 0.0
+@dataclass(frozen=True)
+class HoodConstants:
+    sensor_to_mechanism_ratio: float = 19.0
+    rotor_to_sensor_ratio: float = 8.0
+    encoder_can_id: int = 0
+    encoder_direction: signals.SensorDirectionValue = (
+        signals.SensorDirectionValue.COUNTER_CLOCKWISE_POSITIVE
+    )
+    motor_can_id: int = 0
+    motor_inverted: signals.InvertedValue = (
+        signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
+    )
+    k_s: float = 0.0
+    k_v: float = 0.0
+    k_a: float = 0.0
+    k_g: float = 0.0
+    k_p: float = 0.0
+    k_i: float = 0.0
+    k_d: float = 0.0
+    min_angle_degrees: units.degree = 3.6
+    max_angle_degrees: units.degree = 28.8
 
-# Default speed (in rotations per second) for indexer motors.
-INDEXER_MOTORS_RPS_DEFAULT = 20.0
 
-# Hood CAN IDs.
-HOOD_MOTOR_CAN_ID = 14
-HOOD_ENCODER_CAN_ID = 17
+@dataclass(frozen=True)
+class ShooterConstants:
+    hopper: HopperConstants = HopperConstants()
+    indexer: IndexerConstants = IndexerConstants()
+    flywheel: FlywheelConstants = FlywheelConstants()
+    turret: TurretConstants = TurretConstants()
+    hood: HoodConstants = HoodConstants()
 
-# Hood gear ratios.
-HOOD_SENSOR_TO_MECHANISM_GEAR_RATIO = 19
-HOOD_ROTOR_TO_SENSOR_GEAR_RATIO = 8
 
-# Hood range, in degrees.
-HOOD_MIN_ANGLE_DEGREES = 3.6
-HOOD_MAX_ANGLE_DEGREES = 28.8
-
-# Hood gains.
-HOOD_K_S = 0.0
-HOOD_K_V = 0.0
-HOOD_K_A = 0.0
-HOOD_K_P = 330
-HOOD_K_I = 0.0
-HOOD_K_D = 0.1
-HOOD_K_G = 0.0
-
-# Turret PID gains.
-TURRET_K_P = 70
-TURRET_K_I = 0
-TURRET_K_D = 0.1
-
-TURRET_VEL_K_P = 1
-TURRET_VEL_K_I = 0
-TURRET_VEL_K_D = 0
-TURRET_VEL_K_S = 0.24
-TURRET_VEL_K_V = 1.5
-TURRET_VEL_K_A = 0
+SHOOTER_CONSTANTS: dict[str, ShooterConstants] = {
+    "023AC96C": ShooterConstants(
+        hopper=HopperConstants(
+            left_motor_can_id=55,
+            left_motor_inverted=signals.InvertedValue.CLOCKWISE_POSITIVE,
+            left_k_s=0.5,
+            left_k_v=0.123,
+            left_k_p=0.5,
+            right_motor_can_id=59,
+            right_motor_inverted=signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE,
+            right_k_s=0.2,
+            right_k_v=0.123,
+            right_k_p=0.5,
+        ),
+        indexer=IndexerConstants(
+            back_motor_can_id=18,
+            back_motor_inverted=signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE,
+            back_k_s=0.4,
+            back_k_v=0.12,
+            back_k_p=0.25,
+            front_motor_can_id=19,
+            front_motor_inverted=signals.InvertedValue.CLOCKWISE_POSITIVE,
+            front_k_s=0.35,
+            front_k_v=0.105,
+            front_k_p=0.2,
+        ),
+        flywheel=FlywheelConstants(
+            encoder_can_id=60,
+            encoder_direction=signals.SensorDirectionValue.COUNTER_CLOCKWISE_POSITIVE,
+            motor_can_id=15,
+            motor_inverted=signals.InvertedValue.CLOCKWISE_POSITIVE,
+            k_s=0.2,
+            k_v=0.13,
+            k_p=0.25,
+        ),
+        turret=TurretConstants(
+            encoder_can_id=16,
+            encoder_direction=signals.SensorDirectionValue.COUNTER_CLOCKWISE_POSITIVE,
+            motor_can_id=13,
+            motor_inverted=signals.InvertedValue.CLOCKWISE_POSITIVE,
+            position_k_p=70,
+            position_k_d=0.1,
+            velocity_k_s=0.24,
+            velocity_k_v=1.5,
+            velocity_k_p=1.0,
+        ),
+        hood=HoodConstants(
+            encoder_can_id=17,
+            encoder_direction=signals.SensorDirectionValue.COUNTER_CLOCKWISE_POSITIVE,
+            motor_can_id=14,
+            motor_inverted=signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE,
+            k_p=330.0,
+            k_d=0.1,
+        ),
+    )
+}
