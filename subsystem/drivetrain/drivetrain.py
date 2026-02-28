@@ -2,11 +2,10 @@ import logging
 import typing
 
 import wpilib
-from phoenix6 import hardware, swerve, units
+from phoenix6 import hardware, swerve, units, configs 
 
 from common import joystick
 from subsystem import drivetrain
-
 
 class Drivetrain(swerve.SwerveDrivetrain):
     def __init__(self, constants: drivetrain.DrivetrainConstants):
