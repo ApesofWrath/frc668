@@ -27,12 +27,14 @@ class Vision:
 
         self._pose_seeded = False
         self._imu_mode_is_four = False
+        self._last_known_pose = wpimath.geometry.Pose2d()
 
     def execute(self) -> None:
-        self._setRobotOrientation()
+        self._setImuModeFour()
+        self.setRobotOrientation()
         self._updateRobotPose()
 
-    def _setRobotOrientation(self) -> None:
+    def setRobotOrientation(self) -> None:
         """Updates each Limelight with the robot's current orientation.
 
         Limelight's MegaTag2 localizer requires that we update it with our
@@ -51,12 +53,10 @@ class Vision:
                 0.0,
             )
 
-            # Makes limelights use internal IMU
-            if not self._imu_mode_is_four:
-                for ll in self._limelights:
-                    vision.limelight.LimelightHelpers.set_imu_mode(ll, 4)
-                self._imu_mode_is_four = True
-                self.logger.info("Set Limelight's IMUs to mode: 4")
+    def _setImuModeFour(self) -> None:
+        # Makes limelights use internal IMU
+        for ll in self._limelights:
+            vision.limelight.LimelightHelpers.set_imu_mode(ll, 3)
 
     def _updateRobotPose(self) -> None:
         """Updates our robot pose estimate with the latest vision measurements."""

@@ -111,6 +111,7 @@ class MyRobot(magicbot.MagicRobot):
         """
         for ll in self.vision._limelights:
             vision.limelight.LimelightHelpers.set_imu_mode(ll, 1)
+            self.vision.setRobotOrientation()
         # self.logger.info("Set Limelight IMU's to mode: 1")
         pass
 
