@@ -1,12 +1,6 @@
 import magicbot
 import phoenix6
 
-from phoenix6.controls import (
-    PositionVoltage,
-    VelocityVoltage,
-    MotionMagicVoltage,
-)
-
 import constants
 from subsystem import shooter
 
@@ -99,7 +93,7 @@ class Turret:
         )
 
         # Initial Motion Magic request (position expressed in rotations)
-        self._request = MotionMagicVoltage(
+        self._request = phoenix6.controls.MotionMagicVoltage(
             self._turret_postion_degrees * self.DEGREES_TO_ROTATIONS
         ).with_slot(0)
 
