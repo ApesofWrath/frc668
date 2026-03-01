@@ -20,17 +20,24 @@ class AutoHelper():
     def __init__(self) -> None:
         pass
 
-    def reset(self,path:str):
+    def reset(self,path:str,reset_rot = False):
         self.trajectory = choreo.load_swerve_trajectory(path)
         initial_pose = self.trajectory.get_initial_pose()
         if initial_pose is None:
             self.logger.error("Choreo trajetory initial_pose is None")
             return
-        self.drivetrain.reset_odometry(initial_pose)
+        if(reset_rot):
+            self.drivetrain.reset_odometry(initial_pose)
         self.traj_time = 0.0
         self.triggered_events = []
 
     def Tick(self,state_tm):
+        """
+        Follows the trajectory provided, and executes events along the way
+
+        :return: an int representing if the trajectory has finished, with 0 being 'in progress' and 1 being 'done'
+        :rtype: int
+        """
         self.traj_time = state_tm
         
         sample = self.trajectory.sample_at(self.traj_time)
@@ -81,11 +88,15 @@ class AutoHelper():
                 if val is None: self._raise_value_not_specified(event)
                 self.hood.setPosition(float(val))
             case "shooter.enable":
-                self.hopper.setMotorSpeed(-1)
-                self.indexer.setMotorSpeed(1)
+                self.hopper.setEnabled(True)
+                self.indexer.setEnabled(True)
             case "shooter.disable":
-                self.hopper.setMotorSpeed(0)
-                self.indexer.setMotorSpeed(0)
+                self.hopper.setEnabled(False)
+                self.indexer.setEnabled(False)
+            case "intake.enable":
+                self.intake.setMotorSpeed(1.0)
+            case "intake.disable":
+                self.intake.setMotorSpeed(0.0)
             case "logger.log":
                 self.logger.info(val)
             

@@ -1,0 +1,47 @@
+# this is an example, copy and paste all of it into a new py file and change any lines with all caps for your own auto
+from magicbot import AutonomousStateMachine, state, timed_state
+from autonomous import AutoHelper
+
+class _AUTONAME(AutonomousStateMachine): # CHANGE CLASS NAME
+    MODE_NAME = "_auto_name" # SET NAME
+
+    AutoHelper: AutoHelper.AutoHelper
+
+    def on_enable(self):
+        self.AutoHelper.reset("FirstTrajName",True) # SET FIRST TRAJ NAME
+        super().on_enable()
+
+    @state(first=True)
+    def first_state_name(self,state_tm): # SET STATE NAME FOR FIRST STATE
+        tick_result = self.AutoHelper.Tick(state_tm)
+        if(tick_result == 1):
+            self.AutoHelper.reset("SecondTrajName") # SET NEXT TRAJ NAME
+            self.next_state("second_state_name") # SET NEXT STATE NAME
+
+    @state
+    def second_state_name(self,state_tm): # SET STATE NAME FOR SECOND STATE
+        tick_result = self.AutoHelper.Tick(state_tm)
+        if(tick_result == 1):
+            self.AutoHelper.reset("ThirdTrajName") # SET NEXT TRAJ NAME
+            self.next_state("third_state_name") # SET NEXT STATE NAME
+
+    @state
+    def third_state_name(self,state_tm): # SET STATE NAME FOR THIRD STATE
+        tick_result = self.AutoHelper.Tick(state_tm)
+        if(tick_result == 1):
+            self.next_state("fourth_state") # SET NEXT STATE NAME (THIS ONE IS NOT USING A TRAJECTORY)
+    
+    @timed_state(duration=3,next_state="fifth_state_name") # SET STATE NAME FOR FOURTH STATE, AND DURATION
+    def fourth_state(self): # SET STATE NAME FOR FOURTH STATE
+        pass # note: if the turret was shooting before, it will keep shooting. you can run any code in here, not just waiting 
+
+    @state
+    def fifth_state_name(self,state_tm): # SET STATE NAME FOR FIFTH STATE
+        tick_result = self.AutoHelper.Tick(state_tm)
+        if(tick_result == 1):
+            self.next_state("end") # SET NEXT STATE NAME, end TO FINISH
+        
+    @state
+    def end(self):
+        self.AutoHelper.end()
+        self.done()

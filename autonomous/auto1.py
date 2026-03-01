@@ -8,13 +8,34 @@ class Auto1(AutonomousStateMachine):
     AutoHelper: AutoHelper.AutoHelper
 
     def on_enable(self):
-        self.AutoHelper.reset("auto1")
+        self.AutoHelper.reset("StartDepotTrenchGetDepotAndShoot",True)
         super().on_enable()
 
     @state(first=True)
-    def follow_path(self,state_tm):
-        tick = self.AutoHelper.Tick(state_tm)
-        if(tick == 1):
+    def collect_depot(self,state_tm):
+        tick_result = self.AutoHelper.Tick(state_tm)
+        if(tick_result == 1):
+            self.AutoHelper.reset("DepotRampOutAndCollect")
+            self.next_state("collect_neutral_from_depot")
+
+    @state
+    def collect_neutral_from_depot(self,state_tm):
+        tick_result = self.AutoHelper.Tick(state_tm)
+        if(tick_result == 1):
+            self.AutoHelper.reset("NeutralOutpostFeedAndCollect")
+            self.next_state("feed_from_outpost_neutral")
+
+    @state
+    def feed_from_outpost_neutral(self,state_tm):
+        tick_result = self.AutoHelper.Tick(state_tm)
+        if(tick_result == 1):
+            self.AutoHelper.reset("NeutralDepotBumpAndScore")
+            self.next_state("score_from_depot_bump")
+            
+    @state
+    def score_from_depot_bump(self,state_tm):
+        tick_result = self.AutoHelper.Tick(state_tm)
+        if(tick_result == 1):
             self.next_state("end")
         
     @state
