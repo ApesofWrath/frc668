@@ -109,6 +109,33 @@ class SwerveDrivetrainConstants:
     pigeon2_configs: typing.Optional[configs.Pigeon2Configuration] = None
 
 
+# Options related to drivetrain limits.
+@dataclass(frozen=True)
+class DriveOptions:
+    max_linear_speed_meters_per_second: float = 6.0
+    max_linear_acceleration_meters_per_second_squared: float = 3.0
+    max_angular_speed_radians_per_second: float = 6.0
+    max_angular_acceleration_radians_per_second_squared: float = 0.5
+
+
+# Constants for vision.
+@dataclass(frozen=True)
+class VisionConstants:
+    limelights: list[str]
+    # Limits in field coordinates. Vision estimates beyond these thresholds will
+    # be discarded.
+    pose_x_min: float = -0.2
+    pose_x_max: float = 16.55
+    pose_y_min: float = -0.2
+    pose_y_max: float = 8.07
+    # Average tag distance limit. Vision estimates whose average tag distance
+    # exceeds this will be discarded.
+    average_tag_distance_threshold: float = 4.5
+    # Vision estimates that differ by more than this from the current robot pose
+    # estimate will be discarded.
+    max_diff_from_robot_pose: float = 0.5
+
+
 # Collection of all drivetrain-related constants for the robot.
 @dataclass(frozen=True)
 class DrivetrainConstants:
@@ -118,6 +145,8 @@ class DrivetrainConstants:
     back_left: SwerveModuleConstants = SwerveModuleConstants()
     back_right: SwerveModuleConstants = SwerveModuleConstants()
     drivetrain: SwerveDrivetrainConstants = SwerveDrivetrainConstants()
+    drive_options: DriveOptions = DriveOptions()
+    vision: VisionConstants = VisionConstants(limelights=[])
 
 
 # Constants per robot serial number.
@@ -168,7 +197,7 @@ DRIVETRAIN_CONSTANTS: dict[str, DrivetrainConstants] = {
             location_y=wpimath.units.inchesToMeters(13.75),
             drive_motor_inverted=True,
             steer_motor_inverted=False,
-            encoder_inverted=True,
+            encoder_inverted=False,
         ),
         back_right=SwerveModuleConstants(
             steer_motor_id=6,
@@ -179,7 +208,7 @@ DRIVETRAIN_CONSTANTS: dict[str, DrivetrainConstants] = {
             location_y=wpimath.units.inchesToMeters(-13.75),
             drive_motor_inverted=False,
             steer_motor_inverted=False,
-            encoder_inverted=True,
+            encoder_inverted=False,
         ),
         drivetrain=SwerveDrivetrainConstants(pigeon2_id=22),
     ),
@@ -241,18 +270,10 @@ DRIVETRAIN_CONSTANTS: dict[str, DrivetrainConstants] = {
             encoder_inverted=True,
         ),
         drivetrain=SwerveDrivetrainConstants(pigeon2_id=22),
+        vision=VisionConstants(limelights=["limelight-fl", "limelight-fr"]),
     ),
 }
 
-
-MAX_LINEAR_SPEED = 6  # meters per second
-MAX_LINEAR_ACCELERATION = 3  # meters per second squared
-
-MAX_ROTATION_SPEED = 6  # radians per second
-MAX_ROTATION_ACCELERATION = 1 / 2  # radians per second squared
-
-MAX_SINGLE_SWERVE_ROTATION_SPEED = 12  # radians per second
-MAX_SINGLE_SWERVE_ROTATION_ACCELERATION = 40  # radians per sec squared
 
 # Blue alliance sees forward as 0 degrees (toward red alliance wall)
 BLUE_ALLIANCE_PERSPECTIVE_ROTATION = wpimath.geometry.Rotation2d.fromDegrees(0)
