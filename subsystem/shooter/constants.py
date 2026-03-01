@@ -92,6 +92,13 @@ class TurretConstants:
     motor_inverted: signals.InvertedValue = (
         signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
     )
+    # The positive discontinuity point of the absolute encoder in rotations.
+    # This determines the point at which the sensor wraps around, keeping the
+    # absolute position (after offset) in the interval [x-1, x).
+    absolute_sensor_discontinuity_point: units.rotation = 0.5
+    # This offset is added to the reported position, allowing the application to
+    # trim the zero position.
+    magnet_offset: units.rotation = 0.0
     # Gains for position control.
     position_k_s: float = 0.0
     position_k_v: float = 0.0
@@ -110,6 +117,9 @@ class TurretConstants:
     motion_magic_cruise_velocity: units.rotations_per_second = 10.0
     motion_magic_acceleration: units.rotations_per_second_squared = 7.0
     motion_magic_jerk: units.rotations_per_second_cubed = 75.0
+    # Limits for turret motion.
+    min_angle: units.degree = -180.0
+    max_angle: units.degree = 180.0
 
 
 @dataclass(frozen=True)
@@ -195,15 +205,18 @@ SHOOTER_CONSTANTS: dict[str, ShooterConstants] = {
         turret=TurretConstants(
             encoder_can_id=16,
             encoder_can_bus="Shooter",
-            encoder_direction=signals.SensorDirectionValue.COUNTER_CLOCKWISE_POSITIVE,
+            encoder_direction=signals.SensorDirectionValue.CLOCKWISE_POSITIVE,
             motor_can_id=13,
             motor_can_bus="Shooter",
-            motor_inverted=signals.InvertedValue.CLOCKWISE_POSITIVE,
-            position_k_p=70,
+            motor_inverted=signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE,
+            magnet_offset=-0.3892,
+            position_k_p=50,
             position_k_d=0.1,
             velocity_k_s=0.24,
             velocity_k_v=1.5,
             velocity_k_p=1.0,
+            min_angle=-90.0,
+            max_angle=90.0,
         ),
         hood=HoodConstants(
             encoder_can_id=17,

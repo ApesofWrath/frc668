@@ -83,19 +83,43 @@ class Turret:
                 .with_motion_magic_jerk(turret_constants.motion_magic_jerk)
             )
         )
-        self.turret_motor.configurator.apply(self.turret_motor_configs)
-        self.turret_encoder.configurator.apply(
+        result = self.turret_motor.configurator.apply(self.turret_motor_configs)
+        if not result.is_ok():
+            self.logger.error("Failed to apply configs to turret motor")
+
+        result = self.turret_encoder.configurator.apply(
             phoenix6.configs.CANcoderConfiguration().with_magnet_sensor(
-                phoenix6.configs.MagnetSensorConfigs().with_sensor_direction(
-                    turret_constants.encoder_direction
+                phoenix6.configs.MagnetSensorConfigs()
+                .with_sensor_direction(turret_constants.encoder_direction)
+                .with_absolute_sensor_discontinuity_point(
+                    turret_constants.absolute_sensor_discontinuity_point
                 )
+                .with_magnet_offset(turret_constants.magnet_offset)
             )
         )
+        if not result.is_ok():
+            self.logger.error("Failed to apply configs to turret encoder")
 
         # Initial Motion Magic request (position expressed in rotations)
         self._request = phoenix6.controls.MotionMagicVoltage(
             self._turret_postion_degrees * self.DEGREES_TO_ROTATIONS
         ).with_slot(0)
+
+        # Our sensor to mechanism ratio is 10. This means if our turret starts
+        # anywhere in the position range [-18, 18) degrees (assuming 0 is
+        # straight ahead), we can use the absolute offset from the encoder to
+        # set both the encoder's and motor's position to it so both of their
+        # zeros also point straight ahead.
+        absolute_position = self.turret_encoder.get_absolute_position().value
+        self.logger.info(
+            f"Setting turret position to {absolute_position} rotations"
+        )
+        result = self.turret_encoder.set_position(absolute_position)
+        if not result.is_ok():
+            self.logger.error("Failed to set position on turret encoder")
+        result = self.turret_motor.set_position(absolute_position)
+        if not result.is_ok():
+            self.logger.error("Failed to set position on turret motor")
 
     def execute(self) -> None:
         """Command the motors to the current speed.
