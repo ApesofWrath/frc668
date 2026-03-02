@@ -323,6 +323,7 @@ class Homing(magicbot.StateMachine):
     @magicbot.timed_state(duration=0.1, next_state="zero", must_finish=True)
     def relax(self):
         self.logger.info("Entered relaxing state.")
+        self.hood_motor.set(0.0)
 
     @magicbot.state(must_finish=True)
     def zero(self):
