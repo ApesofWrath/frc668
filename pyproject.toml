@@ -27,6 +27,7 @@ components = [
 # Other pip packages to install
 requires = [
     "phoenix6",
+    "limelightlib-python==0.9.6",
 ]
 
 [project.optional-dependencies]

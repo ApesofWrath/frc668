@@ -7,7 +7,9 @@ import wpimath
 from phoenix6 import swerve, hardware
 
 import constants
+from common import joystick
 from subsystem import drivetrain, shooter, intake
+from subsystem.drivetrain import limelight
 
 DEADBAND = 0.15**2
 
@@ -28,6 +30,7 @@ class MyRobot(magicbot.MagicRobot):
     intake: intake.Intake
     homing: shooter.hood.Homing
     turret: shooter.Turret
+    vision: drivetrain.Vision
 
     def createObjects(self) -> None:
         """Create and initialize robot objects."""
@@ -49,7 +52,10 @@ class MyRobot(magicbot.MagicRobot):
         # Drivetrain, and other benefits like IDE autocomplete/type checking.
         self.drivetrain = drivetrain.Drivetrain(self.robot_constants.drivetrain)
 
-        self.main_controller = wpilib.XboxController(0)
+        self.driver_controller = joystick.DriverController(
+            wpilib.XboxController(0),
+            self.robot_constants.drivetrain.drive_options,
+        )
         self.operator_controller = wpilib.XboxController(1)
 
         # Turret
@@ -92,7 +98,7 @@ class MyRobot(magicbot.MagicRobot):
             self.robot_constants.shooter.hood.encoder_can_id, "Shooter"
         )
 
-        # Intake motors.
+        # Intake motor.
         self.intake_motor = phoenix6.hardware.TalonFX(
             self.robot_constants.intake.motor_can_id, "rio"
         )
@@ -114,6 +120,23 @@ class MyRobot(magicbot.MagicRobot):
         # add our Drivetrain component to magicbot's internal list so its
         # on_enable, on_disable, and execute methods are called appropriately.
         self._components.append(("drivetrain", self.drivetrain))
+        # And we need to register its feedback methods.
+        self._feedbacks += magicbot.magic_tunable.collect_feedbacks(
+            self.drivetrain, "drivetrain", "components"
+        )
+
+    def robotPeriodic(self) -> None:
+        if wpilib.DriverStation.isEnabled():
+            # Use external IMU assist when enabled.
+            for ll in self.vision._limelights:
+                limelight.LimelightHelpers.set_imu_mode(ll, 4)
+        else:
+            # Hard reset each limelight's yaw to the external IMU when disabled.
+            for ll in self.vision._limelights:
+                limelight.LimelightHelpers.set_imu_mode(ll, 1)
+                # We call this here because the Vision component's execute
+                # method does not get called when disabled.
+                self.vision.setRobotOrientation()
 
     def autonomousInit(self) -> None:
         """Initialize autonomous mode.
@@ -131,6 +154,8 @@ class MyRobot(magicbot.MagicRobot):
         called.
         """
         self.logger.info("Robot disabled")
+        self.vision._pose_seeded = False
+        self.vision.imu_four = False
 
     def disabledPeriodic(self) -> None:
         """Run during disabled mode.
@@ -139,6 +164,10 @@ class MyRobot(magicbot.MagicRobot):
         disabled mode. This code executes before the `execute` method of all
         components are called.
         """
+        for ll in self.vision._limelights:
+            limelight.LimelightHelpers.set_imu_mode(ll, 1)
+            self.vision.setRobotOrientation()
+
         # Periodically try to set operator perspective, in case we weren't able
         # to during setup.
         self.drivetrain.maybeSetOperatorPerspectiveForward()
@@ -168,8 +197,9 @@ class MyRobot(magicbot.MagicRobot):
         `use_teleop_in_autonomous=True` in this class' instance.
         """
         # TODO: Handle exceptions so robot code doesn't crash.
-        if self.main_controller.getStartButton():
-            self.drivetrain.seed_field_centric()
+        if self.driver_controller.shouldResetOrientation():
+            self.drivetrain.reset_pose(wpimath.geometry.Pose2d(0, 0, 0))
+            self.vision._pose_seeded = False
         self.driveWithJoysicks()
         self.controlHopper()
         self.controlIndexer()
@@ -182,31 +212,8 @@ class MyRobot(magicbot.MagicRobot):
 
     def driveWithJoysicks(self) -> None:
         """Use the main controller joystick inputs to drive the robot base."""
-        omega = 0
-        vx = 0
-        vy = 0
-        modifier = 1
-        if self.main_controller.getLeftBumperButton():
-            modifier = 0.13
-
-        if self.drivetrain.isManual():
-            vx = (
-                -filterInput(self.main_controller.getLeftY())
-                * drivetrain.constants.MAX_LINEAR_SPEED
-                * modifier
-            )
-            vy = (
-                -filterInput(self.main_controller.getLeftX())
-                * drivetrain.constants.MAX_LINEAR_SPEED
-                * modifier
-            )
-            omega = (
-                -filterInput(self.main_controller.getRightX())
-                * drivetrain.constants.MAX_ROTATION_SPEED
-                * modifier
-            )
-
-        self.drivetrain.setSpeeds(vx, vy, omega)
+        command = self.driver_controller.getDriveCommand()
+        self.drivetrain.setSpeeds(command)
 
     def controlHopper(self) -> None:
         """Drive the hopper motors."""
@@ -228,7 +235,7 @@ class MyRobot(magicbot.MagicRobot):
 
     def controlIntake(self) -> None:
         """Drive the intake motors."""
-        if self.operator_controller.getLeftBumper():
+        if self.driver_controller.runIntake():
             self.intake.setMotorSpeed(1.0)
         else:
             self.intake.setMotorSpeed(0.0)

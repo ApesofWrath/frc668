@@ -98,6 +98,10 @@ class TurretConstants:
     velocity_k_p: float = 0.0
     velocity_k_i: float = 0.0
     velocity_k_d: float = 0.0
+    # Motion magic limits.
+    motion_magic_cruise_velocity: units.rotations_per_second = 10.0
+    motion_magic_acceleration: units.rotations_per_second_squared = 7.0
+    motion_magic_jerk: units.rotations_per_second_cubed = 75.0
 
 
 @dataclass(frozen=True)
@@ -119,8 +123,12 @@ class HoodConstants:
     k_p: float = 0.0
     k_i: float = 0.0
     k_d: float = 0.0
-    min_angle_degrees: units.degree = 3.6
+    min_angle_degrees: units.degree = 0.5
     max_angle_degrees: units.degree = 28.8
+    # Motion magic limits.
+    motion_magic_cruise_velocity: units.rotations_per_second = 10.0
+    motion_magic_acceleration: units.rotations_per_second_squared = 5.0
+    motion_magic_jerk: units.rotations_per_second_cubed = 100.0
 
 
 @dataclass(frozen=True)
@@ -183,8 +191,9 @@ SHOOTER_CONSTANTS: dict[str, ShooterConstants] = {
             encoder_direction=signals.SensorDirectionValue.COUNTER_CLOCKWISE_POSITIVE,
             motor_can_id=14,
             motor_inverted=signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE,
-            k_p=330.0,
-            k_d=0.1,
+            k_s=0.5,
+            k_g=0.125,
+            k_p=400.0,
         ),
     )
 }

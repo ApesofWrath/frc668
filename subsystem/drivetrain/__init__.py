@@ -1,5 +1,6 @@
 from .constants import DrivetrainConstants, DRIVETRAIN_CONSTANTS
 from .drivetrain import Drivetrain
+from .vision import Vision
 from . import constants
 
 __all__ = [

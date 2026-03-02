@@ -1,9 +1,11 @@
 import logging
 import typing
 
+import magicbot
 import wpilib
 from phoenix6 import hardware, swerve, units, configs 
 
+from common import joystick
 from subsystem import drivetrain
 
 class Drivetrain(swerve.SwerveDrivetrain):
@@ -148,13 +150,15 @@ class Drivetrain(swerve.SwerveDrivetrain):
 
     def setSpeeds(
         self,
-        velocity_x: units.meters_per_second,
-        velocity_y: units.meters_per_second,
-        rotational_rate: units.radians_per_second,
+        command: joystick.DriveCommand,
     ) -> None:
-        self._drive_request.with_velocity_x(velocity_x).with_velocity_y(
-            velocity_y
-        ).with_rotational_rate(rotational_rate)
+        self._drive_request.with_velocity_x(command.vx).with_velocity_y(
+            command.vy
+        ).with_rotational_rate(command.omega)
 
     def isManual(self):
         return True
+
+    @magicbot.feedback
+    def get_robot_pose(self) -> wpimath.geometry.Pose2d:
+        return self.get_state().pose
