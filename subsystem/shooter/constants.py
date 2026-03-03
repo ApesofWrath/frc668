@@ -117,6 +117,8 @@ class TurretConstants:
     motion_magic_cruise_velocity: units.rotations_per_second = 10.0
     motion_magic_acceleration: units.rotations_per_second_squared = 7.0
     motion_magic_jerk: units.rotations_per_second_cubed = 75.0
+    # Feedforward for motion magic.
+    motion_magic_feed_forward: units.voltage = 0.0
     # Limits for turret motion.
     min_angle: units.degree = -180.0
     max_angle: units.degree = 180.0
