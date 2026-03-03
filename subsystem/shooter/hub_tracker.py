@@ -5,6 +5,10 @@ import constants
 from subsystem import drivetrain, shooter
 
 INCHES_TO_METERS = 0.0254
+TURRET_TO_ROBOT_X = 4.25 * INCHES_TO_METERS
+TURRET_TO_ROBOT_Y = 0.0 * INCHES_TO_METERS
+HUB_TO_FIELD_X = 182.11 * INCHES_TO_METERS
+HUB_TO_FIELD_Y = 158.845 * INCHES_TO_METERS
 
 
 class HubTracker:
@@ -23,13 +27,13 @@ class HubTracker:
         # Transform from robot frame to turret frame.
         self._robot_to_turret_transform: geometry.Transform2d = (
             geometry.Transform2d(
-                geometry.Translation2d(4.25 * INCHES_TO_METERS, 0.0),
+                geometry.Translation2d(TURRET_TO_ROBOT_X, TURRET_TO_ROBOT_Y),
                 geometry.Rotation2d(),
             )
         )
         # Vector from field origin to center of the hub.
         self._hub_position: geometry.Translation2d = geometry.Translation2d(
-            181.90625 * INCHES_TO_METERS, 158.84375 * INCHES_TO_METERS
+            HUB_TO_FIELD_X, HUB_TO_FIELD_Y
         )
         # Pose of the turret relative to the field. This will be computed each
         # control loop based on the current robot pose estimate.
