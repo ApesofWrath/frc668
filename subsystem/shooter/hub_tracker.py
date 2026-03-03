@@ -1,4 +1,5 @@
 import magicbot
+import phoenix6
 from wpimath import geometry, units
 
 import constants
@@ -39,18 +40,29 @@ class HubTracker:
         # control loop based on the current robot pose estimate.
         self._turret_field_pose: geometry.Pose2d = geometry.Pose2d()
 
+        # Raw yaw rate of the robot (and the turret).
+        self._yaw_rate_signal: phoenix6.status_signal.StatusSignal[
+            phoenix6.units.degrees_per_second
+        ] = self.drivetrain.pigeon2.get_angular_velocity_z_world()
+
     def execute(self) -> None:
+        self._yaw_rate_signal.refresh()
+
         # Pose of the robot relative to field origin.
         robot_pose: geometry.Pose2d = self.drivetrain.get_state().pose
         self._turret_field_pose: geometry.Pose2d = robot_pose.transformBy(
             self._robot_to_turret_transform
         )
 
+        # Predict how much the robot will yaw in the next control loop interval
+        # based on our current yaw rate.
+        predictive_lead_angle = self._yaw_rate_signal.value * 0.02
+
         turret_target_angle = max(
             self.robot_constants.shooter.turret.min_angle,
             min(
                 self.robot_constants.shooter.turret.max_angle,
-                self.get_turret_target_angle_degrees(),
+                self.get_turret_target_angle_degrees() - predictive_lead_angle,
             ),
         )
         self.turret.setPosition(turret_target_angle)
