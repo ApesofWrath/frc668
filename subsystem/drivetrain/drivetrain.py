@@ -3,6 +3,7 @@ import typing
 
 import magicbot
 import wpilib
+import wpimath 
 from phoenix6 import hardware, swerve, units, configs 
 
 from common import joystick

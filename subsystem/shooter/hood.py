@@ -200,7 +200,6 @@ class HoodTuner:
 
     # The target angle of the hood, in degrees.
     target_angle_deg = magicbot.tunable(20.0)
-    #TODO: replace the default target_angle_deg with the hood's get_measured_angle_degrees()
     homing = magicbot.tunable(False)
 
     def setup(self) -> None:
@@ -233,6 +232,8 @@ class HoodTuner:
         self.last_mm_cruise_velocity = self.mm_cruise_velocity
         self.last_mm_acceleration = self.mm_acceleration
         self.last_mm_jerk = self.mm_jerk
+
+        self.target_angle_deg = self.hood.get_measured_angle_degrees() 
 
     def execute(self) -> None:
         """Update the hood speed and gains (if they changed).
