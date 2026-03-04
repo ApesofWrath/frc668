@@ -8,6 +8,7 @@ from .constants import (
     SHOOTER_CONSTANTS,
 )
 from .hood import Hood, HoodTuner
+from .hub_tracker import HubTracker
 from .turret import Turret, TurretTuner
 from .flywheel import Flywheel, FlywheelTuner
 from .hopper import Hopper, HopperTuner
