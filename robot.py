@@ -36,6 +36,7 @@ class MyRobot(magicbot.MagicRobot):
         self.robot_constants: constants.RobotConstants = (
             constants.get_robot_constants()
         )
+        self.logger.info(f"Robot serial number: {self.robot_constants.serial}")
 
         # We instantiate the Drivetrain component manually, because magicbot
         # does not allow accessing injected variables from component
@@ -99,7 +100,8 @@ class MyRobot(magicbot.MagicRobot):
 
         # Intake motor.
         self.intake_motor = phoenix6.hardware.TalonFX(
-            self.robot_constants.intake.motor_can_id, "rio"
+            self.robot_constants.intake.motor_can_id,
+            self.robot_constants.intake.motor_can_bus,
         )
 
         self._tuning_mode = False

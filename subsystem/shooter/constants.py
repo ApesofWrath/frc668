@@ -6,6 +6,7 @@ from phoenix6 import signals, units
 @dataclass(frozen=True)
 class HopperConstants:
     left_motor_can_id: int = 0
+    left_motor_can_bus: str = ""
     left_motor_inverted: signals.InvertedValue = (
         signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
     )
@@ -16,6 +17,7 @@ class HopperConstants:
     left_k_i: float = 0.0
     left_k_d: float = 0.0
     right_motor_can_id: int = 0
+    right_motor_can_bus: str = ""
     right_motor_inverted: signals.InvertedValue = (
         signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
     )
@@ -31,6 +33,7 @@ class HopperConstants:
 @dataclass(frozen=True)
 class IndexerConstants:
     back_motor_can_id: int = 0
+    back_motor_can_bus: str = ""
     back_motor_inverted: signals.InvertedValue = (
         signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
     )
@@ -41,6 +44,7 @@ class IndexerConstants:
     back_k_i: float = 0.0
     back_k_d: float = 0.0
     front_motor_can_id: int = 0
+    front_motor_can_bus: str = ""
     front_motor_inverted: signals.InvertedValue = (
         signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
     )
@@ -56,10 +60,12 @@ class IndexerConstants:
 @dataclass(frozen=True)
 class FlywheelConstants:
     encoder_can_id: int = 0
+    encoder_can_bus: str = ""
     encoder_direction: signals.SensorDirectionValue = (
         signals.SensorDirectionValue.COUNTER_CLOCKWISE_POSITIVE
     )
     motor_can_id: int = 0
+    motor_can_bus: str = ""
     motor_inverted: signals.InvertedValue = (
         signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
     )
@@ -77,10 +83,12 @@ class TurretConstants:
     sensor_to_mechanism_ratio: float = 10.0
     rotor_to_sensor_ratio: float = 4.167
     encoder_can_id: int = 0
+    encoder_can_bus: str = ""
     encoder_direction: signals.SensorDirectionValue = (
         signals.SensorDirectionValue.COUNTER_CLOCKWISE_POSITIVE
     )
     motor_can_id: int = 0
+    motor_can_bus: str = ""
     motor_inverted: signals.InvertedValue = (
         signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
     )
@@ -109,10 +117,12 @@ class HoodConstants:
     sensor_to_mechanism_ratio: float = 19.0
     rotor_to_sensor_ratio: float = 8.0
     encoder_can_id: int = 0
+    encoder_can_bus: str = ""
     encoder_direction: signals.SensorDirectionValue = (
         signals.SensorDirectionValue.COUNTER_CLOCKWISE_POSITIVE
     )
     motor_can_id: int = 0
+    motor_can_bus: str = ""
     motor_inverted: signals.InvertedValue = (
         signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
     )
@@ -141,14 +151,17 @@ class ShooterConstants:
 
 
 SHOOTER_CONSTANTS: dict[str, ShooterConstants] = {
+    # Alphabot
     "023AC96C": ShooterConstants(
         hopper=HopperConstants(
             left_motor_can_id=55,
+            left_motor_can_bus="rio",
             left_motor_inverted=signals.InvertedValue.CLOCKWISE_POSITIVE,
             left_k_s=0.5,
             left_k_v=0.123,
             left_k_p=0.5,
             right_motor_can_id=59,
+            right_motor_can_bus="rio",
             right_motor_inverted=signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE,
             right_k_s=0.2,
             right_k_v=0.123,
@@ -156,11 +169,13 @@ SHOOTER_CONSTANTS: dict[str, ShooterConstants] = {
         ),
         indexer=IndexerConstants(
             back_motor_can_id=18,
+            back_motor_can_bus="Shooter",
             back_motor_inverted=signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE,
             back_k_s=0.4,
             back_k_v=0.12,
             back_k_p=0.25,
             front_motor_can_id=19,
+            front_motor_can_bus="Shooter",
             front_motor_inverted=signals.InvertedValue.CLOCKWISE_POSITIVE,
             front_k_s=0.35,
             front_k_v=0.105,
@@ -168,8 +183,10 @@ SHOOTER_CONSTANTS: dict[str, ShooterConstants] = {
         ),
         flywheel=FlywheelConstants(
             encoder_can_id=60,
+            encoder_can_bus="Shooter",
             encoder_direction=signals.SensorDirectionValue.COUNTER_CLOCKWISE_POSITIVE,
             motor_can_id=15,
+            motor_can_bus="Shooter",
             motor_inverted=signals.InvertedValue.CLOCKWISE_POSITIVE,
             k_s=0.2,
             k_v=0.13,
@@ -177,8 +194,10 @@ SHOOTER_CONSTANTS: dict[str, ShooterConstants] = {
         ),
         turret=TurretConstants(
             encoder_can_id=16,
+            encoder_can_bus="Shooter",
             encoder_direction=signals.SensorDirectionValue.COUNTER_CLOCKWISE_POSITIVE,
             motor_can_id=13,
+            motor_can_bus="Shooter",
             motor_inverted=signals.InvertedValue.CLOCKWISE_POSITIVE,
             position_k_p=70,
             position_k_d=0.1,
@@ -188,12 +207,80 @@ SHOOTER_CONSTANTS: dict[str, ShooterConstants] = {
         ),
         hood=HoodConstants(
             encoder_can_id=17,
+            encoder_can_bus="Shooter",
             encoder_direction=signals.SensorDirectionValue.COUNTER_CLOCKWISE_POSITIVE,
             motor_can_id=14,
+            motor_can_bus="Shooter",
             motor_inverted=signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE,
             k_s=0.5,
             k_g=0.125,
             k_p=400.0,
         ),
-    )
+    ),
+    # Juno
+    "0323CA4B": ShooterConstants(
+        hopper=HopperConstants(
+            left_motor_can_id=55,
+            left_motor_can_bus="rio",
+            left_motor_inverted=signals.InvertedValue.CLOCKWISE_POSITIVE,
+            left_k_s=0,
+            left_k_v=0,
+            left_k_p=0,
+            right_motor_can_id=59,
+            right_motor_can_bus="rio",
+            right_motor_inverted=signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE,
+            right_k_s=0,
+            right_k_v=0,
+            right_k_p=0,
+        ),
+        indexer=IndexerConstants(
+            back_motor_can_id=18,
+            back_motor_can_bus="rio",
+            back_motor_inverted=signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE,
+            back_k_s=0,
+            back_k_v=0,
+            back_k_p=0,
+            front_motor_can_id=19,
+            front_motor_can_bus="rio",
+            front_motor_inverted=signals.InvertedValue.CLOCKWISE_POSITIVE,
+            front_k_s=0,
+            front_k_v=0,
+            front_k_p=0,
+        ),
+        flywheel=FlywheelConstants(
+            encoder_can_id=60,
+            encoder_can_bus="rio",
+            encoder_direction=signals.SensorDirectionValue.COUNTER_CLOCKWISE_POSITIVE,
+            motor_can_id=15,
+            motor_can_bus="rio",
+            motor_inverted=signals.InvertedValue.CLOCKWISE_POSITIVE,
+            k_s=0,
+            k_v=0,
+            k_p=0,
+        ),
+        turret=TurretConstants(
+            encoder_can_id=16,
+            encoder_can_bus="rio",
+            encoder_direction=signals.SensorDirectionValue.COUNTER_CLOCKWISE_POSITIVE,
+            motor_can_id=13,
+            motor_can_bus="rio",
+            motor_inverted=signals.InvertedValue.CLOCKWISE_POSITIVE,
+            position_k_p=0,
+            position_k_d=0,
+            velocity_k_s=0,
+            velocity_k_v=0,
+            velocity_k_p=0,
+        ),
+        hood=HoodConstants(
+            encoder_can_id=17,
+            encoder_can_bus="rio",
+            encoder_direction=signals.SensorDirectionValue.COUNTER_CLOCKWISE_POSITIVE,
+            motor_can_id=14,
+            motor_can_bus="rio",
+            motor_inverted=signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE,
+            k_s=0.0,
+            k_g=0.0,
+            k_p=0.0,
+        ),
+    ),
 }
