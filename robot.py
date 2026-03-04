@@ -36,6 +36,7 @@ class MyRobot(magicbot.MagicRobot):
         self.robot_constants: constants.RobotConstants = (
             constants.get_robot_constants()
         )
+        self.logger.info(f"Robot serial number: {self.robot_constants.serial}")
 
         # We instantiate the Drivetrain component manually, because magicbot
         # does not allow accessing injected variables from component
@@ -59,47 +60,58 @@ class MyRobot(magicbot.MagicRobot):
 
         # Turret
         self.turret_motor = hardware.TalonFX(
-            self.robot_constants.shooter.turret.motor_can_id, "Shooter"
+            self.robot_constants.shooter.turret.motor_can_id,
+            self.robot_constants.shooter.turret.motor_can_bus,
         )
         self.turret_encoder = hardware.CANcoder(
-            self.robot_constants.shooter.turret.encoder_can_id, "Shooter"
+            self.robot_constants.shooter.turret.encoder_can_id,
+            self.robot_constants.shooter.turret.encoder_can_bus,
         )
 
         # Flywheel motor and encoder.
         self.flywheel_motor = phoenix6.hardware.TalonFX(
-            self.robot_constants.shooter.flywheel.motor_can_id, "Shooter"
+            self.robot_constants.shooter.flywheel.motor_can_id,
+            self.robot_constants.shooter.flywheel.motor_can_bus,
         )
         self.flywheel_encoder = phoenix6.hardware.CANcoder(
-            self.robot_constants.shooter.flywheel.encoder_can_id, "Shooter"
+            self.robot_constants.shooter.flywheel.encoder_can_id,
+            self.robot_constants.shooter.flywheel.encoder_can_bus,
         )
 
         # Hopper motors.
         self.hopper_left_motor = phoenix6.hardware.TalonFX(
-            self.robot_constants.shooter.hopper.left_motor_can_id, "rio"
+            self.robot_constants.shooter.hopper.left_motor_can_id,
+            self.robot_constants.shooter.hopper.left_motor_can_bus,
         )
         self.hopper_right_motor = phoenix6.hardware.TalonFX(
-            self.robot_constants.shooter.hopper.right_motor_can_id, "rio"
+            self.robot_constants.shooter.hopper.right_motor_can_id,
+            self.robot_constants.shooter.hopper.right_motor_can_bus,
         )
 
         # Indexer motors.
         self.indexer_back_motor = phoenix6.hardware.TalonFX(
-            self.robot_constants.shooter.indexer.back_motor_can_id, "Shooter"
+            self.robot_constants.shooter.indexer.back_motor_can_id,
+            self.robot_constants.shooter.indexer.back_motor_can_bus,
         )
         self.indexer_front_motor = phoenix6.hardware.TalonFX(
-            self.robot_constants.shooter.indexer.front_motor_can_id, "Shooter"
+            self.robot_constants.shooter.indexer.front_motor_can_id,
+            self.robot_constants.shooter.indexer.front_motor_can_bus,
         )
 
         # Hood motor and encoder.
         self.hood_motor = phoenix6.hardware.TalonFX(
-            self.robot_constants.shooter.hood.motor_can_id, "Shooter"
+            self.robot_constants.shooter.hood.motor_can_id,
+            self.robot_constants.shooter.hood.motor_can_bus,
         )
         self.hood_encoder = phoenix6.hardware.CANcoder(
-            self.robot_constants.shooter.hood.encoder_can_id, "Shooter"
+            self.robot_constants.shooter.hood.encoder_can_id,
+            self.robot_constants.shooter.hood.encoder_can_bus,
         )
 
         # Intake motor.
         self.intake_motor = phoenix6.hardware.TalonFX(
-            self.robot_constants.intake.motor_can_id, "rio"
+            self.robot_constants.intake.motor_can_id,
+            self.robot_constants.intake.motor_can_bus,
         )
 
         self._tuning_mode = False
