@@ -184,7 +184,10 @@ class Hood:
             * self.ROTATIONS_TO_DEGREES
             / self.robot_constants.shooter.hood.sensor_to_mechanism_ratio
         )
-
+    
+    @magicbot.feedback
+    def get_target_position_deg(self) -> float:
+        return self._target_position_degrees
 
 class HoodTuner:
     """Component for tuning the hood gains.
@@ -246,6 +249,7 @@ class HoodTuner:
         self.last_mm_jerk = self.mm_jerk
 
         self.target_angle_deg = self.hood.get_measured_angle_degrees()
+        
 
     def execute(self) -> None:
         """Update the hood speed and gains (if they changed).
