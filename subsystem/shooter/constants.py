@@ -138,8 +138,8 @@ class HoodConstants:
     motor_inverted: signals.InvertedValue = (
         signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
     )
-    absolute_sensor_discontinuity_point: units.rotation = 0.8 
-    magnet_offset: units.rotation = 0.0 
+    absolute_sensor_discontinuity_point: units.rotation = 0.8
+    magnet_offset: units.rotation = 0.0
     k_s: float = 0.0
     k_v: float = 0.0
     k_a: float = 0.0
@@ -229,7 +229,7 @@ SHOOTER_CONSTANTS: dict[str, ShooterConstants] = {
             motor_can_id=14,
             motor_can_bus="Shooter",
             motor_inverted=signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE,
-            magnet_offset=-0.453, 
+            magnet_offset=-0.453,
             k_s=0.5,
             k_g=0.125,
             k_p=400.0,

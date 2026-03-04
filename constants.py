@@ -2,7 +2,7 @@ import subprocess
 from dataclasses import dataclass
 
 import wpilib
-import typing 
+import typing
 
 
 # Juno
