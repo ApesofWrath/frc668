@@ -5,6 +5,10 @@ import choreo
 from wpimath.geometry import Pose2d
 from magicbot import AutonomousStateMachine, state
 import wpilib
+from common.joystick import DriveCommand
+
+# from autonomous.DepotTrench import DepotTrenchNoNeutral
+# from autonomous.OutpostTrench import OutpostTrenchNoNeutral
 
 class AutoHelper():
     drivetrain: drivetrain.Drivetrain
@@ -14,8 +18,10 @@ class AutoHelper():
     indexer: shooter.Indexer
     hopper: shooter.Hopper
     intake: intake.Intake
+
+    vision: drivetrain.Vision
     
-    drive_request: swerve.requests.FieldCentric
+    # drive_request: swerve.requests.FieldCentric
 
     def __init__(self) -> None:
         pass
@@ -26,8 +32,8 @@ class AutoHelper():
         if initial_pose is None:
             self.logger.error("Choreo trajetory initial_pose is None")
             return
-        if(reset_rot):
-            self.drivetrain.reset_odometry(initial_pose)
+        # if(reset_rot):
+        #     self.drivetrain.reset_pose(initial_pose)
         self.traj_time = 0.0
         self.triggered_events = []
 
@@ -46,11 +52,11 @@ class AutoHelper():
             return
         
         # this control method should probably get improved to use more of the sample's info at some point
-        self.drivetrain.set_control(
-            self.drive_request.with_velocity_x(sample.vx)
-            .with_velocity_y(sample.vy)
-            .with_rotational_rate(sample.omega)
-        )
+        self.drivetrain.setSpeeds(DriveCommand(sample.vx,sample.vy,sample.omega))
+
+        self.logger.info(f"x:{self.vision.get_robot_pose().X()},y:{self.vision.get_robot_pose().Y()},r:{self.vision.get_robot_pose().rotation().radians()}")
+        self.logger.info(f"x:{sample.x},y:{sample.y},r:{sample.get_pose().rotation().radians()}")
+        # self.logger.info(f"dx:{self.vision.get_robot_pose().X()-sample.x},dy:{self.vision.get_robot_pose().Y()-sample.y},dr:{self.vision.get_robot_pose().rotation().radians()-sample.get_pose().rotation().radians()}")
 
 
         for i in range(len(self.trajectory.events)):
@@ -65,11 +71,12 @@ class AutoHelper():
 
 
     def end(self):
-        self.drivetrain.set_control(
-            self.drive_request.with_velocity_x(0)
-            .with_velocity_y(0)
-            .with_rotational_rate(0)
-        )
+        self.drivetrain.setSpeeds(DriveCommand(0,0,0))
+        self.hopper.setEnabled(False)
+        self.indexer.setEnabled(False)
+        self.intake.setMotorSpeed(0.0)
+        if(self.flywheel.get_target_rps() > 10):
+            self.flywheel.setTargetRps(10)
 
     
     def handle_event(self, event):

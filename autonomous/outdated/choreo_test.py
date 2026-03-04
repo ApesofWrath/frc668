@@ -21,7 +21,7 @@ class Auton_Test_Choreo(AutonomousStateMachine):
     hopper: shooter.Hopper
     intake: intake.Intake
     
-    drive_request: swerve.requests.FieldCentric
+    # drive_request: swerve.requests.FieldCentric
     triggered_events = [] # An array of Integers of every event we have triggered so far
 
     def on_enable(self):

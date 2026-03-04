@@ -3,7 +3,7 @@ from autonomous import AutoHelper
 
 class Auto1(AutonomousStateMachine):
     MODE_NAME = "auto1"
-    DEFAULT = True
+    # DEFAULT = True
 
     AutoHelper: AutoHelper.AutoHelper
 

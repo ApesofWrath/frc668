@@ -15,8 +15,6 @@
     {"from":"first", "to":"last", "data":{"type":"MaxVelocity", "props":{"max":6.0}}, "enabled":true},
     {"from":3, "to":4, "data":{"type":"PointAt", "props":{"x":0.5, "y":0.0, "tolerance":0.017453292519943295, "flip":false}}, "enabled":true},
     {"from":3, "to":4, "data":{"type":"KeepInLane", "props":{"tolerance":0.01}}, "enabled":true},
-    {"from":1, "to":2, "data":{"type":"KeepInRectangle", "props":{"x":1.2136171460151672, "y":2.8488064408302307, "w":1.6666536331176758, "h":2.57916522026062}}, "enabled":false},
-    {"from":2, "to":3, "data":{"type":"KeepInRectangle", "props":{"x":-0.057716645300388336, "y":4.2325984835624695, "w":2.1273879185318947, "h":1.4411306381225586}}, "enabled":false},
     {"from":2, "to":3, "data":{"type":"KeepOutCircle", "props":{"x":1.0522405421361327, "y":4.164248399436474, "r":0.2050305444148066}}, "enabled":true}],
   "targetDt":0.05
  },
@@ -131,8 +129,6 @@
   "splits":[0]
  },
  "events":[
-   {"name":"shooter.enable", "from":{"target":null, "targetTimestamp":null, "offset":{"exp":"0.35 s", "val":0.35}}, "event":null},
-   {"name":"flywheel.speed:20", "from":{"target":null, "targetTimestamp":null, "offset":{"exp":"0 s", "val":0.0}}, "event":null},
-   {"name":"intake.enable", "from":{"target":null, "targetTimestamp":null, "offset":{"exp":"0 s", "val":0.0}}, "event":null},
-   {"name":"intake.disable", "from":{"target":null, "targetTimestamp":null, "offset":{"exp":"0 s", "val":0.0}}, "event":null}]
+   {"name":"intake.enable", "from":{"target":2, "targetTimestamp":1.06876, "offset":{"exp":"0.1 s", "val":0.1}}, "event":null},
+   {"name":"intake.disable", "from":{"target":4, "targetTimestamp":2.09325, "offset":{"exp":"0 s", "val":0.0}}, "event":null}]
 }

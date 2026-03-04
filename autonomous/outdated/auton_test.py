@@ -10,7 +10,7 @@ class Auton_Test(AutonomousStateMachine):
     DEFAULT = False
 
     drivetrain: drivetrain.Drivetrain
-    drive_request: swerve.requests.FieldCentric
+    # drive_request: swerve.requests.FieldCentric
 
     @timed_state(first=True, duration=2, next_state="stop")
     def spin(self):

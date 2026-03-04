@@ -133,7 +133,8 @@ class Drivetrain(swerve.SwerveDrivetrain):
 
         This method is called at the end of the control loop.
         """
-        if not self._alliance:
+        if not self._alliance and not wpilib.RobotBase.isSimulation(): 
+            # added 'and not simulation' because it would just spam this every frame otherwise
             self.logger.error(
                 "Failed to apply operator prespective based on alliance."
             )
@@ -165,10 +166,6 @@ class Drivetrain(swerve.SwerveDrivetrain):
     def isManual(self):
         return True
     
-    def reset_odometry(self, pose: Pose2d):
-        self.seed_field_centric(pose.rotation())\
-    
-
     @magicbot.feedback
     def get_robot_pose(self) -> wpimath.geometry.Pose2d:
         return self.get_state().pose
