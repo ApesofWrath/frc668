@@ -2,7 +2,7 @@ import magicbot
 import phoenix6
 
 import constants
-from subsystem import shooter
+from subsystem import drivetrain, shooter
 
 
 class Turret:
@@ -15,6 +15,7 @@ class Turret:
     robot_constants: constants.RobotConstants
     turret_motor: phoenix6.hardware.TalonFX
     turret_encoder: phoenix6.hardware.CANcoder
+    drivetrain: drivetrain.Drivetrain
 
     def setup(self) -> None:
         """Set up initial state for the turret.
@@ -83,19 +84,52 @@ class Turret:
                 .with_motion_magic_jerk(turret_constants.motion_magic_jerk)
             )
         )
-        self.turret_motor.configurator.apply(self.turret_motor_configs)
-        self.turret_encoder.configurator.apply(
+        result = self.turret_motor.configurator.apply(self.turret_motor_configs)
+        if not result.is_ok():
+            self.logger.error("Failed to apply configs to turret motor")
+
+        result = self.turret_encoder.configurator.apply(
             phoenix6.configs.CANcoderConfiguration().with_magnet_sensor(
-                phoenix6.configs.MagnetSensorConfigs().with_sensor_direction(
-                    turret_constants.encoder_direction
+                phoenix6.configs.MagnetSensorConfigs()
+                .with_sensor_direction(turret_constants.encoder_direction)
+                .with_absolute_sensor_discontinuity_point(
+                    turret_constants.absolute_sensor_discontinuity_point
                 )
+                .with_magnet_offset(turret_constants.magnet_offset)
             )
         )
+        if not result.is_ok():
+            self.logger.error("Failed to apply configs to turret encoder")
 
         # Initial Motion Magic request (position expressed in rotations)
         self._request = phoenix6.controls.MotionMagicVoltage(
             self._turret_postion_degrees * self.DEGREES_TO_ROTATIONS
         ).with_slot(0)
+        # Feedforward constant for computing the feedforward voltage to use with
+        # the control request each loop, to compensate for robot's yaw rate.
+        self._motion_magic_feed_forward = (
+            turret_constants.motion_magic_feed_forward
+        )
+        # Raw yaw rate of the robot (and the turret).
+        self._yaw_rate_signal: phoenix6.status_signal.StatusSignal[
+            phoenix6.units.degrees_per_second
+        ] = self.drivetrain.pigeon2.get_angular_velocity_z_world()
+
+        # Our sensor to mechanism ratio is 10. This means if our turret starts
+        # anywhere in the position range [-18, 18) degrees (assuming 0 is
+        # straight ahead), we can use the absolute offset from the encoder to
+        # set both the encoder's and motor's position to it so both of their
+        # zeros also point straight ahead.
+        absolute_position = self.turret_encoder.get_absolute_position().value
+        self.logger.info(
+            f"Setting turret position to {absolute_position} rotations"
+        )
+        result = self.turret_encoder.set_position(absolute_position)
+        if not result.is_ok():
+            self.logger.error("Failed to set position on turret encoder")
+        result = self.turret_motor.set_position(absolute_position)
+        if not result.is_ok():
+            self.logger.error("Failed to set position on turret motor")
 
     def execute(self) -> None:
         """Command the motors to the current speed.
@@ -110,11 +144,22 @@ class Turret:
                 ).with_slot(1)
             )
         else:
-            # Use Motion Magic for smooth position control
+            self._yaw_rate_signal.refresh()
+            turret_constants = self.robot_constants.shooter.turret
+            # This feedforward voltage is added after all the scaled
+            # calculations onboard the motor controller, so we need to account
+            # for the gear reductions.
+            feed_forward = (
+                self._motion_magic_feed_forward
+                * self._yaw_rate_signal.value
+                * turret_constants.rotor_to_sensor_ratio
+                * turret_constants.sensor_to_mechanism_ratio
+                * self.DEGREES_TO_ROTATIONS
+            )
             self.turret_motor.set_control(
                 self._request.with_position(
                     self._turret_postion_degrees * self.DEGREES_TO_ROTATIONS
-                )
+                ).with_feed_forward(feed_forward)
             )
 
     def on_enable(self) -> None:
@@ -160,6 +205,14 @@ class Turret:
                 velocity control, False for position control.
         """
         self._is_velocity_controlled = use_velocity
+
+    def setMotionMagicFeedForward(self, feed_forward: float) -> None:
+        """Set the motion magic feed forward constant.
+
+        Args:
+            feed_forward: The feed forward constant to use.
+        """
+        self._motion_magic_feed_forward = feed_forward
 
     def isControlTypeVelocity(self) -> bool:
         """Get the type of turret control being used used: position or velocity"""
@@ -208,6 +261,9 @@ class TurretTuner:
     mm_acceleration = magicbot.tunable(0.0)
     mm_jerk = magicbot.tunable(0.0)
 
+    # Feedforward for motion magic.
+    mm_feed_forward = magicbot.tunable(0.0)
+
     # The target position of the turret.
     target_position = magicbot.tunable(0.0)
     target_velocity = magicbot.tunable(0.0)
@@ -238,6 +294,8 @@ class TurretTuner:
         self.mm_acceleration = turret_constants.motion_magic_acceleration
         self.mm_jerk = turret_constants.motion_magic_jerk
 
+        self.mm_feed_forward = turret_constants.motion_magic_feed_forward
+
         self.last_position_k_p = self.position_k_p
         self.last_position_k_i = self.position_k_i
         self.last_position_k_d = self.position_k_d
@@ -265,6 +323,7 @@ class TurretTuner:
         self.turret.setPosition(self.target_position)
         self.turret.setVelocity(self.target_velocity)
         self.turret.setControlType(self.use_velocity)
+        self.turret.setMotionMagicFeedForward(self.mm_feed_forward)
 
         # We only want to reapply the gains if they changed. The TalonFX motor
         # doesn't like being reconfigured constantly.

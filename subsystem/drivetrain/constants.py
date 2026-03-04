@@ -269,7 +269,7 @@ DRIVETRAIN_CONSTANTS: dict[str, DrivetrainConstants] = {
             steer_motor_inverted=False,
             encoder_inverted=True,
         ),
-        drivetrain=SwerveDrivetrainConstants(pigeon2_id=22),
+        drivetrain=SwerveDrivetrainConstants(can_bus_name="rio", pigeon2_id=22),
         vision=VisionConstants(limelights=["limelight-fl", "limelight-fr"]),
     ),
     # Juno

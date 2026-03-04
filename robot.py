@@ -22,6 +22,7 @@ class MyRobot(magicbot.MagicRobot):
     https://robotpy.readthedocs.io/en/latest/frameworks/magicbot.html
     """
 
+    hub_tracker: shooter.HubTracker
     drivetrain: drivetrain.Drivetrain
     flywheel: shooter.Flywheel
     hopper: shooter.Hopper
@@ -208,7 +209,10 @@ class MyRobot(magicbot.MagicRobot):
         """
         # TODO: Handle exceptions so robot code doesn't crash.
         if self.driver_controller.shouldResetOrientation():
-            self.drivetrain.reset_pose(wpimath.geometry.Pose2d(0, 0, 0))
+            # Robot's front touching the hub wall in the blue alliance zone.
+            self.drivetrain.reset_pose(
+                wpimath.geometry.Pose2d(3.6854, 4.0136, 0)
+            )
             self.vision._pose_seeded = False
         self.driveWithJoysicks()
         self.controlHopper()
