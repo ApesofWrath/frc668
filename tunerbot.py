@@ -3,7 +3,7 @@ import phoenix6
 import wpilib
 
 import robot
-from subsystem import shooter
+from subsystem import shooter, intake
 
 
 class TunerBot(robot.MyRobot):
@@ -23,7 +23,10 @@ class TunerBot(robot.MyRobot):
     hopper_tuner: shooter.HopperTuner
     indexer_tuner: shooter.IndexerTuner
     turret_tuner: shooter.TurretTuner
+    intake_tuner: intake.Intake
 
-    def createObjects(self) -> None:
+    def createObjects(self) -> None:   
         super().createObjects()
         self._tuning_mode = True
+
+        

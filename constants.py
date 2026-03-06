@@ -3,6 +3,7 @@ from dataclasses import dataclass
 
 import wpilib
 import typing
+import subsystem
 
 
 # Juno
