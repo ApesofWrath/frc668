@@ -258,8 +258,11 @@ class MyRobot(magicbot.MagicRobot):
             self.hood.zeroEncoder()
 
         # Toggle between manual hood speed control v/s position control.
-        if self.operator_controller.getYButtonReleased():
+        if self.operator_controller.getYButtonPressed():
             self.hood.setControlType(not self.hood.isControlTypeSpeed())
+            self.hood._target_position_degrees = (
+                self.hood.get_measured_angle_degrees()
+            )
             self.logger.info(
                 "Hood control type is now: "
                 + ("speed" if self.hood.isControlTypeSpeed() else "position")
