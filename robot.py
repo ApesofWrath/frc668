@@ -29,6 +29,7 @@ class MyRobot(magicbot.MagicRobot):
     indexer: shooter.Indexer
     hood: shooter.Hood
     intake: intake.Intake
+    intake_deployer: intake.IntakeDeployer
     turret: shooter.Turret
     vision: drivetrain.Vision
 
@@ -109,10 +110,14 @@ class MyRobot(magicbot.MagicRobot):
             self.robot_constants.shooter.hood.encoder_can_bus,
         )
 
-        # Intake motor.
-        self.intake_motor = phoenix6.hardware.TalonFX(
-            self.robot_constants.intake.motor_can_id,
-            self.robot_constants.intake.motor_can_bus,
+        # Intake motors.
+        self.intake_roller_motor = phoenix6.hardware.TalonFX(
+            self.robot_constants.intake.roller_motor_can_id,
+            self.robot_constants.intake.roller_motor_can_bus,
+        )
+        self.intake_deploy_motor = phoenix6.hardware.TalonFX(
+            self.robot_constants.intake.deploy_motor_can_id,
+            self.robot_constants.intake.deploy_motor_can_bus,
         )
 
         self._tuning_mode = False
@@ -149,6 +154,9 @@ class MyRobot(magicbot.MagicRobot):
                 # We call this here because the Vision component's execute
                 # method does not get called when disabled.
                 self.vision.setRobotOrientation()
+        
+        if not self.intake_deployer.deployed:
+            self.intake_deployer.deploy()
 
     def autonomousInit(self) -> None:
         """Initialize autonomous mode.
