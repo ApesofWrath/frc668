@@ -77,8 +77,7 @@ class Intake:
         """Set the intake motor's linear speed to twice the robot's current speed.
         """
         current_robot_speed = self.drivetrain.get_robot_speed()
-        self._motor_speed = 2 * current_robot_speed
-        #TODO: clamp to have a min value _ choose max among the min value or this 
+        self._motor_speed = max(2 * current_robot_speed, self.robot_constants.intake.min_intake_speed)
 
     # @magicbot.feedback
     # def get_speed(self) -> float:
