@@ -16,6 +16,7 @@ class IntakeConstants:
     k_p: float = 0.0
     k_i: float = 0.0
     k_d: float = 0.0
+    active_motor_speed_rps: float = 0.0
 
 
 INTAKE_CONSTANTS: dict[str, IntakeConstants] = {
@@ -31,6 +32,7 @@ INTAKE_CONSTANTS: dict[str, IntakeConstants] = {
         k_p=0.0,
         k_i=0.0,
         k_d=0.0,
+        active_motor_speed_rps=75.0,
     ),
     # Juno
     "0323CA4B": IntakeConstants(
@@ -43,5 +45,6 @@ INTAKE_CONSTANTS: dict[str, IntakeConstants] = {
         k_p=0.2,
         k_i=0.0,
         k_d=0.0,
+        active_motor_speed_rps=75.0,
     ),
 }

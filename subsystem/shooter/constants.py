@@ -287,6 +287,7 @@ SHOOTER_CONSTANTS: dict[str, ShooterConstants] = {
             magnet_offset=0.209473,
             position_k_p=450,
             position_k_d=0.5,
+            motion_magic_feed_forward=-1.0,
         ),
         hood=HoodConstants(
             encoder_can_id=17,

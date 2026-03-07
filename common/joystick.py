@@ -42,12 +42,19 @@ class DriverController:
         """
         return self._controller.getStartButtonReleased()
 
-    def runIntake(self) -> bool:
+    def toggleIntake(self) -> bool:
         """Returns True if the intake should be run.
 
         When the driver holds down the right bumper, we want to run the intake.
         """
-        return self._controller.getRightBumper()
+        return self._controller.getRightBumperPressed()
+
+    def feedFuel(self) -> bool:
+        """Returns True if fuel should be fed to the shooter.
+
+        When the driver holds down the right trigger, we want to shoot.
+        """
+        return self._controller.getRightTriggerAxis()
 
     def getDriveCommand(self) -> DriveCommand:
         """Returns the drivetrain commands corresponding to current user input.

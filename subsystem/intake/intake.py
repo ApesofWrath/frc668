@@ -21,7 +21,10 @@ class Intake:
         This method is called after createObjects has been called in the main
         robot class, and after all components have been created.
         """
-        self._motor_speed = 0.0
+        self._active = False
+        self._active_motor_speed_rps = (
+            self.robot_constants.intake.active_motor_speed_rps
+        )
 
         self.intake_motor.configurator.apply(
             phoenix6.configs.TalonFXConfiguration()
@@ -41,18 +44,19 @@ class Intake:
             )
         )
 
-        self._request = phoenix6.controls.VelocityVoltage(
-            self._motor_speed
-        ).with_slot(0)
+        self._request = phoenix6.controls.VelocityVoltage(0.0).with_slot(0)
 
     def execute(self) -> None:
         """Command the motors to the requested speed.
 
         This method is called at the end of the control loop.
         """
-        self.intake_motor.set_control(
-            self._request.with_velocity(self._motor_speed)
-        )
+        if self._active:
+            self._request.with_velocity(self._active_motor_speed_rps)
+        else:
+            self._request.with_velocity(0.0)
+
+        self.intake_motor.set_control(self._request)
 
     def on_enable(self) -> None:
         """Reset to a "safe" state when the robot is enabled.
@@ -60,18 +64,26 @@ class Intake:
         This method is called when the robot enters autonomous, teleoperated, or
         test mode.
         """
-        self._motor_speed = 0.0
+        self._active = False
 
     def on_disable(self) -> None:
         """Reset state when the robot is disabled.
 
         This method is called when the robot enters disabled mode.
         """
-        self._motor_speed = 0.0
+        self._active = False
 
     def setSpeed(self, speed_rps: float = None) -> None:
         """Set the intake roller motor's speed."""
-        self._motor_speed = speed_rps
+        self._active_motor_speed_rps = speed_rps
+
+    def setActive(self, active: bool) -> None:
+        """Set whether or not the intake roller is active."""
+        self._active = active
+
+    def toggleActive(self) -> None:
+        """Toggle the intake roller between active and inactive."""
+        self._active = not self._active
 
     @magicbot.feedback
     def get_measured_speed(self) -> float:
@@ -97,7 +109,9 @@ class IntakeTuner:
     k_p = magicbot.tunable(0.0)
     k_i = magicbot.tunable(0.0)
     k_d = magicbot.tunable(0.0)
+
     target_speed_rps = magicbot.tunable(0.0)
+    active = magicbot.tunable(False)
 
     def setup(self) -> None:
         """Set up initial state for the intake tuner.
@@ -126,6 +140,7 @@ class IntakeTuner:
 
         This method is called at the end of the control loop.
         """
+        self.intake.setActive(active)
         self.intake.setSpeed(self.target_speed_rps)
 
         # We only want to reapply the gains if they changed. The TalonFX motor
