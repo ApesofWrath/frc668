@@ -10,7 +10,7 @@ class IntakeConstants:
     motor_inverted: signals.InvertedValue = (
         signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
     )
-
+    min_intake_speed = 12 #TODO: find
     k_s: float = 0.0
     k_v: float = 0.0
     k_a: float = 0.0
