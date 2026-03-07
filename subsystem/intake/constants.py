@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from phoenix6 import signals
+from phoenix6 import signals, units
 
 
 @dataclass(frozen=True)
@@ -17,6 +17,10 @@ class IntakeConstants:
     deploy_encoder_can_bus: str = ""
     sensor_to_mechanism_ratio: int = 0
     rotor_to_sensor_ratio: int = 0
+    encoder_direction: signals.SensorDirectionValue = (
+        signals.SensorDirectionValue.COUNTER_CLOCKWISE_POSITIVE
+    )
+    absolute_sensor_discontinuity_point: units.rotation = 0.0
     position_k_s: float = 0
     position_k_v: float = 0
     position_k_a: float = 0
@@ -42,26 +46,18 @@ INTAKE_CONSTANTS: dict[str, IntakeConstants] = {
         motor_can_id=41,
         motor_can_bus="rio",
         motor_inverted=signals.InvertedValue.CLOCKWISE_POSITIVE,
-    ),
-}
-
-DEPLOY_INTAKE_CONSTANTS: dict[str, IntakeConstants] = {
-    "0323CA4B": IntakeConstants(
-        motor_can_id=41, 
-        motor_inverted=signals.InvertedValue.CLOCKWISE_POSITIVE,
         deploy_motor_can_id=50,
         deploy_encoder_can_id=61,
-        sensor_to_mechanism_ratio= ,
-        rotor_to_sensor_ratio= ,
-        position_k_s= ,
-        position_k_v= ,
-        position_k_a= ,
-        position_k_p= ,
-        position_k_i= ,
-        position_k_d= ,
-        motion_magic_cruise_velocity= ,
-        motion_magic_acceleration= ,
-        motion_magic_jerk= ,
-        motion_magic_feed_forward=
+        sensor_to_mechanism_ratio= 9/30,
+        rotor_to_sensor_ratio= 25,
+        position_k_s=0 ,
+        position_k_v=0 ,
+        position_k_a=0 ,
+        position_k_p=0 ,
+        position_k_i=0 ,
+        position_k_d=0 ,
+        deploy_motor_inverted = ,
+        deploy_encoder_inverted = 
     )
-}
+
+    )}
