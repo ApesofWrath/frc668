@@ -48,6 +48,13 @@ class DriverController:
         When the driver holds down the right bumper, we want to run the intake.
         """
         return self._controller.getRightBumper()
+    
+    def runDefaultIntake(self) -> bool:
+        """Returns True if the intake should be run at default speed (twice the max robot speed).
+
+        When the driver holds down the A button, we want to run the default intake setting.
+        """
+        return self._controller.getAButtonPressed()
 
     def getDriveCommand(self) -> DriveCommand:
         """Returns the drivetrain commands corresponding to current user input.

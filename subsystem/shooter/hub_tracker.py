@@ -45,7 +45,12 @@ class HubTracker:
             phoenix6.units.degrees_per_second
         ] = self.drivetrain.pigeon2.get_angular_velocity_z_world()
 
+        self._enabled = False
+
     def execute(self) -> None:
+        if not self._enabled:
+            return
+        
         self._yaw_rate_signal.refresh()
 
         # Pose of the robot relative to field origin.

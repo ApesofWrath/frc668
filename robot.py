@@ -247,9 +247,9 @@ class MyRobot(magicbot.MagicRobot):
     def controlIntake(self) -> None:
         """Drive the intake motors."""
         if self.driver_controller.runIntake():
-            self.intake.setMotorSpeed(1.0)
-        else:
-            self.intake.setMotorSpeed(0.0)
+            self.intake.setSpeed(self.drivetrain.get_robot_speed())
+        if self.driver_controller.runDefaultIntake():
+            self.intake.set_max_speed(self.robot_constants.drivetrain.max_linear_speed_meters_per_second)
 
     def controlHood(self) -> None:
         """Drive the hood motor."""

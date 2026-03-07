@@ -283,6 +283,7 @@ SHOOTER_CONSTANTS: dict[str, ShooterConstants] = {
             motor_can_id=13,
             motor_can_bus="rio",
             motor_inverted=signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE,
+            magnet_offset=0.195557, 
             position_k_p=0,
             position_k_d=0,
             velocity_k_s=0,
