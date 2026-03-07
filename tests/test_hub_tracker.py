@@ -6,6 +6,73 @@ from wpimath import geometry
 import subsystem.shooter.hub_tracker as hub_tracker
 
 
+class TestShotTable:
+    """Unit tests for the ShotTable lookup and linear interpolation logic."""
+
+    def test_clamps_below_minimum(self):
+        """Values at or below the first table entry returns the first row."""
+        hood, flywheel = hub_tracker.ShotTable.get(0.0)
+        assert hood == 1.0
+        assert flywheel == 20.0
+
+        hood, flywheel = hub_tracker.ShotTable.get(0.4)
+        assert hood == 1.0
+        assert flywheel == 20.0
+
+    def test_clamps_above_maximum(self):
+        """Values at or above the last table entry returns the last row."""
+        hood, flywheel = hub_tracker.ShotTable.get(10.0)
+        assert hood == 6.0
+        assert flywheel == 30.0
+
+        hood, flywheel = hub_tracker.ShotTable.get(3.5)
+        assert hood == 6.0
+        assert flywheel == 30.0
+
+    def test_exact_table_points(self):
+        """Every exact distance that exists in the table returns the exact stored values (no interpolation)."""
+        assert hub_tracker.ShotTable.get(0.5) == (1.0, 20.0)
+        assert hub_tracker.ShotTable.get(1.0) == (2.0, 22.0)
+        assert hub_tracker.ShotTable.get(1.5) == (3.0, 24.0)
+        assert hub_tracker.ShotTable.get(2.0) == (4.0, 26.0)
+        assert hub_tracker.ShotTable.get(2.5) == (5.0, 28.0)
+        assert hub_tracker.ShotTable.get(3.0) == (6.0, 30.0)
+
+    @pytest.mark.parametrize(
+        "distance, expected_hood, expected_flywheel",
+        [(0.75, 1.5, 21.0), (1.25, 2.5, 23.0)],
+    )
+    def test_linear_interpolation(
+        self, distance, expected_hood, expected_flywheel
+    ):
+        """Linear interpolation produces the mathematically correct value between any two table rows."""
+        hood, flywheel = hub_tracker.ShotTable.get(distance)
+        assert hood == pytest.approx(expected_hood, abs=1e-9)
+        assert flywheel == pytest.approx(expected_flywheel, abs=1e-9)
+
+    def test_interpolation_near_edges(self):
+        """Interpolation works exactly right next to the first and last intervals (no off-by-one bugs)."""
+        # Just inside the first interval
+        hood, flywheel = hub_tracker.ShotTable.get(0.51)
+        assert hood == pytest.approx(1.02, abs=1e-9)
+        assert flywheel == pytest.approx(20.04, abs=1e-9)
+
+        # Just inside the last interval
+        hood, flywheel = hub_tracker.ShotTable.get(2.99)
+        assert hood == pytest.approx(5.98, abs=1e-9)
+        assert flywheel == pytest.approx(29.96, abs=1e-9)
+
+    def test_table_and_distances_are_equal_length(self):
+        """_TABLE and _DISTANCES are of equal length.
+
+        This is important as we use _DISTANCES to interpolate and _TABLES for
+        lookup.
+        """
+        assert len(hub_tracker.ShotTable._TABLE) == len(
+            hub_tracker.ShotTable._DISTANCES
+        )
+
+
 def _make_tracker(
     mocker,
     robot_pose: geometry.Pose2d,
