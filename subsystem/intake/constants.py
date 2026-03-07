@@ -10,7 +10,6 @@ class IntakeConstants:
     motor_inverted: signals.InvertedValue = (
         signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
     )
-    motor_inverted: signals.InvertedValue = (signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE)
     deploy_motor_can_id: int = 0
     deploy_motor_can_bus: str = ""
     deploy_encoder_can_id: int = 0
@@ -31,6 +30,8 @@ class IntakeConstants:
     motion_magic_acceleration: float = 0.0
     motion_magic_jerk: float = 0.0
     motion_magic_feed_forward: float = 0.0
+    deploy_motor_inverted: signals.InvertedValue = signals.InvertedValue()
+    deploy_encoder_inverted: signals.InvertedValue = signals.InvertedValue()
 
 
 
@@ -48,8 +49,8 @@ INTAKE_CONSTANTS: dict[str, IntakeConstants] = {
         motor_inverted=signals.InvertedValue.CLOCKWISE_POSITIVE,
         deploy_motor_can_id=50,
         deploy_encoder_can_id=61,
-        sensor_to_mechanism_ratio= 9/30,
-        rotor_to_sensor_ratio= 25,
+        sensor_to_mechanism_ratio= 3.3333333,
+        rotor_to_sensor_ratio= 25.0,
         position_k_s=0 ,
         position_k_v=0 ,
         position_k_a=0 ,
@@ -60,4 +61,4 @@ INTAKE_CONSTANTS: dict[str, IntakeConstants] = {
         deploy_encoder_inverted = 
     )
 
-    )}
+    }
