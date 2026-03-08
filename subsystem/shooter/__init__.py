@@ -13,6 +13,7 @@ from .turret import Turret, TurretTuner
 from .flywheel import Flywheel, FlywheelTuner
 from .hopper import Hopper, HopperTuner
 from .indexer import Indexer, IndexerTuner
+from .shooter_state_machine import ShooterStateMachine
 
 __all__ = [
     "Flywheel",

@@ -22,6 +22,8 @@ class MyRobot(magicbot.MagicRobot):
     https://robotpy.readthedocs.io/en/latest/frameworks/magicbot.html
     """
 
+    shooter_state_machine: shooter.ShooterStateMachine
+
     hub_tracker: shooter.HubTracker
     drivetrain: drivetrain.Drivetrain
     flywheel: shooter.Flywheel
@@ -120,6 +122,7 @@ class MyRobot(magicbot.MagicRobot):
         # Since we manually instantiate Drivetrain, magicbot will not call setup
         # for us.
         self.drivetrain.setup()
+        
 
     def robotInit(self) -> None:
         """MagicBot internal API
@@ -149,6 +152,9 @@ class MyRobot(magicbot.MagicRobot):
                 # We call this here because the Vision component's execute
                 # method does not get called when disabled.
                 self.vision.setRobotOrientation()
+        
+        self.shooter_state_machine.engage()
+
 
     def autonomousInit(self) -> None:
         """Initialize autonomous mode.
@@ -215,8 +221,7 @@ class MyRobot(magicbot.MagicRobot):
             )
             self.vision._pose_seeded = False
         self.driveWithJoysicks()
-        self.controlHopper()
-        self.controlIndexer()
+        self.controlShooter()
         self.controlIntake()
         self.controlHood()
         self.controlTurret()
@@ -226,23 +231,9 @@ class MyRobot(magicbot.MagicRobot):
         command = self.driver_controller.getDriveCommand()
         self.drivetrain.setSpeeds(command)
 
-    def controlHopper(self) -> None:
-        """Drive the hopper motors."""
-        if self._tuning_mode:
-            return
-        if self.operator_controller.getRightBumper():
-            self.hopper.setEnabled(True)
-        else:
-            self.hopper.setEnabled(False)
-
-    def controlIndexer(self) -> None:
-        """Drive the indexer motors."""
-        if self._tuning_mode:
-            return
-        if self.operator_controller.getRightBumper():
-            self.indexer.setEnabled(True)
-        else:
-            self.indexer.setEnabled(False)
+    def controlShooter(self) -> None:
+        """Takes button inputs to control the shooter state machine."""
+        self.shooter_state_machine.is_shooting = self.operator_controller.getRightBumper() 
 
     def controlIntake(self) -> None:
         """Drive the intake motors."""
