@@ -137,6 +137,11 @@ class MyRobot(magicbot.MagicRobot):
             self.drivetrain, "drivetrain", "components"
         )
 
+        # TODO: Is there a better spot we can do this? Ideally have HubTracker
+        # access _tuning_mode directly?
+        if self._tuning_mode:
+            self.hub_tracker.setEnabled(False)
+
     def robotPeriodic(self) -> None:
         if wpilib.DriverStation.isEnabled():
             # Use external IMU assist when enabled.
@@ -247,9 +252,9 @@ class MyRobot(magicbot.MagicRobot):
     def controlIntake(self) -> None:
         """Drive the intake motors."""
         if self.driver_controller.runIntake():
-            self.intake.setMotorSpeed(1.0)
+            self.intake.setSpeed(75.0)
         else:
-            self.intake.setMotorSpeed(0.0)
+            self.intake.setSpeed(0.0)
 
     def controlHood(self) -> None:
         """Drive the hood motor."""

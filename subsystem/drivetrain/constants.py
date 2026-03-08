@@ -290,8 +290,8 @@ DRIVETRAIN_CONSTANTS: dict[str, DrivetrainConstants] = {
             drive_motor_id=7,
             encoder_id=12,
             encoder_offset=-0.445557,
-            location_x=wpimath.units.inchesToMeters(13.75),
-            location_y=wpimath.units.inchesToMeters(13.75),
+            location_x=wpimath.units.inchesToMeters(13.5),
+            location_y=wpimath.units.inchesToMeters(13.5),
             drive_motor_inverted=False,
             steer_motor_inverted=False,
             encoder_inverted=True,
@@ -301,8 +301,8 @@ DRIVETRAIN_CONSTANTS: dict[str, DrivetrainConstants] = {
             drive_motor_id=3,
             encoder_id=10,
             encoder_offset=0.441895,
-            location_x=wpimath.units.inchesToMeters(13.75),
-            location_y=wpimath.units.inchesToMeters(-13.75),
+            location_x=wpimath.units.inchesToMeters(13.5),
+            location_y=wpimath.units.inchesToMeters(-13.5),
             drive_motor_inverted=True,
             steer_motor_inverted=False,
             encoder_inverted=True,
@@ -312,8 +312,8 @@ DRIVETRAIN_CONSTANTS: dict[str, DrivetrainConstants] = {
             drive_motor_id=1,
             encoder_id=9,
             encoder_offset=-0.070068,
-            location_x=wpimath.units.inchesToMeters(-13.75),
-            location_y=wpimath.units.inchesToMeters(13.75),
+            location_x=wpimath.units.inchesToMeters(-13.5),
+            location_y=wpimath.units.inchesToMeters(13.5),
             drive_motor_inverted=False,
             steer_motor_inverted=False,
             encoder_inverted=True,
@@ -323,8 +323,8 @@ DRIVETRAIN_CONSTANTS: dict[str, DrivetrainConstants] = {
             drive_motor_id=5,
             encoder_id=11,
             encoder_offset=-0.442383,
-            location_x=wpimath.units.inchesToMeters(-13.75),
-            location_y=wpimath.units.inchesToMeters(-13.75),
+            location_x=wpimath.units.inchesToMeters(-13.5),
+            location_y=wpimath.units.inchesToMeters(-13.5),
             drive_motor_inverted=True,
             steer_motor_inverted=False,
             encoder_inverted=True,
@@ -332,7 +332,14 @@ DRIVETRAIN_CONSTANTS: dict[str, DrivetrainConstants] = {
         drivetrain=SwerveDrivetrainConstants(
             can_bus_name="swerve", pigeon2_id=22
         ),
-        vision=VisionConstants(limelights=["limelight-fl", "limelight-fr", "limelight-upfl", "limelight-upfr"]),
+        vision=VisionConstants(
+            limelights=[
+                "limelight-fl",
+                "limelight-fr",
+                "limelight-upfl",
+                "limelight-upfr",
+            ]
+        ),
     ),
 }
 

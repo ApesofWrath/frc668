@@ -4,7 +4,6 @@ from dataclasses import dataclass
 import wpilib
 import typing
 
-
 # Juno
 DEFAULT_ROBOT_SERIAL = "0323CA4B"
 
