@@ -12,7 +12,7 @@ class IntakeDeployer(magicbot.StateMachine):
     def __init__(self):
         self._first_spike = True
         self._timer = wpilib.Timer()
-        self.deployed = False
+        self._deployed = False
     
     def setup(self) -> None:
         intake_constants = self.robot_constants.intake
@@ -44,15 +44,17 @@ class IntakeDeployer(magicbot.StateMachine):
 
     @magicbot.state(first=True, must_finish=True)
     def deploying(self, state_tm) -> None:
-        self.deployed = False 
+        self._deployed = False 
         self.intake_deploy_motor.set(0.25)
         if self.intake_deploy_motor.get_stator_current().value >= 12.0:
             if self._first_spike:
                 self._first_spike = False
+                self._timer.reset()
                 self._timer.start()
             else:
                 if self._timer.hasElapsed(0.25):
                     self._first_spike = True
+                    self._timer.stop()
                     self._timer.reset()
                     self.next_state("deployed")
         elif state_tm >= 10.0:
@@ -63,11 +65,14 @@ class IntakeDeployer(magicbot.StateMachine):
     @magicbot.state()
     def deployed(self):
         self.intake_deploy_motor.set(0.0)
-        self.deployed = True
+        self._deployed = True
         self.done()
+        self._timer.stop()
+        self._timer.reset()
         self.logger.info("Success: Intake deployed")
 
     @magicbot.state()
     def timeout(self) -> None:
         self.logger.warning("Intake deploy timed out!")
         self.intake_deploy_motor.set(0.0)
+        self.done()

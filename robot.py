@@ -21,6 +21,7 @@ class MyRobot(magicbot.MagicRobot):
     subsystems and modes.
     https://robotpy.readthedocs.io/en/latest/frameworks/magicbot.html
     """
+    intake_deployer: intake.IntakeDeployer
 
     hub_tracker: shooter.HubTracker
     drivetrain: drivetrain.Drivetrain
@@ -29,7 +30,6 @@ class MyRobot(magicbot.MagicRobot):
     indexer: shooter.Indexer
     hood: shooter.Hood
     intake: intake.Intake
-    intake_deployer: intake.IntakeDeployer
     turret: shooter.Turret
     vision: drivetrain.Vision
 
@@ -119,6 +119,10 @@ class MyRobot(magicbot.MagicRobot):
             self.robot_constants.intake.deploy_motor_can_id,
             self.robot_constants.intake.deploy_motor_can_bus,
         )
+        self.intake_deploy_encoder = phoenix6.hardware.CANcoder(
+            self.robot_constants.intake.deploy_encoder_can_id,
+            self.robot_constants.intake.deploy_encoder_can_bus,
+        )
 
         self._tuning_mode = False
 
@@ -145,18 +149,17 @@ class MyRobot(magicbot.MagicRobot):
     def robotPeriodic(self) -> None:
         if wpilib.DriverStation.isEnabled():
             # Use external IMU assist when enabled.
+            if not self.intake_deployer._deployed:
+                self.intake_deployer.deploy()
             for ll in self.vision._limelights:
-                limelight.LimelightHelpers.set_imu_mode(ll, 4)
+                limelight.LimelightHelpers.set_imu_mode(ll, 4)   
         else:
-            # Hard reset each limelight's yaw to the external IMU when disabled.
+            # Hard reset each lime light's yaw to the external IMU when disabled.
             for ll in self.vision._limelights:
                 limelight.LimelightHelpers.set_imu_mode(ll, 1)
                 # We call this here because the Vision component's execute
                 # method does not get called when disabled.
                 self.vision.setRobotOrientation()
-        
-        if not self.intake_deployer.deployed:
-            self.intake_deployer.deploy()
 
     def autonomousInit(self) -> None:
         """Initialize autonomous mode.
@@ -222,12 +225,12 @@ class MyRobot(magicbot.MagicRobot):
                 wpimath.geometry.Pose2d(3.6854, 4.0136, 0)
             )
             self.vision._pose_seeded = False
-        self.driveWithJoysicks()
-        self.controlHopper()
-        self.controlIndexer()
-        self.controlIntake()
-        self.controlHood()
-        self.controlTurret()
+        # self.driveWithJoysicks()
+        # self.controlHopper()
+        # self.controlIndexer()
+        # self.controlIntake()
+        # self.controlHood()
+        # self.controlTurret()
 
     def driveWithJoysicks(self) -> None:
         """Use the main controller joystick inputs to drive the robot base."""
