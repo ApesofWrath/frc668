@@ -50,7 +50,7 @@ class Intake:
 
         This method is called at the end of the control loop.
         """
-        self._request.with_velocity(self._motor_speed)
+        self.intake_motor.set_control(self._request.with_velocity(self._motor_speed))
 
     def on_enable(self) -> None:
         """Reset to a "safe" state when the robot is enabled.
@@ -67,21 +67,25 @@ class Intake:
         """
         self._motor_speed = 0.0
         
-    def set_max_speed(self, max_robot_speed) -> None:
+    def set_max_speed(self) -> None:
         """Set the intake motor's linear speed to twice the robot's max speed (6 m/s).
         """
         max_robot_speed = self.robot_constants.drivetrain.max_linear_speed_meters_per_second
         self._motor_speed = 2 * max_robot_speed
     
-    def setSpeed(self, current_robot_speed) -> None:
+    def setSpeed(self, override_speed_rps: float = None) -> None:
         """Set the intake motor's linear speed to twice the robot's current speed.
         """
-        current_robot_speed = self.drivetrain.get_robot_speed()
-        self._motor_speed = max(2 * current_robot_speed, self.robot_constants.intake.min_intake_speed)
+        if override_speed_rps:
+            self._motor_speed = override_speed_rps
+        else:
+            current_robot_speed = self.drivetrain.get_robot_speed()
+            self._motor_speed = max(2 * current_robot_speed, self.robot_constants.intake.min_intake_speed)
 
-    # @magicbot.feedback
-    # def get_speed(self) -> float:
-    #     self.intake_motor.get_velocity().value
+    @magicbot.feedback
+    def get_measured_speed(self) -> float:
+        value = self.intake_motor.get_velocity().value
+        return value if value else 0.0
 
 class IntakeTuner:
     """Component for tuning the intake gains.
@@ -101,6 +105,7 @@ class IntakeTuner:
     k_p = magicbot.tunable(0.0)
     k_i = magicbot.tunable(0.0)
     k_d = magicbot.tunable(0.0)
+    target_speed_rps = magicbot.tunable(0.0)
 
     def setup(self) -> None:
         """Set up initial state for the intake tuner.
@@ -129,6 +134,7 @@ class IntakeTuner:
 
         This method is called at the end of the control loop.
         """
+        self.intake.setSpeed(self.target_speed_rps)
 
         # We only want to reapply the gains if they changed. The TalonFX motor
         # doesn't like being reconfigured constantly.
