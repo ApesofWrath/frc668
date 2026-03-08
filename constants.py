@@ -5,7 +5,6 @@ import wpilib
 import typing
 import subsystem
 
-
 # Juno
 DEFAULT_ROBOT_SERIAL = "0323CA4B"
 

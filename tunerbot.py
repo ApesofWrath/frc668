@@ -23,7 +23,7 @@ class TunerBot(robot.MyRobot):
     hopper_tuner: shooter.HopperTuner
     indexer_tuner: shooter.IndexerTuner
     turret_tuner: shooter.TurretTuner
-    deploy_intake_tuner: intake.intake.DeployIntakeTuner
+    intake_tuner: intake.intake.IntakeTuner
 
     def createObjects(self) -> None:   
         super().createObjects()

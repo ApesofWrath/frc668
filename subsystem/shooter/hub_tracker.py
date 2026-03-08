@@ -1,3 +1,6 @@
+import bisect
+from typing import Tuple
+
 import magicbot
 import phoenix6
 from wpimath import geometry, units
@@ -12,6 +15,57 @@ HUB_TO_FIELD_X = 182.11 * INCHES_TO_METERS
 HUB_TO_FIELD_Y = 158.845 * INCHES_TO_METERS
 
 
+class ShotTable:
+    """A lookup table for hood angles and flywheel speeds based on robot pose."""
+
+    # Each entry contains the following:
+    #  * turret-to-hub distance in meters
+    #  * hood angle in degrees
+    #  * flywheel speed in rotations per second
+    _TABLE: Tuple[Tuple[float, float, float], ...] = (
+        (1.75, 0.5, 26.0),
+        (2.25, 3.0, 29.0),
+        (2.75, 4.0, 30.0),
+        (3.25, 5.0, 31.0),
+        (3.75, 6.5, 33.0),
+        (4.25, 7.0, 34.0),
+        (4.75, 7.5, 35.0),
+    )
+    # A tuple of just the distances from _TABLE.
+    _DISTANCES: Tuple[float, ...] = tuple(row[0] for row in _TABLE)
+
+    @classmethod
+    def get(cls, distance_meters: float) -> Tuple[float, float]:
+        """Get (hood angle, flywheel speed) for a given turret-to-hub distance.
+
+        This interpolates between values for known distances.
+
+        Args:
+            distance_meters:
+                The Euclidian distance in the XY plane in meters from the center
+                of the turret to the center of the hub.
+
+        Returns:
+            A tuple containing the target hood angle in degrees and flywheel
+            speed in rotations per second.
+        """
+        if distance_meters <= cls._TABLE[0][0]:
+            return cls._TABLE[0][1], cls._TABLE[0][2]
+        if distance_meters >= cls._TABLE[-1][0]:
+            return cls._TABLE[-1][1], cls._TABLE[-1][2]
+
+        idx = bisect.bisect_left(cls._DISTANCES, distance_meters) - 1
+
+        d1, h1, f1 = cls._TABLE[idx]
+        d2, h2, f2 = cls._TABLE[idx + 1]
+
+        fraction = (distance_meters - d1) / (d2 - d1)
+        hood_angle = h1 + fraction * (h2 - h1)
+        flywheel_speed = f1 + fraction * (f2 - f1)
+
+        return hood_angle, flywheel_speed
+
+
 class HubTracker:
     """Controls our shooter mechanisms to track the hub as the robot moves.
 
@@ -22,6 +76,8 @@ class HubTracker:
 
     robot_constants: constants.RobotConstants
     drivetrain: drivetrain.Drivetrain
+    flywheel: shooter.Flywheel
+    hood: shooter.Hood
     turret: shooter.Turret
 
     def setup(self) -> None:
@@ -39,11 +95,17 @@ class HubTracker:
         # Pose of the turret relative to the field. This will be computed each
         # control loop based on the current robot pose estimate.
         self._turret_field_pose: geometry.Pose2d = geometry.Pose2d()
+        # Current target hood angle and flywheel speed.
+        # TODO: Find better defaults.
+        self._target_hood_angle_degrees: float = 0.0
+        self._target_flywheel_speed_rps: float = 0.0
 
         # Raw yaw rate of the robot (and the turret).
         self._yaw_rate_signal: phoenix6.status_signal.StatusSignal[
             phoenix6.units.degrees_per_second
         ] = self.drivetrain.pigeon2.get_angular_velocity_z_world()
+
+        self._enabled = True
 
     def execute(self) -> None:
         self._yaw_rate_signal.refresh()
@@ -62,15 +124,28 @@ class HubTracker:
             self.robot_constants.shooter.turret.min_angle,
             min(
                 self.robot_constants.shooter.turret.max_angle,
-                self.get_turret_target_angle_degrees() - predictive_lead_angle,
+                self.get_target_turret_angle_degrees() - predictive_lead_angle,
             ),
         )
-        self.turret.setPosition(turret_target_angle)
 
-        # TODO: Command the hood and the flywheel based on lookup table.
+        # Set the flywheel and hood targets based on current turret-to-hub
+        # distance.
+        self._target_hood_angle_degrees, self._target_flywheel_speed_rps = (
+            ShotTable.get(self.get_turret_distance_from_hub_meters())
+        )
+
+        if not self._enabled:
+            return
+
+        self.turret.setPosition(turret_target_angle)
+        self.hood.setPosition(self._target_hood_angle_degrees)
+        self.flywheel.setTargetRps(self._target_flywheel_speed_rps)
+
+    def setEnabled(self, value: bool) -> None:
+        self._enabled = value
 
     @magicbot.feedback
-    def get_turret_distance_from_hub_meters(self) -> units.meters:
+    def get_turret_distance_from_hub_meters(self) -> phoenix6.units.meter:
         """Returns the absolute distance of the turret from the hub."""
         # Vector from center of turret to center of hub.
         turret_to_hub = (
@@ -79,7 +154,7 @@ class HubTracker:
         return turret_to_hub.norm()
 
     @magicbot.feedback
-    def get_turret_target_angle_degrees(self) -> units.degrees:
+    def get_target_turret_angle_degrees(self) -> phoenix6.units.degree:
         """Returns the target angle for the turret to track.
 
         Tracking this angle ensures that the turret is always pointed at the
@@ -92,3 +167,15 @@ class HubTracker:
         return (
             turret_to_hub.angle() - self._turret_field_pose.rotation()
         ).degrees()
+
+    @magicbot.feedback
+    def get_target_hood_angle_degrees(self) -> phoenix6.units.degree:
+        """Returns the target angle for the hood to track."""
+        return self._target_hood_angle_degrees
+
+    @magicbot.feedback
+    def get_target_flywheel_speed_rps(
+        self,
+    ) -> phoenix6.units.rotations_per_second:
+        """Returns the target angle for the hood to track."""
+        return self._target_hood_angle_degrees
