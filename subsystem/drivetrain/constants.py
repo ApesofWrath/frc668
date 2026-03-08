@@ -332,7 +332,14 @@ DRIVETRAIN_CONSTANTS: dict[str, DrivetrainConstants] = {
         drivetrain=SwerveDrivetrainConstants(
             can_bus_name="swerve", pigeon2_id=22
         ),
-        vision=VisionConstants(limelights=["limelight-fl", "limelight-fr", "limelight-upfl", "limelight-upfr"]),
+        vision=VisionConstants(
+            limelights=[
+                "limelight-fl",
+                "limelight-fr",
+                "limelight-upfl",
+                "limelight-upfr",
+            ]
+        ),
     ),
 }
 

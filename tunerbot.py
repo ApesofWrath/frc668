@@ -4,7 +4,7 @@ import wpilib
 
 import robot
 from subsystem import shooter
-from subsystem import intake 
+from subsystem import intake
 
 
 class TunerBot(robot.MyRobot):
@@ -29,7 +29,3 @@ class TunerBot(robot.MyRobot):
     def createObjects(self) -> None:
         super().createObjects()
         self._tuning_mode = True
-
-    # def robotInit(self):
-    #     super().robotInit()
-    #     self.hub_tracker._enabled = False

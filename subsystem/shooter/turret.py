@@ -229,7 +229,7 @@ class Turret:
             * self.ROTATIONS_TO_DEGREES
             / self.robot_constants.shooter.turret.sensor_to_mechanism_ratio
         )
-    
+
     @magicbot.feedback
     def get_target_position_degrees(self) -> float:
         return self._turret_postion_degrees

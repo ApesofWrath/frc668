@@ -4,7 +4,6 @@ import magicbot
 
 import constants
 from phoenix6 import swerve
-from subsystem import drivetrain
 
 
 class Intake:
@@ -15,7 +14,6 @@ class Intake:
 
     robot_constants: constants.RobotConstants
     intake_motor: phoenix6.hardware.TalonFX
-    drivetrain: drivetrain.Drivetrain
 
     def setup(self) -> None:
         """Set up initial state for the intake.
@@ -26,11 +24,13 @@ class Intake:
         self._motor_speed = 0.0
 
         self.intake_motor.configurator.apply(
-            phoenix6.configs.TalonFXConfiguration().with_motor_output(
+            phoenix6.configs.TalonFXConfiguration()
+            .with_motor_output(
                 phoenix6.configs.MotorOutputConfigs().with_inverted(
                     self.robot_constants.intake.motor_inverted
                 )
-            ).with_slot0(
+            )
+            .with_slot0(
                 phoenix6.configs.Slot0Configs()
                 .with_k_s(self.robot_constants.intake.k_s)
                 .with_k_v(self.robot_constants.intake.k_v)
@@ -50,7 +50,9 @@ class Intake:
 
         This method is called at the end of the control loop.
         """
-        self.intake_motor.set_control(self._request.with_velocity(self._motor_speed))
+        self.intake_motor.set_control(
+            self._request.with_velocity(self._motor_speed)
+        )
 
     def on_enable(self) -> None:
         """Reset to a "safe" state when the robot is enabled.
@@ -66,32 +68,22 @@ class Intake:
         This method is called when the robot enters disabled mode.
         """
         self._motor_speed = 0.0
-        
-    def set_max_speed(self) -> None:
-        """Set the intake motor's linear speed to twice the robot's max speed (6 m/s).
-        """
-        max_robot_speed = self.robot_constants.drivetrain.max_linear_speed_meters_per_second
-        self._motor_speed = 2 * max_robot_speed
-    
-    def setSpeed(self, override_speed_rps: float = None) -> None:
-        """Set the intake motor's linear speed to twice the robot's current speed.
-        """
-        if override_speed_rps:
-            self._motor_speed = override_speed_rps
-        else:
-            current_robot_speed = self.drivetrain.get_robot_speed()
-            self._motor_speed = max(2 * current_robot_speed, self.robot_constants.intake.min_intake_speed)
+
+    def setSpeed(self, speed_rps: float = None) -> None:
+        """Set the intake roller motor's speed."""
+        self._motor_speed = speed_rps
 
     @magicbot.feedback
     def get_measured_speed(self) -> float:
         value = self.intake_motor.get_velocity().value
         return value if value else 0.0
 
+
 class IntakeTuner:
     """Component for tuning the intake gains.
 
     It sets up tunable gains over network tables so they can be easily modified
-    on AdvantageScope. 
+    on AdvantageScope.
     """
 
     robot_constants: constants.RobotConstants
@@ -114,7 +106,7 @@ class IntakeTuner:
         robot class, and after all components have been created.
         """
         intake_constants = self.robot_constants.intake
-        
+
         self.k_s = intake_constants.k_s
         self.k_v = intake_constants.k_v
         self.k_a = intake_constants.k_a
