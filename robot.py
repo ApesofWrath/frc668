@@ -233,14 +233,14 @@ class MyRobot(magicbot.MagicRobot):
 
     def controlShooter(self) -> None:
         """Takes button inputs to control the shooter state machine."""
-        self.shooter_state_machine.is_shooting = self.operator_controller.getRightBumper() 
+        if self._tuning_mode:
+            return
+        self.shooter_state_machine.is_shooting = self.driver_controller.feedFuel()
 
     def controlIntake(self) -> None:
         """Drive the intake motors."""
-        if self.driver_controller.runIntake():
-            self.intake.setMotorSpeed(1.0)
-        else:
-            self.intake.setMotorSpeed(0.0)
+        if self.driver_controller.toggleIntake():
+            self.intake.toggleActive()
 
     def controlHood(self) -> None:
         """Drive the hood motor."""

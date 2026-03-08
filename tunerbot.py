@@ -4,6 +4,7 @@ import wpilib
 
 import robot
 from subsystem import shooter
+from subsystem import intake
 
 
 class TunerBot(robot.MyRobot):
@@ -23,6 +24,7 @@ class TunerBot(robot.MyRobot):
     hopper_tuner: shooter.HopperTuner
     indexer_tuner: shooter.IndexerTuner
     turret_tuner: shooter.TurretTuner
+    intake_tuner: intake.intake.IntakeTuner
 
     def createObjects(self) -> None:
         super().createObjects()

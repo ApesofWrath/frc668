@@ -164,3 +164,7 @@ class Drivetrain(swerve.SwerveDrivetrain):
     @magicbot.feedback
     def get_robot_pose(self) -> wpimath.geometry.Pose2d:
         return self.get_state().pose
+
+    @magicbot.feedback
+    def get_robot_speed(self) -> swerve.ChassisSpeeds:
+        return self.get_state().speeds

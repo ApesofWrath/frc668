@@ -144,6 +144,9 @@ class Turret:
                 ).with_slot(1)
             )
         else:
+            # Calculate a feedforward to provide as an assist to the position
+            # controller in counteracting the robot's yaw rate, so it tracks the
+            # target with considerably less lag.
             self._yaw_rate_signal.refresh()
             turret_constants = self.robot_constants.shooter.turret
             # This feedforward voltage is added after all the scaled
@@ -230,6 +233,10 @@ class Turret:
             / self.robot_constants.shooter.turret.sensor_to_mechanism_ratio
         )
 
+    @magicbot.feedback
+    def get_target_position_degrees(self) -> float:
+        return self._turret_postion_degrees
+
 
 class TurretTuner:
     """Component for tuning the turret gains.
@@ -242,8 +249,12 @@ class TurretTuner:
     turret_motor: phoenix6.hardware.TalonFX
     turret_encoder: phoenix6.hardware.CANcoder
     turret: Turret
+    hub_tracker: shooter.HubTracker
 
     # Gains for position control of the turret.
+    position_k_s = magicbot.tunable(0.0)
+    position_k_v = magicbot.tunable(0.0)
+    position_k_a = magicbot.tunable(0.0)
     position_k_p = magicbot.tunable(0.0)
     position_k_i = magicbot.tunable(0.0)
     position_k_d = magicbot.tunable(0.0)
@@ -269,6 +280,9 @@ class TurretTuner:
     target_velocity = magicbot.tunable(0.0)
     use_velocity = magicbot.tunable(False)
 
+    # Auto-track hub
+    auto_track = magicbot.tunable(False)
+
     def setup(self) -> None:
         """Set up initial state for the turret tuner.
 
@@ -279,6 +293,9 @@ class TurretTuner:
             self.robot_constants.shooter.turret
         )
 
+        self.position_k_s = turret_constants.position_k_s
+        self.position_k_v = turret_constants.position_k_v
+        self.position_k_a = turret_constants.position_k_a
         self.position_k_p = turret_constants.position_k_p
         self.position_k_i = turret_constants.position_k_i
         self.position_k_d = turret_constants.position_k_d
@@ -296,6 +313,9 @@ class TurretTuner:
 
         self.mm_feed_forward = turret_constants.motion_magic_feed_forward
 
+        self.last_position_k_s = self.position_k_s
+        self.last_position_k_v = self.position_k_v
+        self.last_position_k_a = self.position_k_a
         self.last_position_k_p = self.position_k_p
         self.last_position_k_i = self.position_k_i
         self.last_position_k_d = self.position_k_d
@@ -324,6 +344,7 @@ class TurretTuner:
         self.turret.setVelocity(self.target_velocity)
         self.turret.setControlType(self.use_velocity)
         self.turret.setMotionMagicFeedForward(self.mm_feed_forward)
+        self.hub_tracker.setEnabled(self.auto_track)
 
         # We only want to reapply the gains if they changed. The TalonFX motor
         # doesn't like being reconfigured constantly.
@@ -334,6 +355,9 @@ class TurretTuner:
 
         self.last_use_velocity = self.use_velocity
 
+        self.last_position_k_s = self.position_k_s
+        self.last_position_k_v = self.position_k_v
+        self.last_position_k_a = self.position_k_a
         self.last_position_k_p = self.position_k_p
         self.last_position_k_i = self.position_k_i
         self.last_position_k_d = self.position_k_d
@@ -356,7 +380,10 @@ class TurretTuner:
             True if any of the gains changed, False otherwise.
         """
         return (
-            self.position_k_p != self.last_position_k_p
+            self.position_k_s != self.last_position_k_s
+            or self.position_k_v != self.last_position_k_v
+            or self.position_k_a != self.last_position_k_a
+            or self.position_k_p != self.last_position_k_p
             or self.position_k_i != self.last_position_k_i
             or self.position_k_d != self.last_position_k_d
             or self.velocity_k_s != self.last_velocity_k_s
@@ -384,6 +411,9 @@ class TurretTuner:
         )
         slot0_configs = (
             phoenix6.configs.Slot0Configs()
+            .with_k_s(self.position_k_s)
+            .with_k_v(self.position_k_v)
+            .with_k_a(self.position_k_a)
             .with_k_p(self.position_k_p)
             .with_k_i(self.position_k_i)
             .with_k_d(self.position_k_d)
