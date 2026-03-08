@@ -144,6 +144,9 @@ class Turret:
                 ).with_slot(1)
             )
         else:
+            # Calculate a feedforward to provide as an assist to the position
+            # controller in counteracting the robot's yaw rate, so it tracks the
+            # target with considerably less lag.
             self._yaw_rate_signal.refresh()
             turret_constants = self.robot_constants.shooter.turret
             # This feedforward voltage is added after all the scaled
@@ -246,6 +249,7 @@ class TurretTuner:
     turret_motor: phoenix6.hardware.TalonFX
     turret_encoder: phoenix6.hardware.CANcoder
     turret: Turret
+    hub_tracker: shooter.HubTracker
 
     # Gains for position control of the turret.
     position_k_s = magicbot.tunable(0.0)
@@ -275,6 +279,9 @@ class TurretTuner:
     target_position = magicbot.tunable(0.0)
     target_velocity = magicbot.tunable(0.0)
     use_velocity = magicbot.tunable(False)
+
+    # Auto-track hub
+    auto_track = magicbot.tunable(False)
 
     def setup(self) -> None:
         """Set up initial state for the turret tuner.
@@ -337,6 +344,7 @@ class TurretTuner:
         self.turret.setVelocity(self.target_velocity)
         self.turret.setControlType(self.use_velocity)
         self.turret.setMotionMagicFeedForward(self.mm_feed_forward)
+        self.hub_tracker.setEnabled(self.auto_track)
 
         # We only want to reapply the gains if they changed. The TalonFX motor
         # doesn't like being reconfigured constantly.
