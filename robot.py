@@ -9,6 +9,7 @@ from phoenix6 import swerve, hardware
 import constants
 from common import joystick
 from subsystem import drivetrain, shooter, intake
+from subsystem.shooter import constants as shooter_constants
 from subsystem.drivetrain import limelight
 
 DEADBAND = 0.15**2
@@ -58,6 +59,14 @@ class MyRobot(magicbot.MagicRobot):
             self.robot_constants.drivetrain.drive_options,
         )
         self.operator_controller = wpilib.XboxController(1)
+        self.operator_input = joystick.OperatorController(
+            self.operator_controller,
+            fine_step_deg=shooter_constants.OPERATOR_FINE_STEP_DEG,
+            preset_x=shooter_constants.OPERATOR_PRESET_X,
+            preset_y=shooter_constants.OPERATOR_PRESET_Y,
+            preset_a=shooter_constants.OPERATOR_PRESET_A,
+            preset_b=shooter_constants.OPERATOR_PRESET_B,
+        )
 
         # Turret
         self.turret_motor = hardware.TalonFX(
@@ -208,6 +217,21 @@ class MyRobot(magicbot.MagicRobot):
         `use_teleop_in_autonomous=True` in this class' instance.
         """
         # TODO: Handle exceptions so robot code doesn't crash.
+        # Update operator input helper each loop and apply presets when pressed.
+        self.operator_input.update()
+        preset = self.operator_input.get_preset()
+        # If any preset was pressed or manual mode is active, disable the
+        # automatic hub tracker so operator/manual control takes precedence.
+        if self.operator_input.is_manual():
+            self.hub_tracker.setEnabled(False)
+        else:
+            self.hub_tracker.setEnabled(True)
+
+        if preset is not None:
+            # Apply preset setpoints (turret degrees, hood degrees, flywheel rps)
+            self.turret.setPosition(preset["turret_deg"+self.operator_input.get_fine_adjustment()])
+            self.hood.setPosition(preset["hood_deg"])
+            self.flywheel.setTargetRps(preset["flywheel_rpm"])
         if self.driver_controller.shouldResetOrientation():
             # Robot's front touching the hub wall in the blue alliance zone.
             self.drivetrain.reset_pose(
