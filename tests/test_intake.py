@@ -10,8 +10,8 @@ class MockIntakeConstants:
     """Concrete object for robot_constants.intake so we can assert exact config values."""
 
     def __init__(self):
-        self.active_motor_speed_rps = 80.0
-        self.motor_inverted = (
+        self.active_roller_speed_rps = 80.0
+        self.roller_motor_inverted = (
             phoenix6.signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
         )
         self.k_s = 0.25
@@ -48,7 +48,7 @@ def intake(mock_constants, mock_motor):
     """Fresh Intake instance with mocks injected and setup() already called."""
     component = Intake()
     component.robot_constants = mock_constants
-    component.intake_motor = mock_motor
+    component.intake_roller_motor = mock_motor
     component.setup()
     return component
 
@@ -67,7 +67,8 @@ class TestIntake:
 
         # Motor output inversion
         assert (
-            config.motor_output.inverted == mock_constants.intake.motor_inverted
+            config.motor_output.inverted
+            == mock_constants.intake.roller_motor_inverted
         )
 
         # Slot 0 PID/FF gains
@@ -87,7 +88,7 @@ class TestIntake:
     def test_initial_state(self, intake):
         """After setup, the intake should be inactive with the default speed from constants."""
         assert intake._active is False
-        assert intake._active_motor_speed_rps == 80.0
+        assert intake._active_roller_speed_rps == 80.0
 
     def test_set_active_and_toggle(self, intake):
         """State control methods should work as expected."""
@@ -109,11 +110,11 @@ class TestIntake:
     def test_set_speed(self, intake):
         """setSpeed should update the target roller speed (including None default)."""
         intake.setSpeed(55.5)
-        assert intake._active_motor_speed_rps == 55.5
+        assert intake._active_roller_speed_rps == 55.5
 
         # As-written behavior (no guard against None)
         intake.setSpeed()
-        assert intake._active_motor_speed_rps is None
+        assert intake._active_roller_speed_rps is None
 
     def test_on_enable_on_disable_reset_active(self, intake):
         """Lifecycle hooks must force the intake to a safe (stopped) state."""
@@ -137,7 +138,7 @@ class TestIntake:
         assert request.velocity == 0.0
 
     def test_execute_active_sets_requested_velocity(self, intake, mock_motor):
-        """When active, execute() must command the current _active_motor_speed_rps."""
+        """When active, execute() must command the current _active_roller_speed_rps."""
         intake.setActive(True)
         intake.setSpeed(67.0)
         intake.execute()
