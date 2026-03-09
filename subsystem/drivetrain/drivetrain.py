@@ -129,7 +129,7 @@ class Drivetrain(swerve.SwerveDrivetrain):
 
         This method is called at the end of the control loop.
         """
-        if not self._alliance:
+        if not self._alliance and not wpilib.RobotBase.isSimulation():
             self.logger.error(
                 "Failed to apply operator prespective based on alliance."
             )

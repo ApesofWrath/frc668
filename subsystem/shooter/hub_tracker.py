@@ -105,7 +105,11 @@ class HubTracker:
             phoenix6.units.degrees_per_second
         ] = self.drivetrain.pigeon2.get_angular_velocity_z_world()
 
-        self._enabled = True
+        # Whether to have turret and hood track their target positions.
+        self._track_position = True
+        # Whether to have flywheel track its target speed. This is False by
+        # default to save power.
+        self._track_speed = False
 
     def execute(self) -> None:
         self._yaw_rate_signal.refresh()
@@ -116,17 +120,7 @@ class HubTracker:
             self._robot_to_turret_transform
         )
 
-        # Predict how much the robot will yaw in the next control loop interval
-        # based on our current yaw rate.
-        predictive_lead_angle = self._yaw_rate_signal.value * 0.02
-
-        turret_target_angle = max(
-            self.robot_constants.shooter.turret.min_angle,
-            min(
-                self.robot_constants.shooter.turret.max_angle,
-                self.get_target_turret_angle_degrees() - predictive_lead_angle,
-            ),
-        )
+        turret_target_angle = self.get_predictive_turret_target_angle_degrees()
 
         # Set the flywheel and hood targets based on current turret-to-hub
         # distance.
@@ -134,15 +128,17 @@ class HubTracker:
             ShotTable.get(self.get_turret_distance_from_hub_meters())
         )
 
-        if not self._enabled:
-            return
+        if self._track_position:
+            self.turret.setPosition(turret_target_angle)
+            self.hood.setPosition(self._target_hood_angle_degrees)
+        if self._track_speed:
+            self.flywheel.setTargetRps(self._target_flywheel_speed_rps)
 
-        self.turret.setPosition(turret_target_angle)
-        self.hood.setPosition(self._target_hood_angle_degrees)
-        self.flywheel.setTargetRps(self._target_flywheel_speed_rps)
+    def trackPosition(self, value: bool) -> None:
+        self._track_position = value
 
-    def setEnabled(self, value: bool) -> None:
-        self._enabled = value
+    def trackSpeed(self, value: bool) -> None:
+        self._track_speed = value
 
     @magicbot.feedback
     def get_turret_distance_from_hub_meters(self) -> phoenix6.units.meter:
@@ -169,6 +165,22 @@ class HubTracker:
         ).degrees()
 
     @magicbot.feedback
+    def get_predictive_turret_target_angle_degrees(
+        self,
+    ) -> phoenix6.units.degree:
+        # Predict how much the robot will yaw in the next control loop interval
+        # based on our current yaw rate.
+        predictive_lead_angle = self._yaw_rate_signal.value * 0.02
+
+        return max(
+            self.robot_constants.shooter.turret.min_angle,
+            min(
+                self.robot_constants.shooter.turret.max_angle,
+                self.get_target_turret_angle_degrees() - predictive_lead_angle,
+            ),
+        )
+
+    @magicbot.feedback
     def get_target_hood_angle_degrees(self) -> phoenix6.units.degree:
         """Returns the target angle for the hood to track."""
         return self._target_hood_angle_degrees
@@ -177,5 +189,5 @@ class HubTracker:
     def get_target_flywheel_speed_rps(
         self,
     ) -> phoenix6.units.rotations_per_second:
-        """Returns the target angle for the hood to track."""
-        return self._target_hood_angle_degrees
+        """Returns the target rps for the flywheel to track."""
+        return self._target_flywheel_speed_rps

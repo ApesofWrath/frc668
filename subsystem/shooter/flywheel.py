@@ -58,6 +58,9 @@ class Flywheel:
             )
         )
 
+        self._velocity_signal: phoenix6.status_signal.StatusSignal[
+            phoenix6.units.rotations_per_second
+        ] = self.flywheel_encoder.get_velocity()
         self._target_rps: float = 0.0
 
         # Create a velocity closed-loop request with voltage output and slot 0
@@ -71,6 +74,7 @@ class Flywheel:
 
         This method is called at the end of the control loop.
         """
+        self._velocity_signal.refresh()
         self.flywheel_motor.set_control(
             self._request.with_velocity(self._target_rps)
         )
@@ -94,6 +98,10 @@ class Flywheel:
 
     def setTargetRps(self, target_rps: float) -> None:
         self._target_rps = target_rps
+
+    @magicbot.feedback
+    def get_measured_speed_rps(self) -> float:
+        return self._velocity_signal.value
 
     @magicbot.feedback
     def get_target_rps(self) -> float:

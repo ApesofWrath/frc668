@@ -23,6 +23,7 @@ class MyRobot(magicbot.MagicRobot):
     """
 
     intake_deployer: intake.IntakeDeployer
+    shooter_state_machine: shooter.Shooter
 
     hub_tracker: shooter.HubTracker
     drivetrain: drivetrain.Drivetrain
@@ -163,6 +164,9 @@ class MyRobot(magicbot.MagicRobot):
                 # method does not get called when disabled.
                 self.vision.setRobotOrientation()
 
+        if not self._tuning_mode:
+            self.shooter_state_machine.engage()
+
     def autonomousInit(self) -> None:
         """Initialize autonomous mode.
 
@@ -228,8 +232,7 @@ class MyRobot(magicbot.MagicRobot):
             )
             self.vision._pose_seeded = False
         self.driveWithJoysicks()
-        self.controlHopper()
-        self.controlIndexer()
+        self.controlShooter()
         self.controlIntake()
         self.controlHood()
         self.controlTurret()
@@ -239,23 +242,11 @@ class MyRobot(magicbot.MagicRobot):
         command = self.driver_controller.getDriveCommand()
         self.drivetrain.setSpeeds(command)
 
-    def controlHopper(self) -> None:
-        """Drive the hopper motors."""
-        if self._tuning_mode:
-            return
-        if self.driver_controller.feedFuel():
-            self.hopper.setEnabled(True)
-        else:
-            self.hopper.setEnabled(False)
-
-    def controlIndexer(self) -> None:
-        """Drive the indexer motors."""
-        if self._tuning_mode:
-            return
-        if self.driver_controller.feedFuel():
-            self.indexer.setEnabled(True)
-        else:
-            self.indexer.setEnabled(False)
+    def controlShooter(self) -> None:
+        """Takes button inputs to control the shooter state machine."""
+        self.shooter_state_machine.setDriverWantsFeed(
+            self.driver_controller.feedFuel()
+        )
 
     def controlIntake(self) -> None:
         """Drive the intake motors."""
