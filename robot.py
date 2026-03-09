@@ -58,14 +58,8 @@ class MyRobot(magicbot.MagicRobot):
             wpilib.XboxController(0),
             self.robot_constants.drivetrain.drive_options,
         )
-        self.operator_controller = wpilib.XboxController(1)
-        self.operator_input = joystick.OperatorController(
-            self.operator_controller,
-            fine_step_deg=shooter_constants.OPERATOR_FINE_STEP_DEG,
-            preset_x=shooter_constants.OPERATOR_PRESET_X,
-            preset_y=shooter_constants.OPERATOR_PRESET_Y,
-            preset_a=shooter_constants.OPERATOR_PRESET_A,
-            preset_b=shooter_constants.OPERATOR_PRESET_B,
+        self.operator_controller = joystick.OperatorController(
+            wpilib.XboxController(1),
         )
 
         # Turret
@@ -218,20 +212,17 @@ class MyRobot(magicbot.MagicRobot):
         """
         # TODO: Handle exceptions so robot code doesn't crash.
         # Update operator input helper each loop and apply presets when pressed.
-        self.operator_input.update()
-        preset = self.operator_input.get_preset()
+        self.operator_controller.update()
+        preset = self.operator_controller.get_preset()
         # If any preset was pressed or manual mode is active, disable the
         # automatic hub tracker so operator/manual control takes precedence.
-        if self.operator_input.is_manual():
+        if self.operator_controller.is_manual():
             self.hub_tracker.setEnabled(False)
         else:
             self.hub_tracker.setEnabled(True)
 
-        if preset is not None:
-            # Apply preset setpoints (turret degrees, hood degrees, flywheel rps)
-            self.turret.setPosition(preset["turret_deg"+self.operator_input.get_fine_adjustment()])
-            self.hood.setPosition(preset["hood_deg"])
-            self.flywheel.setTargetRps(preset["flywheel_rpm"])
+
+        
         if self.driver_controller.shouldResetOrientation():
             # Robot's front touching the hub wall in the blue alliance zone.
             self.drivetrain.reset_pose(
@@ -294,10 +285,17 @@ class MyRobot(magicbot.MagicRobot):
         if self.hood.isControlTypeSpeed():
             self.hood.setSpeed(
                 -filterInput(self.operator_controller.getRightY()) * 0.1
-            )
+            )  
 
     def controlTurret(self) -> None:
         """Drive the turret motor."""
+        if (self.operator_controller.get_preset() != None) and self.driver_controller.feedFuel():
+            self.turret_preset, self.hood_preset, self.flywheel_preset = self.operator_controller.get_preset()
+            self.turret.setPosition(self.turret_preset)
+            self.flywheel.setTargetRps(self.flywheel_preset)
+            self.hood.setPosition(self.hood_preset)
+        
+        
         if self.operator_controller.getXButtonReleased():
             self.turret.setControlType(not self.turret.isControlTypeVelocity())
             self.logger.info(

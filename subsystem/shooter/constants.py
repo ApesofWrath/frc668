@@ -311,6 +311,3 @@ OPERATOR_PRESET_X = (0.0, 0.0, 0.0)
 OPERATOR_PRESET_Y = (0.0, 0.0, 0.0)
 OPERATOR_PRESET_A = (0.0, 0.0, 0.0)
 OPERATOR_PRESET_B = (0.0, 0.0, 0.0)
-
-# Fine turret adjustment per loop when bumpers are held (degrees)
-OPERATOR_FINE_STEP_DEG = 1.0

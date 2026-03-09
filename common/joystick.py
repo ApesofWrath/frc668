@@ -6,6 +6,8 @@ from dataclasses import dataclass
 import wpilib
 import wpimath
 
+import subsystem
+from subsystem.shooter import constants
 
 @dataclass
 class DriveCommand:
@@ -107,11 +109,6 @@ class OperatorController:
     def __init__(
         self,
         controller: wpilib.XboxController,
-        fine_step_deg: float = 1.0,
-        preset_x: tuple[float, float, float] | None = None,
-        preset_y: tuple[float, float, float] | None = None,
-        preset_a: tuple[float, float, float] | None = None,
-        preset_b: tuple[float, float, float] | None = None,
     ) -> None:
         self._controller = controller
         # Manual mode (turned on automatically when a preset is pressed).
@@ -119,13 +116,6 @@ class OperatorController:
         # Bumpers are only active for fine adjustments when this flag is True.
         # Controlled by the View/Back button.
         self._bumpers_enabled = False
-        self._fine_step_deg = float(fine_step_deg)
-
-        # Presets: (turret_deg, hood_deg, flywheel_rpm). Defaults to zeros.
-        self.preset_x = preset_x if preset_x is not None else (0.0, 0.0, 0.0)
-        self.preset_y = preset_y if preset_y is not None else (0.0, 0.0, 0.0)
-        self.preset_a = preset_a if preset_a is not None else (0.0, 0.0, 0.0)
-        self.preset_b = preset_b if preset_b is not None else (0.0, 0.0, 0.0)
 
     def update(self) -> None:
         # Toggle manual+bumper-enabled mode with the View/Back button. This
@@ -147,19 +137,6 @@ class OperatorController:
         self._manual_enabled = False
 
 
-
-    def get_fine_adjustment(self) -> float:
-        # Bumpers only work when bumper-enabled mode is active.
-        if not self._bumpers_enabled:
-            return 0.0
-        left = bool(self._controller.getLeftBumper())
-        right = bool(self._controller.getRightBumper())
-        if left and not right:
-            return -self._fine_step_deg
-        if right and not left:
-            return self._fine_step_deg
-        return 0.0
-
     def get_target_angle(self, current_angle: float | None = None) -> float | None:
         if not self.is_manual():
             return None
@@ -171,7 +148,7 @@ class OperatorController:
             return max(-180.0, min(180.0, float(current_angle) + delta))
 
         return None
-
+    
     def get_preset(self) -> dict | None:
         """Return preset dict when X/Y/A/B pressed while manual is enabled.
 
@@ -181,27 +158,18 @@ class OperatorController:
         # (this indicates operator wants manual/preset control and disables
         # auto-alignment). Return the preset even if manual wasn't previously
         # enabled.
-        if self._controller.getXButtonPressed():
+        if self._controller.getXButton():
             # Pressing a preset implies operator wants manual control and
-            # bumpers for fine adjustments available immediately.
             self._manual_enabled = True
-            self._bumpers_enabled = True
-            t, h, f = self.preset_x
-            return {"turret_deg": float(t), "hood_deg": float(h), "flywheel_rpm": float(f)}
-        if self._controller.getYButtonPressed():
+            return constants.OPERATOR_PRESET_X
+        if self._controller.getYButton():
             self._manual_enabled = True
-            self._bumpers_enabled = True
-            t, h, f = self.preset_y
-            return {"turret_deg": float(t), "hood_deg": float(h), "flywheel_rpm": float(f)}
-        if self._controller.getAButtonPressed():
+            return constants.OPERATOR_PRESET_Y
+        if self._controller.getAButton():
             self._manual_enabled = True
-            self._bumpers_enabled = True
-            t, h, f = self.preset_a
-            return {"turret_deg": float(t), "hood_deg": float(h), "flywheel_rpm": float(f)}
-        if self._controller.getBButtonPressed():
+            return constants.OPERATOR_PRESET_A
+        if self._controller.getBButton():
             self._manual_enabled = True
-            self._bumpers_enabled = True
-            t, h, f = self.preset_b
-            return {"turret_deg": float(t), "hood_deg": float(h), "flywheel_rpm": float(f)}
+            return constants.OPERATOR_PRESET_B
 
         return None
