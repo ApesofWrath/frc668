@@ -153,7 +153,8 @@ class MyRobot(magicbot.MagicRobot):
                 # method does not get called when disabled.
                 self.vision.setRobotOrientation()
         
-        self.shooter_state_machine.engage()
+        if not self._tuning_mode:
+            self.shooter_state_machine.engage()
 
 
     def autonomousInit(self) -> None:

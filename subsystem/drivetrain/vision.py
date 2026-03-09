@@ -128,9 +128,10 @@ class Vision:
             #
             # Divide by tag count since more visible tags means higher
             # certainty.
-            xy_std_devs = (
-                pose_estimate.avg_tag_dist**2
-            ) / pose_estimate.tag_count
+            # xy_std_devs = (
+            #     pose_estimate.avg_tag_dist**2
+            # ) / pose_estimate.tag_count
+            # theta_std_dev = math.inf
 
             synced_timestamp = utils.fpga_to_current_time(
                 pose_estimate.timestamp_seconds
@@ -138,7 +139,7 @@ class Vision:
             self.drivetrain.add_vision_measurement(
                 pose_estimate.pose,
                 synced_timestamp,
-                (xy_std_devs, xy_std_devs, math.inf),
+                (vision_constants.xy_std_dev, vision_constants.xy_std_dev, vision_constants.theta_std_dev),
             )
 
     @feedback
@@ -154,3 +155,21 @@ class Vision:
         Returns drivetrain's yaw estimate.
         """
         return self.drivetrain.get_state().pose.rotation().degrees()
+
+    @feedback
+    def get_limelight_fl_pose(self) -> wpimath.geometry.Pose2d:
+        return limelight.LimelightHelpers.get_botpose_2d_wpiblue("limelight-fl")
+    
+    @feedback
+    def get_limelight_fr_pose(self) -> wpimath.geometry.Pose2d:
+        return limelight.LimelightHelpers.get_botpose_2d_wpiblue("limelight-fr")
+        #2.5 dist
+    
+    @feedback
+    def get_limelight_upfl_pose(self) -> wpimath.geometry.Pose2d:
+        return limelight.LimelightHelpers.get_botpose_2d_wpiblue("limelight-upfl")
+    
+    @feedback
+    def get_limelight_upfr_pose(self) -> wpimath.geometry.Pose2d:
+        return limelight.LimelightHelpers.get_botpose_2d_wpiblue("limelight-upfr")
+        #2.2 dist 

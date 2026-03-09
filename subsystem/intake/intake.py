@@ -140,7 +140,7 @@ class IntakeTuner:
 
         This method is called at the end of the control loop.
         """
-        self.intake.setActive(active)
+        self.intake.setActive(self.active)
         self.intake.setSpeed(self.target_speed_rps)
 
         # We only want to reapply the gains if they changed. The TalonFX motor
