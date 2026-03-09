@@ -130,7 +130,9 @@ class VisionConstants:
     pose_y_max: float = 8.07
     # Average tag distance limit. Vision estimates whose average tag distance
     # exceeds this will be discarded.
-    average_tag_distance_threshold: float = 4.5
+    average_tag_distance_threshold: float = 2.0
+    xy_std_dev: float = 0.1
+    theta_std_dev: float = 0.01
     # Vision estimates that differ by more than this from the current robot pose
     # estimate will be discarded.
     max_diff_from_robot_pose: float = 0.5
