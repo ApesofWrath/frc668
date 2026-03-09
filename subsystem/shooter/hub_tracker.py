@@ -157,9 +157,11 @@ class HubTracker:
         return (
             turret_to_hub.angle() - self._turret_field_pose.rotation()
         ).degrees()
-    
+
     @magicbot.feedback
-    def get_predictive_turret_target_angle_degrees(self) -> phoenix6.units.degree:
+    def get_predictive_turret_target_angle_degrees(
+        self,
+    ) -> phoenix6.units.degree:
         # Predict how much the robot will yaw in the next control loop interval
         # based on our current yaw rate.
         predictive_lead_angle = self._yaw_rate_signal.value * 0.02
