@@ -149,9 +149,10 @@ class MyRobot(magicbot.MagicRobot):
 
     def robotPeriodic(self) -> None:
         if wpilib.DriverStation.isEnabled():
-            # Use external IMU assist when enabled.
+            # If we haven't deployed the intake yet, do so.
             if not self.intake_deployer._deployed:
                 self.intake_deployer.deploy()
+            # Use external IMU assist when enabled.
             for ll in self.vision._limelights:
                 limelight.LimelightHelpers.set_imu_mode(ll, 4)
         else:
@@ -226,12 +227,12 @@ class MyRobot(magicbot.MagicRobot):
                 wpimath.geometry.Pose2d(3.6854, 4.0136, 0)
             )
             self.vision._pose_seeded = False
-        # self.driveWithJoysicks()
-        # self.controlHopper()
-        # self.controlIndexer()
-        # self.controlIntake()
-        # self.controlHood()
-        # self.controlTurret()
+        self.driveWithJoysicks()
+        self.controlHopper()
+        self.controlIndexer()
+        self.controlIntake()
+        self.controlHood()
+        self.controlTurret()
 
     def driveWithJoysicks(self) -> None:
         """Use the main controller joystick inputs to drive the robot base."""
