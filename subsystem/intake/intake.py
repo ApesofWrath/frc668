@@ -1,9 +1,7 @@
-import math
-import phoenix6
 import magicbot
+from phoenix6 import configs, controls, hardware
 
 import constants
-from phoenix6 import swerve
 
 
 class Intake:
@@ -13,7 +11,7 @@ class Intake:
     """
 
     robot_constants: constants.RobotConstants
-    intake_motor: phoenix6.hardware.TalonFX
+    intake_roller_motor: hardware.TalonFX
 
     def setup(self) -> None:
         """Set up initial state for the intake.
@@ -22,19 +20,19 @@ class Intake:
         robot class, and after all components have been created.
         """
         self._active = False
-        self._active_motor_speed_rps = (
-            self.robot_constants.intake.active_motor_speed_rps
+        self._active_roller_speed_rps = (
+            self.robot_constants.intake.active_roller_speed_rps
         )
 
-        self.intake_motor.configurator.apply(
-            phoenix6.configs.TalonFXConfiguration()
+        self.intake_roller_motor.configurator.apply(
+            configs.TalonFXConfiguration()
             .with_motor_output(
-                phoenix6.configs.MotorOutputConfigs().with_inverted(
-                    self.robot_constants.intake.motor_inverted
+                configs.MotorOutputConfigs().with_inverted(
+                    self.robot_constants.intake.roller_motor_inverted
                 )
             )
             .with_slot0(
-                phoenix6.configs.Slot0Configs()
+                configs.Slot0Configs()
                 .with_k_s(self.robot_constants.intake.k_s)
                 .with_k_v(self.robot_constants.intake.k_v)
                 .with_k_a(self.robot_constants.intake.k_a)
@@ -49,7 +47,7 @@ class Intake:
             )
         )
 
-        self._request = phoenix6.controls.VelocityVoltage(0.0).with_slot(0)
+        self._request = controls.VelocityVoltage(0.0).with_slot(0)
 
     def execute(self) -> None:
         """Command the motors to the requested speed.
@@ -57,11 +55,11 @@ class Intake:
         This method is called at the end of the control loop.
         """
         if self._active:
-            self._request.with_velocity(self._active_motor_speed_rps)
+            self._request.with_velocity(self._active_roller_speed_rps)
         else:
             self._request.with_velocity(0.0)
 
-        self.intake_motor.set_control(self._request)
+        self.intake_roller_motor.set_control(self._request)
 
     def on_enable(self) -> None:
         """Reset to a "safe" state when the robot is enabled.
@@ -80,7 +78,7 @@ class Intake:
 
     def setSpeed(self, speed_rps: float = None) -> None:
         """Set the intake roller motor's speed."""
-        self._active_motor_speed_rps = speed_rps
+        self._active_roller_speed_rps = speed_rps
 
     def setActive(self, active: bool) -> None:
         """Set whether or not the intake roller is active."""
@@ -92,7 +90,7 @@ class Intake:
 
     @magicbot.feedback
     def get_measured_speed(self) -> float:
-        value = self.intake_motor.get_velocity().value
+        value = self.intake_roller_motor.get_velocity().value
         return value if value else 0.0
 
 
@@ -104,7 +102,7 @@ class IntakeTuner:
     """
 
     robot_constants: constants.RobotConstants
-    intake_motor: phoenix6.hardware.TalonFX
+    intake_roller_motor: hardware.TalonFX
     intake: Intake
 
     # Gains for velocity control of the intake.
@@ -179,8 +177,8 @@ class IntakeTuner:
 
     def applyGains(self) -> None:
         """Apply the current gains to the motor."""
-        result = self.intake_motor.configurator.apply(
-            phoenix6.configs.config_groups.Slot0Configs()
+        result = self.intake_roller_motor.configurator.apply(
+            configs.config_groups.Slot0Configs()
             .with_k_s(self.k_s)
             .with_k_v(self.k_v)
             .with_k_a(self.k_a)
