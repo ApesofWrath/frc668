@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from phoenix6 import signals
+from phoenix6 import signals, units
 
 
 @dataclass(frozen=True)
@@ -17,6 +17,7 @@ class IntakeConstants:
     k_i: float = 0.0
     k_d: float = 0.0
     active_motor_speed_rps: float = 0.0
+    stator_current_limit: units.ampere = 120.0
 
 
 INTAKE_CONSTANTS: dict[str, IntakeConstants] = {

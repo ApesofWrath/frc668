@@ -49,6 +49,11 @@ class Flywheel:
                 .with_k_v(flywheel_constants.k_v)
                 .with_k_a(flywheel_constants.k_a)
             )
+            .with_current_limits(
+                phoenix6.configs.CurrentLimitsConfigs()
+                .with_stator_current_limit(flywheel_constants.stator_current_limit)
+                .with_stator_current_limit_enable(False)
+            )
         )
         self.flywheel_encoder.configurator.apply(
             phoenix6.configs.CANcoderConfiguration().with_magnet_sensor(
@@ -98,7 +103,10 @@ class Flywheel:
     @magicbot.feedback
     def get_target_rps(self) -> float:
         return self._target_rps
-
+    
+    @magicbot.feedback
+    def get_measured_rps(self) -> float:
+        return self.flywheel_encoder.get_velocity().value
 
 class FlywheelTuner:
     """Component for tuning the flywheel gains.
@@ -206,7 +214,3 @@ class FlywheelTuner:
     @magicbot.feedback
     def get_motor_stator_current(self) -> phoenix6.units.ampere:
         return self.flywheel_motor.get_stator_current().value
-
-    @magicbot.feedback
-    def get_measured_rps(self) -> float:
-        return self.flywheel_encoder.get_velocity().value

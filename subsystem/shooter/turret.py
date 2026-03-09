@@ -83,6 +83,11 @@ class Turret:
                 )
                 .with_motion_magic_jerk(turret_constants.motion_magic_jerk)
             )
+            .with_current_limits(
+                phoenix6.configs.CurrentLimitsConfigs()
+                .with_stator_current_limit(turret_constants.stator_current_limit)
+                .with_stator_current_limit_enable(False)
+            )
         )
         result = self.turret_motor.configurator.apply(self.turret_motor_configs)
         if not result.is_ok():

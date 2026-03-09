@@ -73,6 +73,11 @@ class Hood:
                 )
                 .with_motion_magic_jerk(hood_constants.motion_magic_jerk)
             )
+            .with_current_limits(
+                phoenix6.configs.CurrentLimitsConfigs()
+                .with_stator_current_limit(hood_constants.stator_current_limit)
+                .with_stator_current_limit_enable(False)            
+            )
         )
 
         result = self.hood_motor.configurator.apply(self.hood_motor_configs)

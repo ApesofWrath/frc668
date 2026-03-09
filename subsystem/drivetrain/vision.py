@@ -1,7 +1,7 @@
 import math
 
 import wpimath
-from magicbot import feedback
+from magicbot import feedback, tunable 
 from phoenix6 import utils
 
 import constants
@@ -27,9 +27,12 @@ class Vision:
         # good vision estimate since startup.
         self._pose_seeded = False
 
+        self.xy_std_devs = 0.0
+        self.theta_std_devs = 0.0 
+
     def execute(self) -> None:
         self.setRobotOrientation()
-        self._updateRobotPose()
+        self._updateRobotPose(self.xy_std_devs, self.theta_std_devs)
 
     def setRobotOrientation(self) -> None:
         """Updates each Limelight with the robot's current orientation.
@@ -52,7 +55,7 @@ class Vision:
                 0.0,
             )
 
-    def _updateRobotPose(self) -> None:
+    def _updateRobotPose(self, xy_std_devs, theta_std_devs) -> None:
         """Updates our robot pose estimate with the latest vision measurements."""
         for ll in self._limelights:
             pose_estimate: limelight.PoseEstimate = (
@@ -128,9 +131,11 @@ class Vision:
             #
             # Divide by tag count since more visible tags means higher
             # certainty.
-            xy_std_devs = (
-                pose_estimate.avg_tag_dist**2
-            ) / pose_estimate.tag_count
+
+            # xy_std_devs = (
+            #     pose_estimate.avg_tag_dist**2
+            # ) / pose_estimate.tag_count
+            # theta_std_devs = math.inf
 
             synced_timestamp = utils.fpga_to_current_time(
                 pose_estimate.timestamp_seconds
@@ -138,8 +143,12 @@ class Vision:
             self.drivetrain.add_vision_measurement(
                 pose_estimate.pose,
                 synced_timestamp,
-                (xy_std_devs, xy_std_devs, math.inf),
+                (xy_std_devs, xy_std_devs, theta_std_devs),
             )
+
+    def set_std_devs(self, xy_std_dev, theta_std_dev) -> None:
+        self.xy_std_devs = xy_std_dev
+        self.theta_std_devs = theta_std_dev
 
     @feedback
     def get_robot_pose(self) -> wpimath.geometry.Pose2d:
@@ -154,3 +163,58 @@ class Vision:
         Returns drivetrain's yaw estimate.
         """
         return self.drivetrain.get_state().pose.rotation().degrees()
+    
+    @feedback 
+    def get_limelight_fl(self) -> wpimath.geometry.Pose2d:
+        return limelight.LimelightHelpers.get_botpose_2d_wpiblue("limelight-fl")
+    
+    @feedback 
+    def get_limelight_fr(self) -> wpimath.geometry.Pose2d:
+        return limelight.LimelightHelpers.get_botpose_2d_wpiblue("limelight-fr")
+    
+    @feedback 
+    def get_limelight_upfl(self) -> wpimath.geometry.Pose2d:
+        return limelight.LimelightHelpers.get_botpose_2d_wpiblue("limelight-upfl")
+    
+    @feedback 
+    def get_limelight_upfr(self) -> wpimath.geometry.Pose2d:
+        return limelight.LimelightHelpers.get_botpose_2d_wpiblue("limelight-upfr")
+    
+    @feedback
+    def get_xy_std_deviation(self) -> float:
+        return self.xy_std_devs
+    
+    @feedback
+    def get_theta_std_deviation(self) -> float:
+        return self.theta_std_devs
+    
+class VisionTuner:
+    robot_constants: constants.RobotConstants
+    drivetrain: drivetrain.Drivetrain
+    vision: Vision
+
+    xy_std_devs = tunable(0.0)
+    theta_std_devs = tunable(0.0)
+
+    def setup(self) -> None:
+        self.xy_std_devs = 0.0
+        self.last_xy_std_devs = self.xy_std_devs
+
+        self.theta_std_devs = 0.0
+        self.last_theta_std_devs = self.theta_std_devs
+
+    def execute(self) -> None:
+        if not self.valuesChanged():
+            return
+
+        self.applyValues()
+
+        self.last_xy_std_devs = self.xy_std_devs
+        self.last_theta_std_devs = self.theta_std_devs
+
+    def valuesChanged(self) -> bool:
+        return (self.last_xy_std_devs != self.xy_std_devs 
+                or self.last_theta_std_devs != self.theta_std_devs)
+    
+    def applyValues(self) -> None:
+        self.vision.set_std_devs(self.xy_std_devs, self.theta_std_devs)

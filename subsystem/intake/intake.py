@@ -42,6 +42,11 @@ class Intake:
                 .with_k_i(self.robot_constants.intake.k_i)
                 .with_k_d(self.robot_constants.intake.k_d)
             )
+            .with_current_limits(
+                phoenix6.configs.CurrentLimitsConfigs()
+                .with_stator_current_limit(self.robot_constants.intake.stator_current_limit)
+                .with_stator_current_limit_enable(False)
+            )
         )
 
         self._request = phoenix6.controls.VelocityVoltage(0.0).with_slot(0)
@@ -140,7 +145,7 @@ class IntakeTuner:
 
         This method is called at the end of the control loop.
         """
-        self.intake.setActive(active)
+        self.intake.setActive(self.active)
         self.intake.setSpeed(self.target_speed_rps)
 
         # We only want to reapply the gains if they changed. The TalonFX motor

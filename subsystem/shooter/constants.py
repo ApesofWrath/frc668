@@ -28,7 +28,7 @@ class HopperConstants:
     right_k_i: float = 0.0
     right_k_d: float = 0.0
     default_speed_rps: units.rotations_per_second = 30.0
-
+    stator_current_limit: units.ampere = 120.0
 
 @dataclass(frozen=True)
 class IndexerConstants:
@@ -55,7 +55,7 @@ class IndexerConstants:
     front_k_i: float = 0.0
     front_k_d: float = 0.0
     default_speed_rps: units.rotations_per_second = 20.0
-
+    stator_current_limit: units.ampere = 120.0
 
 @dataclass(frozen=True)
 class FlywheelConstants:
@@ -76,6 +76,7 @@ class FlywheelConstants:
     k_i: float = 0.0
     k_d: float = 0.0
     default_speed_rps: units.rotations_per_second = 1.0
+    stator_current_limit: units.ampere = 120.0
 
 
 @dataclass(frozen=True)
@@ -122,6 +123,7 @@ class TurretConstants:
     # Limits for turret motion.
     min_angle: units.degree = -180.0
     max_angle: units.degree = 180.0
+    stator_current_limit: units.ampere = 120.0
 
 
 @dataclass(frozen=True)
@@ -149,6 +151,7 @@ class HoodConstants:
     k_d: float = 0.0
     min_angle_degrees: units.degree = 0.5
     max_angle_degrees: units.degree = 28.8
+    stator_current_limit: units.ampere = 120.0
     # Motion magic limits.
     motion_magic_cruise_velocity: units.rotations_per_second = 10.0
     motion_magic_acceleration: units.rotations_per_second_squared = 5.0

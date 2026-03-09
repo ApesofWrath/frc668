@@ -41,6 +41,11 @@ class Hopper:
                 .with_k_i(hopper_constants.left_k_i)
                 .with_k_d(hopper_constants.left_k_d)
             )
+            .with_current_limits(
+                phoenix6.configs.CurrentLimitsConfigs()
+                .with_stator_current_limit(hopper_constants.stator_current_limit)
+                .with_stator_current_limit_enable(False)
+            )
         )
         self.hopper_right_motor.configurator.apply(
             phoenix6.configs.TalonFXConfiguration()
@@ -57,6 +62,11 @@ class Hopper:
                 .with_k_p(hopper_constants.right_k_p)
                 .with_k_i(hopper_constants.right_k_i)
                 .with_k_d(hopper_constants.right_k_d)
+            )
+            .with_current_limits(
+                phoenix6.configs.CurrentLimitsConfigs()
+                .with_stator_current_limit(hopper_constants.stator_current_limit)
+                .with_stator_current_limit_enable(False)            
             )
         )
 
