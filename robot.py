@@ -22,6 +22,7 @@ class MyRobot(magicbot.MagicRobot):
     https://robotpy.readthedocs.io/en/latest/frameworks/magicbot.html
     """
 
+    intake_deployer: intake.IntakeDeployer
     shooter_state_machine: shooter.ShooterStateMachine
 
     hub_tracker: shooter.HubTracker
@@ -111,10 +112,18 @@ class MyRobot(magicbot.MagicRobot):
             self.robot_constants.shooter.hood.encoder_can_bus,
         )
 
-        # Intake motor.
-        self.intake_motor = phoenix6.hardware.TalonFX(
-            self.robot_constants.intake.motor_can_id,
-            self.robot_constants.intake.motor_can_bus,
+        # Intake motors.
+        self.intake_roller_motor = phoenix6.hardware.TalonFX(
+            self.robot_constants.intake.roller_motor_can_id,
+            self.robot_constants.intake.roller_motor_can_bus,
+        )
+        self.intake_deploy_motor = phoenix6.hardware.TalonFX(
+            self.robot_constants.intake.deploy_motor_can_id,
+            self.robot_constants.intake.deploy_motor_can_bus,
+        )
+        self.intake_deploy_encoder = phoenix6.hardware.CANcoder(
+            self.robot_constants.intake.deploy_encoder_can_id,
+            self.robot_constants.intake.deploy_encoder_can_bus,
         )
 
         self._tuning_mode = False
@@ -122,7 +131,6 @@ class MyRobot(magicbot.MagicRobot):
         # Since we manually instantiate Drivetrain, magicbot will not call setup
         # for us.
         self.drivetrain.setup()
-        
 
     def robotInit(self) -> None:
         """MagicBot internal API
@@ -142,19 +150,21 @@ class MyRobot(magicbot.MagicRobot):
 
     def robotPeriodic(self) -> None:
         if wpilib.DriverStation.isEnabled():
+            # If we haven't deployed the intake yet, do so.
+            if not self.intake_deployer._deployed:
+                self.intake_deployer.deploy()
             # Use external IMU assist when enabled.
             for ll in self.vision._limelights:
                 limelight.LimelightHelpers.set_imu_mode(ll, 4)
         else:
-            # Hard reset each limelight's yaw to the external IMU when disabled.
+            # Hard reset each lime light's yaw to the external IMU when disabled.
             for ll in self.vision._limelights:
                 limelight.LimelightHelpers.set_imu_mode(ll, 1)
                 # We call this here because the Vision component's execute
                 # method does not get called when disabled.
                 self.vision.setRobotOrientation()
-        
-        self.shooter_state_machine.engage()
 
+        self.shooter_state_machine.engage()
 
     def autonomousInit(self) -> None:
         """Initialize autonomous mode.
@@ -235,8 +245,12 @@ class MyRobot(magicbot.MagicRobot):
         """Takes button inputs to control the shooter state machine."""
         if self._tuning_mode:
             return
-        self.shooter_state_machine.should_idle = not self.driver_controller.feedFuel()
-        self.shooter_state_machine.is_shooting = self.driver_controller.feedFuel()
+        self.shooter_state_machine.should_idle = (
+            not self.driver_controller.feedFuel()
+        )
+        self.shooter_state_machine.is_shooting = (
+            self.driver_controller.feedFuel()
+        )
 
     def controlIntake(self) -> None:
         """Drive the intake motors."""
