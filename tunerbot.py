@@ -25,8 +25,6 @@ class TunerBot(robot.MyRobot):
     turret_tuner: shooter.TurretTuner
     intake_tuner: intake.intake.IntakeTuner
 
-    def createObjects(self) -> None:   
+    def createObjects(self) -> None:
         super().createObjects()
         self._tuning_mode = True
-
-        

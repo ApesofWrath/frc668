@@ -21,6 +21,7 @@ class MyRobot(magicbot.MagicRobot):
     subsystems and modes.
     https://robotpy.readthedocs.io/en/latest/frameworks/magicbot.html
     """
+
     intake_deployer: intake.IntakeDeployer
 
     hub_tracker: shooter.HubTracker
@@ -152,7 +153,7 @@ class MyRobot(magicbot.MagicRobot):
             if not self.intake_deployer._deployed:
                 self.intake_deployer.deploy()
             for ll in self.vision._limelights:
-                limelight.LimelightHelpers.set_imu_mode(ll, 4)   
+                limelight.LimelightHelpers.set_imu_mode(ll, 4)
         else:
             # Hard reset each lime light's yaw to the external IMU when disabled.
             for ll in self.vision._limelights:

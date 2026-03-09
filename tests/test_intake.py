@@ -67,7 +67,8 @@ class TestIntake:
 
         # Motor output inversion
         assert (
-            config.motor_output.inverted == mock_constants.intake.roller_motor_inverted
+            config.motor_output.inverted
+            == mock_constants.intake.roller_motor_inverted
         )
 
         # Slot 0 PID/FF gains

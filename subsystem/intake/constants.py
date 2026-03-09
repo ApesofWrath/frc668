@@ -7,13 +7,19 @@ from phoenix6 import signals, units
 class IntakeConstants:
     roller_motor_can_id: int = 0
     roller_motor_can_bus: str = ""
-    roller_motor_inverted: signals.InvertedValue = signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
+    roller_motor_inverted: signals.InvertedValue = (
+        signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
+    )
     deploy_motor_can_id: int = 0
     deploy_motor_can_bus: str = ""
-    deploy_motor_inverted: signals.InvertedValue = signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
+    deploy_motor_inverted: signals.InvertedValue = (
+        signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
+    )
     deploy_encoder_can_id: int = 0
     deploy_encoder_can_bus: str = ""
-    deploy_encoder_direction: signals.SensorDirectionValue = signals.SensorDirectionValue.COUNTER_CLOCKWISE_POSITIVE
+    deploy_encoder_direction: signals.SensorDirectionValue = (
+        signals.SensorDirectionValue.COUNTER_CLOCKWISE_POSITIVE
+    )
     deploy_sensor_to_mechanism_ratio: float = 0.0
     deploy_rotor_to_sensor_ratio: float = 0.0
     deploy_absolute_sensor_discontinuity_point: units.rotation = 0.0
@@ -52,8 +58,8 @@ INTAKE_CONSTANTS: dict[str, IntakeConstants] = {
         deploy_encoder_can_id=61,
         deploy_encoder_can_bus="rio",
         deploy_encoder_direction=signals.SensorDirectionValue.COUNTER_CLOCKWISE_POSITIVE,
-        deploy_sensor_to_mechanism_ratio= 3.3333333,
-        deploy_rotor_to_sensor_ratio= 25.0,
+        deploy_sensor_to_mechanism_ratio=3.3333333,
+        deploy_rotor_to_sensor_ratio=25.0,
         k_s=0.25,
         k_v=0.12,
         k_a=0.0,

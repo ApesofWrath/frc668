@@ -3,6 +3,7 @@ from phoenix6 import configs, controls, hardware
 
 import constants
 
+
 class Intake:
     """Intake component
 
