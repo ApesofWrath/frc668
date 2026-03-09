@@ -23,7 +23,7 @@ class MyRobot(magicbot.MagicRobot):
     """
 
     intake_deployer: intake.IntakeDeployer
-    shooter_state_machine: shooter.ShooterStateMachine
+    shooter_state_machine: shooter.Shooter
 
     hub_tracker: shooter.HubTracker
     drivetrain: drivetrain.Drivetrain
@@ -164,7 +164,8 @@ class MyRobot(magicbot.MagicRobot):
                 # method does not get called when disabled.
                 self.vision.setRobotOrientation()
 
-        self.shooter_state_machine.engage()
+        if not self._tuning_mode:
+            self.shooter_state_machine.engage()
 
     def autonomousInit(self) -> None:
         """Initialize autonomous mode.
@@ -243,12 +244,7 @@ class MyRobot(magicbot.MagicRobot):
 
     def controlShooter(self) -> None:
         """Takes button inputs to control the shooter state machine."""
-        if self._tuning_mode:
-            return
-        self.shooter_state_machine.should_idle = (
-            not self.driver_controller.feedFuel()
-        )
-        self.shooter_state_machine.is_shooting = (
+        self.shooter_state_machine.setDriverWantsFeed(
             self.driver_controller.feedFuel()
         )
 

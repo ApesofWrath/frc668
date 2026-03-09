@@ -344,7 +344,8 @@ class TurretTuner:
         self.turret.setVelocity(self.target_velocity)
         self.turret.setControlType(self.use_velocity)
         self.turret.setMotionMagicFeedForward(self.mm_feed_forward)
-        self.hub_tracker.setEnabled(self.auto_track)
+        self.hub_tracker.trackPosition(self.auto_track)
+        self.hub_tracker.trackSpeed(self.auto_track)
 
         # We only want to reapply the gains if they changed. The TalonFX motor
         # doesn't like being reconfigured constantly.
