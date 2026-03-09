@@ -124,7 +124,7 @@ class Shooter(magicbot.StateMachine):
         """Indicates if shooter is within provided tolerances."""
         turret_error = abs(
             self.hub_tracker.get_predictive_turret_target_angle_degrees()
-            - self.turret.get_turret_angle()
+            - self.turret.get_measured_angle_degrees()
         )
         hood_error = abs(
             self.hub_tracker.get_target_hood_angle_degrees()
@@ -132,12 +132,12 @@ class Shooter(magicbot.StateMachine):
         )
         flywheel_error = abs(
             self.hub_tracker.get_target_flywheel_speed_rps()
-            - self.flywheel.flywheel_encoder.get_velocity().value
+            - self.flywheel.get_measured_speed_rps()
         )
         return (
             (turret_error <= turret_tolerance_degrees)
-            & (hood_error <= hood_tolerance_degrees)
-            & (flywheel_error <= flywheel_tolerance_rotations_per_second)
+            and (hood_error <= hood_tolerance_degrees)
+            and (flywheel_error <= flywheel_tolerance_rotations_per_second)
         )
 
     def _robotIsMoving(self, speed_threshold_mps: float = 0.1) -> bool:

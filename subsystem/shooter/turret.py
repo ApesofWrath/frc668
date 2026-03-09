@@ -110,10 +110,14 @@ class Turret:
         self._motion_magic_feed_forward = (
             turret_constants.motion_magic_feed_forward
         )
-        # Raw yaw rate of the robot (and the turret).
+        # Raw yaw rate of the robot (and the turret) from the external IMU.
         self._yaw_rate_signal: phoenix6.status_signal.StatusSignal[
             phoenix6.units.degrees_per_second
         ] = self.drivetrain.pigeon2.get_angular_velocity_z_world()
+        # Raw position from the external encoder.
+        self._encoder_position_signal: phoenix6.status_signal.StatusSignal[
+            phoenix6.units.rotation
+        ] = self.turret_encoder.get_position()
 
         # Our sensor to mechanism ratio is 10. This means if our turret starts
         # anywhere in the position range [-18, 18) degrees (assuming 0 is
@@ -136,6 +140,7 @@ class Turret:
 
         This method is called at the end of the control loop.
         """
+        self._encoder_position_signal.refresh()
         if self._is_velocity_controlled:
             self.turret_motor.set_control(
                 phoenix6.controls.VelocityVoltage(
@@ -226,15 +231,15 @@ class Turret:
         self.turret_encoder.set_position(0.0)
 
     @magicbot.feedback
-    def get_turret_angle(self) -> float:
+    def get_measured_angle_degrees(self) -> float:
         return (
-            self.turret_encoder.get_position().value
+            self._encoder_position_signal.value
             * self.ROTATIONS_TO_DEGREES
             / self.robot_constants.shooter.turret.sensor_to_mechanism_ratio
         )
 
     @magicbot.feedback
-    def get_target_position_degrees(self) -> float:
+    def get_target_angle_degrees(self) -> float:
         return self._turret_postion_degrees
 
 

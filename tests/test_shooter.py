@@ -223,13 +223,15 @@ class TestShooter:
         mock_hub_tracker.get_predictive_turret_target_angle_degrees.return_value = (
             0.0
         )
-        mock_turret.get_turret_angle.return_value = 0.0  # Within tolerance
+        mock_turret.get_measured_angle_degrees.return_value = (
+            0.0  # Within tolerance
+        )
         mock_hub_tracker.get_target_hood_angle_degrees.return_value = 0.0
         mock_hood.get_measured_angle_degrees.return_value = (
             0.0  # Within tolerance
         )
         mock_hub_tracker.get_target_flywheel_speed_rps.return_value = 20.0
-        mock_flywheel.flywheel_encoder.get_velocity.return_value.value = (
+        mock_flywheel.get_measured_speed_rps.return_value = (
             20.0  # Within tolerance
         )
 
@@ -262,7 +264,9 @@ class TestShooter:
         mock_hub_tracker.get_predictive_turret_target_angle_degrees.return_value = (
             45.0
         )
-        mock_turret.get_turret_angle.return_value = 0.0  # Far from target
+        mock_turret.get_measured_angle_degrees.return_value = (
+            0.0  # Far from target
+        )
 
         shooter_sm.setDriverWantsFeed(True)
         shooter_sm.engage()
@@ -284,11 +288,11 @@ class TestShooter:
         mock_hub_tracker.get_predictive_turret_target_angle_degrees.return_value = (
             0.0
         )
-        mock_turret.get_turret_angle.return_value = 0.0
+        mock_turret.get_measured_angle_degrees.return_value = 0.0
         mock_hub_tracker.get_target_hood_angle_degrees.return_value = 0.0
         mock_hood.get_measured_angle_degrees.return_value = 0.0
         mock_hub_tracker.get_target_flywheel_speed_rps.return_value = 20.0
-        mock_flywheel.flywheel_encoder.get_velocity.return_value.value = 20.0
+        mock_flywheel.get_measured_speed_rps.return_value = 20.0
 
         # Robot is moving
         mock_drivetrain.get_robot_speed.return_value.vx = 1.0
@@ -318,7 +322,7 @@ class TestShooter:
         mock_hub_tracker.get_predictive_turret_target_angle_degrees.return_value = (
             45.0
         )
-        mock_turret.get_turret_angle.return_value = 0.0
+        mock_turret.get_measured_angle_degrees.return_value = 0.0
 
         # Go to targeting
         shooter_sm.setDriverWantsFeed(True)
@@ -351,11 +355,11 @@ class TestShooter:
         mock_hub_tracker.get_predictive_turret_target_angle_degrees.return_value = (
             0.0
         )
-        mock_turret.get_turret_angle.return_value = 0.0
+        mock_turret.get_measured_angle_degrees.return_value = 0.0
         mock_hub_tracker.get_target_hood_angle_degrees.return_value = 0.0
         mock_hood.get_measured_angle_degrees.return_value = 0.0
         mock_hub_tracker.get_target_flywheel_speed_rps.return_value = 20.0
-        mock_flywheel.flywheel_encoder.get_velocity.return_value.value = 20.0
+        mock_flywheel.get_measured_speed_rps.return_value = 20.0
         mock_drivetrain.get_robot_speed.return_value.vx = 0.0
         mock_drivetrain.get_robot_speed.return_value.vy = 0.0
 
@@ -395,11 +399,11 @@ class TestShooter:
         mock_hub_tracker.get_predictive_turret_target_angle_degrees.return_value = (
             0.0
         )
-        mock_turret.get_turret_angle.return_value = 0.0
+        mock_turret.get_measured_angle_degrees.return_value = 0.0
         mock_hub_tracker.get_target_hood_angle_degrees.return_value = 0.0
         mock_hood.get_measured_angle_degrees.return_value = 0.0
         mock_hub_tracker.get_target_flywheel_speed_rps.return_value = 20.0
-        mock_flywheel.flywheel_encoder.get_velocity.return_value.value = 20.0
+        mock_flywheel.get_measured_speed_rps.return_value = 20.0
         mock_drivetrain.get_robot_speed.return_value.vx = 0.0
         mock_drivetrain.get_robot_speed.return_value.vy = 0.0
 
@@ -415,7 +419,7 @@ class TestShooter:
         assert shooter_sm.current_state == "shooting"
 
         # Turret moves away from target - need engage() each loop
-        mock_turret.get_turret_angle.return_value = 15.0
+        mock_turret.get_measured_angle_degrees.return_value = 15.0
         shooter_sm.engage()
         shooter_sm.execute()
 
@@ -435,11 +439,11 @@ class TestShooter:
         mock_hub_tracker.get_predictive_turret_target_angle_degrees.return_value = (
             0.0
         )
-        mock_turret.get_turret_angle.return_value = 0.0
+        mock_turret.get_measured_angle_degrees.return_value = 0.0
         mock_hub_tracker.get_target_hood_angle_degrees.return_value = 0.0
         mock_hood.get_measured_angle_degrees.return_value = 0.0
         mock_hub_tracker.get_target_flywheel_speed_rps.return_value = 20.0
-        mock_flywheel.flywheel_encoder.get_velocity.return_value.value = 20.0
+        mock_flywheel.get_measured_speed_rps.return_value = 20.0
         mock_drivetrain.get_robot_speed.return_value.vx = 0.0
         mock_drivetrain.get_robot_speed.return_value.vy = 0.0
 
@@ -481,11 +485,11 @@ class TestShooter:
         mock_hub_tracker.get_predictive_turret_target_angle_degrees.return_value = (
             0.0
         )
-        mock_turret.get_turret_angle.return_value = 0.0
+        mock_turret.get_measured_angle_degrees.return_value = 0.0
         mock_hub_tracker.get_target_hood_angle_degrees.return_value = 0.0
         mock_hood.get_measured_angle_degrees.return_value = 0.0
         mock_hub_tracker.get_target_flywheel_speed_rps.return_value = 20.0
-        mock_flywheel.flywheel_encoder.get_velocity.return_value.value = 20.0
+        mock_flywheel.get_measured_speed_rps.return_value = 20.0
         mock_drivetrain.get_robot_speed.return_value.vx = 0.0
         mock_drivetrain.get_robot_speed.return_value.vy = 0.0
 
@@ -523,11 +527,11 @@ class TestShooter:
         mock_hub_tracker.get_predictive_turret_target_angle_degrees.return_value = (
             0.0
         )
-        mock_turret.get_turret_angle.return_value = 0.0
+        mock_turret.get_measured_angle_degrees.return_value = 0.0
         mock_hub_tracker.get_target_hood_angle_degrees.return_value = 0.0
         mock_hood.get_measured_angle_degrees.return_value = 0.0
         mock_hub_tracker.get_target_flywheel_speed_rps.return_value = 20.0
-        mock_flywheel.flywheel_encoder.get_velocity.return_value.value = 20.0
+        mock_flywheel.get_measured_speed_rps.return_value = 20.0
         mock_drivetrain.get_robot_speed.return_value.vx = 0.0
         mock_drivetrain.get_robot_speed.return_value.vy = 0.0
 
@@ -568,7 +572,7 @@ class TestShooter:
         mock_hub_tracker.get_predictive_turret_target_angle_degrees.return_value = (
             45.0
         )
-        mock_turret.get_turret_angle.return_value = 0.0
+        mock_turret.get_measured_angle_degrees.return_value = 0.0
 
         shooter_sm.setDriverWantsFeed(True)
         shooter_sm.engage()
@@ -592,7 +596,7 @@ class TestShooter:
         mock_hub_tracker.get_predictive_turret_target_angle_degrees.return_value = (
             45.0
         )
-        mock_turret.get_turret_angle.return_value = 0.0
+        mock_turret.get_measured_angle_degrees.return_value = 0.0
 
         # First execute: idling -> targeting
         shooter_sm.setDriverWantsFeed(True)
@@ -627,13 +631,15 @@ class TestShooter:
         mock_hub_tracker.get_predictive_turret_target_angle_degrees.return_value = (
             10.0
         )
-        mock_turret.get_turret_angle.return_value = 12.0  # Error = 2 < 3
+        mock_turret.get_measured_angle_degrees.return_value = (
+            12.0  # Error = 2 < 3
+        )
         mock_hub_tracker.get_target_hood_angle_degrees.return_value = 5.0
         mock_hood.get_measured_angle_degrees.return_value = (
             5.5  # Error = 0.5 < 1.5
         )
         mock_hub_tracker.get_target_flywheel_speed_rps.return_value = 30.0
-        mock_flywheel.flywheel_encoder.get_velocity.return_value.value = (
+        mock_flywheel.get_measured_speed_rps.return_value = (
             28.0  # Error = 2 < 3
         )
 
@@ -651,11 +657,13 @@ class TestShooter:
         mock_hub_tracker.get_predictive_turret_target_angle_degrees.return_value = (
             10.0
         )
-        mock_turret.get_turret_angle.return_value = 5.0  # Error = 5 > 3
+        mock_turret.get_measured_angle_degrees.return_value = (
+            5.0  # Error = 5 > 3
+        )
         mock_hub_tracker.get_target_hood_angle_degrees.return_value = 5.0
         mock_hood.get_measured_angle_degrees.return_value = 5.0
         mock_hub_tracker.get_target_flywheel_speed_rps.return_value = 30.0
-        mock_flywheel.flywheel_encoder.get_velocity.return_value.value = 30.0
+        mock_flywheel.get_measured_speed_rps.return_value = 30.0
 
         assert shooter_sm._shooterIsReady() is False
 
@@ -671,13 +679,13 @@ class TestShooter:
         mock_hub_tracker.get_predictive_turret_target_angle_degrees.return_value = (
             10.0
         )
-        mock_turret.get_turret_angle.return_value = 10.0
+        mock_turret.get_measured_angle_degrees.return_value = 10.0
         mock_hub_tracker.get_target_hood_angle_degrees.return_value = 5.0
         mock_hood.get_measured_angle_degrees.return_value = (
             8.0  # Error = 3 > 1.5
         )
         mock_hub_tracker.get_target_flywheel_speed_rps.return_value = 30.0
-        mock_flywheel.flywheel_encoder.get_velocity.return_value.value = 30.0
+        mock_flywheel.get_measured_speed_rps.return_value = 30.0
 
         assert shooter_sm._shooterIsReady() is False
 
@@ -693,11 +701,11 @@ class TestShooter:
         mock_hub_tracker.get_predictive_turret_target_angle_degrees.return_value = (
             10.0
         )
-        mock_turret.get_turret_angle.return_value = 10.0
+        mock_turret.get_measured_angle_degrees.return_value = 10.0
         mock_hub_tracker.get_target_hood_angle_degrees.return_value = 5.0
         mock_hood.get_measured_angle_degrees.return_value = 5.0
         mock_hub_tracker.get_target_flywheel_speed_rps.return_value = 30.0
-        mock_flywheel.flywheel_encoder.get_velocity.return_value.value = (
+        mock_flywheel.get_measured_speed_rps.return_value = (
             25.0  # Error = 5 > 3
         )
 
@@ -715,13 +723,15 @@ class TestShooter:
         mock_hub_tracker.get_predictive_turret_target_angle_degrees.return_value = (
             10.0
         )
-        mock_turret.get_turret_angle.return_value = 13.0  # Error = 3 <= 3
+        mock_turret.get_measured_angle_degrees.return_value = (
+            13.0  # Error = 3 <= 3
+        )
         mock_hub_tracker.get_target_hood_angle_degrees.return_value = 5.0
         mock_hood.get_measured_angle_degrees.return_value = (
             6.5  # Error = 1.5 <= 1.5
         )
         mock_hub_tracker.get_target_flywheel_speed_rps.return_value = 30.0
-        mock_flywheel.flywheel_encoder.get_velocity.return_value.value = (
+        mock_flywheel.get_measured_speed_rps.return_value = (
             27.0  # Error = 3 <= 3
         )
 
@@ -820,7 +830,7 @@ class TestShooter:
         mock_hub_tracker.get_predictive_turret_target_angle_degrees.return_value = (
             45.0
         )
-        mock_turret.get_turret_angle.return_value = 0.0
+        mock_turret.get_measured_angle_degrees.return_value = 0.0
 
         # Go to targeting
         shooter_sm.setDriverWantsFeed(True)
@@ -832,11 +842,11 @@ class TestShooter:
         mock_hub_tracker.get_predictive_turret_target_angle_degrees.return_value = (
             0.0
         )
-        mock_turret.get_turret_angle.return_value = 0.0
+        mock_turret.get_measured_angle_degrees.return_value = 0.0
         mock_hub_tracker.get_target_hood_angle_degrees.return_value = 0.0
         mock_hood.get_measured_angle_degrees.return_value = 0.0
         mock_hub_tracker.get_target_flywheel_speed_rps.return_value = 20.0
-        mock_flywheel.flywheel_encoder.get_velocity.return_value.value = 20.0
+        mock_flywheel.get_measured_speed_rps.return_value = 20.0
         mock_drivetrain.get_robot_speed.return_value.vx = 0.0
         mock_drivetrain.get_robot_speed.return_value.vy = 0.0
 
@@ -868,13 +878,11 @@ class TestShooter:
         mock_hub_tracker.get_predictive_turret_target_angle_degrees.return_value = (
             10.0
         )
-        mock_turret.get_turret_angle.return_value = 15.0  # Error = 5
+        mock_turret.get_measured_angle_degrees.return_value = 15.0  # Error = 5
         mock_hub_tracker.get_target_hood_angle_degrees.return_value = 5.0
         mock_hood.get_measured_angle_degrees.return_value = 7.0  # Error = 2
         mock_hub_tracker.get_target_flywheel_speed_rps.return_value = 30.0
-        mock_flywheel.flywheel_encoder.get_velocity.return_value.value = (
-            26.0  # Error = 4
-        )
+        mock_flywheel.get_measured_speed_rps.return_value = 26.0  # Error = 4
 
         # All within wider tolerances
         result = shooter_sm._getShooterIsWithin(
@@ -896,13 +904,11 @@ class TestShooter:
         mock_hub_tracker.get_predictive_turret_target_angle_degrees.return_value = (
             10.0
         )
-        mock_turret.get_turret_angle.return_value = 15.0  # Error = 5
+        mock_turret.get_measured_angle_degrees.return_value = 15.0  # Error = 5
         mock_hub_tracker.get_target_hood_angle_degrees.return_value = 5.0
         mock_hood.get_measured_angle_degrees.return_value = 5.0  # Error = 0
         mock_hub_tracker.get_target_flywheel_speed_rps.return_value = 30.0
-        mock_flywheel.flywheel_encoder.get_velocity.return_value.value = (
-            30.0  # Error = 0
-        )
+        mock_flywheel.get_measured_speed_rps.return_value = 30.0  # Error = 0
 
         # Turret is out of tolerance
         result = shooter_sm._getShooterIsWithin(
