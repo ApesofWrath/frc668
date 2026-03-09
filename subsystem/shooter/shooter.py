@@ -25,9 +25,6 @@ class Shooter(magicbot.StateMachine):
                     -----------  <--  ----------
     """
 
-    is_shooting = False
-    should_idle = False
-
     turret: shooter.Turret
     hood: shooter.Hood
     flywheel: shooter.Flywheel
