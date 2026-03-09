@@ -235,6 +235,7 @@ class MyRobot(magicbot.MagicRobot):
         """Takes button inputs to control the shooter state machine."""
         if self._tuning_mode:
             return
+        self.shooter_state_machine.should_idle = not self.driver_controller.feedFuel()
         self.shooter_state_machine.is_shooting = self.driver_controller.feedFuel()
 
     def controlIntake(self) -> None:
