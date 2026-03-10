@@ -91,13 +91,15 @@ def _make_tracker(
             )
         )
     )
+    tracker.alliance_fetcher = mocker.Mock()
+    tracker.alliance_fetcher.getAlliance.return_value = None
     tracker.drivetrain = mocker.Mock()
     yaw_rate_signal = mocker.Mock()
     yaw_rate_signal.value = yaw_rate_degrees_per_second
-    tracker.drivetrain.pigeon2.get_angular_velocity_z_world.return_value = (
+    tracker.drivetrain.swerve_drive.pigeon2.get_angular_velocity_z_world.return_value = (
         yaw_rate_signal
     )
-    tracker.drivetrain.get_state.return_value = types.SimpleNamespace(
+    tracker.drivetrain.swerve_drive.get_state.return_value = types.SimpleNamespace(
         pose=robot_pose
     )
     tracker.flywheel = mocker.Mock()
@@ -110,8 +112,8 @@ def _make_tracker(
 def _hub_relative_position(dx: float, dy: float) -> geometry.Translation2d:
     """Return a field position offset from the hub center."""
     return geometry.Translation2d(
-        hub_tracker.HUB_TO_FIELD_X + dx,
-        hub_tracker.HUB_TO_FIELD_Y + dy,
+        hub_tracker.BLUE_HUB_TO_FIELD_X + dx,
+        hub_tracker.BLUE_HUB_TO_FIELD_Y + dy,
     )
 
 
@@ -137,8 +139,8 @@ def test_setup_initializes_known_transforms(mocker) -> None:
         hub_tracker.TURRET_TO_ROBOT_Y,
     )
     expected_hub_position = geometry.Translation2d(
-        hub_tracker.HUB_TO_FIELD_X,
-        hub_tracker.HUB_TO_FIELD_Y,
+        hub_tracker.BLUE_HUB_TO_FIELD_X,
+        hub_tracker.BLUE_HUB_TO_FIELD_Y,
     )
 
     offset_error = (
@@ -151,7 +153,7 @@ def test_setup_initializes_known_transforms(mocker) -> None:
     assert hub_error.norm() == pytest.approx(0.0, abs=1e-9)
     assert (
         tracker._yaw_rate_signal
-        is tracker.drivetrain.pigeon2.get_angular_velocity_z_world.return_value
+        is tracker.drivetrain.swerve_drive.pigeon2.get_angular_velocity_z_world.return_value
     )
 
 
