@@ -60,7 +60,6 @@ class MyRobot(magicbot.MagicRobot):
             wpilib.XboxController(0),
             self.robot_constants.drivetrain.drive_options,
         )
-        self.operator_controller = wpilib.XboxController(1)
 
         # Turret
         self.turret_motor = hardware.TalonFX(
@@ -206,10 +205,6 @@ class MyRobot(magicbot.MagicRobot):
         # Periodically try to set operator perspective, in case we weren't able
         # to during setup.
         self.drivetrain.maybeSetOperatorPerspectiveForward()
-        # We dont want to be zeroing the turret while it's moving, so we'll zero
-        # it while its disabled
-        if self.operator_controller.getStartButton():
-            self.turret.zeroEncoder()
 
     def teleopInit(self) -> None:
         """Initialize teleoperated mode.
