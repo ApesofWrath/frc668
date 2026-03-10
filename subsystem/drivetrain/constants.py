@@ -130,7 +130,9 @@ class VisionConstants:
     pose_y_max: float = 8.07
     # Average tag distance limit. Vision estimates whose average tag distance
     # exceeds this will be discarded.
-    average_tag_distance_threshold: float = 4.5
+    average_tag_distance_threshold: float = 2.0
+    xy_std_dev: float = 0.1
+    theta_std_dev: float = 0.01
     # Vision estimates that differ by more than this from the current robot pose
     # estimate will be discarded.
     max_diff_from_robot_pose: float = 0.5
@@ -269,8 +271,77 @@ DRIVETRAIN_CONSTANTS: dict[str, DrivetrainConstants] = {
             steer_motor_inverted=False,
             encoder_inverted=True,
         ),
-        drivetrain=SwerveDrivetrainConstants(pigeon2_id=22),
-        vision=VisionConstants(limelights=["limelight-fl", "limelight-fr"]),
+        drivetrain=SwerveDrivetrainConstants(can_bus_name="rio", pigeon2_id=22),
+        vision=VisionConstants(limelights=[]),
+    ),
+    # Juno
+    "0323CA4B": DrivetrainConstants(
+        common=SwerveModuleCommonConstants(
+            # TODO: Tune.
+            steer_motor_gains=configs.Slot0Configs()
+            .with_k_p(100)
+            .with_static_feedforward_sign(
+                signals.StaticFeedforwardSignValue.USE_CLOSED_LOOP_SIGN
+            ),
+            drive_motor_gains=configs.Slot0Configs()
+            .with_k_v(0.124)
+            .with_k_p(0.1),
+        ),
+        front_left=SwerveModuleConstants(
+            steer_motor_id=8,
+            drive_motor_id=7,
+            encoder_id=12,
+            encoder_offset=-0.445557,
+            location_x=wpimath.units.inchesToMeters(13.5),
+            location_y=wpimath.units.inchesToMeters(13.5),
+            drive_motor_inverted=False,
+            steer_motor_inverted=False,
+            encoder_inverted=True,
+        ),
+        front_right=SwerveModuleConstants(
+            steer_motor_id=4,
+            drive_motor_id=3,
+            encoder_id=10,
+            encoder_offset=0.441895,
+            location_x=wpimath.units.inchesToMeters(13.5),
+            location_y=wpimath.units.inchesToMeters(-13.5),
+            drive_motor_inverted=True,
+            steer_motor_inverted=False,
+            encoder_inverted=True,
+        ),
+        back_left=SwerveModuleConstants(
+            steer_motor_id=2,
+            drive_motor_id=1,
+            encoder_id=9,
+            encoder_offset=-0.070068,
+            location_x=wpimath.units.inchesToMeters(-13.5),
+            location_y=wpimath.units.inchesToMeters(13.5),
+            drive_motor_inverted=False,
+            steer_motor_inverted=False,
+            encoder_inverted=True,
+        ),
+        back_right=SwerveModuleConstants(
+            steer_motor_id=6,
+            drive_motor_id=5,
+            encoder_id=11,
+            encoder_offset=-0.442383,
+            location_x=wpimath.units.inchesToMeters(-13.5),
+            location_y=wpimath.units.inchesToMeters(-13.5),
+            drive_motor_inverted=True,
+            steer_motor_inverted=False,
+            encoder_inverted=True,
+        ),
+        drivetrain=SwerveDrivetrainConstants(
+            can_bus_name="swerve", pigeon2_id=22
+        ),
+        vision=VisionConstants(
+            limelights=[
+                "limelight-fl",
+                "limelight-fr",
+                "limelight-upfl",
+                "limelight-upfr",
+            ]
+        ),
     ),
 }
 

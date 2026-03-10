@@ -26,6 +26,10 @@ class MyRobot(magicbot.MagicRobot):
     https://robotpy.readthedocs.io/en/latest/frameworks/magicbot.html
     """
 
+    intake_deployer: intake.IntakeDeployer
+    shooter_state_machine: shooter.Shooter
+
+    hub_tracker: shooter.HubTracker
     drivetrain: drivetrain.Drivetrain
     flywheel: shooter.Flywheel
     hopper: shooter.Hopper
@@ -43,6 +47,7 @@ class MyRobot(magicbot.MagicRobot):
         self.robot_constants: constants.RobotConstants = (
             constants.get_robot_constants()
         )
+        self.logger.info(f"Robot serial number: {self.robot_constants.serial}")
 
         # We instantiate the Drivetrain component manually, because magicbot
         # does not allow accessing injected variables from component
@@ -66,47 +71,66 @@ class MyRobot(magicbot.MagicRobot):
 
         # Turret
         self.turret_motor = hardware.TalonFX(
-            self.robot_constants.shooter.turret.motor_can_id, "Shooter"
+            self.robot_constants.shooter.turret.motor_can_id,
+            self.robot_constants.shooter.turret.motor_can_bus,
         )
         self.turret_encoder = hardware.CANcoder(
-            self.robot_constants.shooter.turret.encoder_can_id, "Shooter"
+            self.robot_constants.shooter.turret.encoder_can_id,
+            self.robot_constants.shooter.turret.encoder_can_bus,
         )
 
         # Flywheel motor and encoder.
         self.flywheel_motor = phoenix6.hardware.TalonFX(
-            self.robot_constants.shooter.flywheel.motor_can_id, "Shooter"
+            self.robot_constants.shooter.flywheel.motor_can_id,
+            self.robot_constants.shooter.flywheel.motor_can_bus,
         )
         self.flywheel_encoder = phoenix6.hardware.CANcoder(
-            self.robot_constants.shooter.flywheel.encoder_can_id, "Shooter"
+            self.robot_constants.shooter.flywheel.encoder_can_id,
+            self.robot_constants.shooter.flywheel.encoder_can_bus,
         )
 
         # Hopper motors.
         self.hopper_left_motor = phoenix6.hardware.TalonFX(
-            self.robot_constants.shooter.hopper.left_motor_can_id, "rio"
+            self.robot_constants.shooter.hopper.left_motor_can_id,
+            self.robot_constants.shooter.hopper.left_motor_can_bus,
         )
         self.hopper_right_motor = phoenix6.hardware.TalonFX(
-            self.robot_constants.shooter.hopper.right_motor_can_id, "rio"
+            self.robot_constants.shooter.hopper.right_motor_can_id,
+            self.robot_constants.shooter.hopper.right_motor_can_bus,
         )
 
         # Indexer motors.
         self.indexer_back_motor = phoenix6.hardware.TalonFX(
-            self.robot_constants.shooter.indexer.back_motor_can_id, "Shooter"
+            self.robot_constants.shooter.indexer.back_motor_can_id,
+            self.robot_constants.shooter.indexer.back_motor_can_bus,
         )
         self.indexer_front_motor = phoenix6.hardware.TalonFX(
-            self.robot_constants.shooter.indexer.front_motor_can_id, "Shooter"
+            self.robot_constants.shooter.indexer.front_motor_can_id,
+            self.robot_constants.shooter.indexer.front_motor_can_bus,
         )
 
         # Hood motor and encoder.
         self.hood_motor = phoenix6.hardware.TalonFX(
-            self.robot_constants.shooter.hood.motor_can_id, "Shooter"
+            self.robot_constants.shooter.hood.motor_can_id,
+            self.robot_constants.shooter.hood.motor_can_bus,
         )
         self.hood_encoder = phoenix6.hardware.CANcoder(
-            self.robot_constants.shooter.hood.encoder_can_id, "Shooter"
+            self.robot_constants.shooter.hood.encoder_can_id,
+            self.robot_constants.shooter.hood.encoder_can_bus,
         )
 
-        # Intake motor.
-        self.intake_motor = phoenix6.hardware.TalonFX(
-            self.robot_constants.intake.motor_can_id, "rio"
+        # Intake motors.
+        self.intake_roller_motor = phoenix6.hardware.TalonFX(
+            self.robot_constants.intake.roller_motor_can_id,
+            self.robot_constants.intake.roller_motor_can_bus,
+        )
+        self.intake_deploy_motor = phoenix6.hardware.TalonFX(
+            self.robot_constants.intake.deploy_motor_can_id,
+            self.robot_constants.intake.deploy_motor_can_bus,
+        )
+        self.intake_deploy_encoder = phoenix6.hardware.CANcoder(
+            self.robot_constants.intake.deploy_encoder_can_id,
+            self.robot_constants.intake.deploy_encoder_can_bus,
         )
 
         self._tuning_mode = False
@@ -133,16 +157,22 @@ class MyRobot(magicbot.MagicRobot):
 
     def robotPeriodic(self) -> None:
         if wpilib.DriverStation.isEnabled():
+            # If we haven't deployed the intake yet, do so.
+            if not self.intake_deployer._deployed:
+                self.intake_deployer.deploy()
             # Use external IMU assist when enabled.
             for ll in self.vision._limelights:
                 limelight.LimelightHelpers.set_imu_mode(ll, 4)
         else:
-            # Hard reset each limelight's yaw to the external IMU when disabled.
+            # Hard reset each lime light's yaw to the external IMU when disabled.
             for ll in self.vision._limelights:
                 limelight.LimelightHelpers.set_imu_mode(ll, 1)
                 # We call this here because the Vision component's execute
                 # method does not get called when disabled.
                 self.vision.setRobotOrientation()
+
+        if not self._tuning_mode:
+            self.shooter_state_machine.engage()
 
     def autonomousInit(self) -> None:
         """Initialize autonomous mode.
@@ -203,11 +233,13 @@ class MyRobot(magicbot.MagicRobot):
         """
         # TODO: Handle exceptions so robot code doesn't crash.
         if self.driver_controller.shouldResetOrientation():
-            self.drivetrain.reset_pose(wpimath.geometry.Pose2d(0, 0, 0))
+            # Robot's front touching the hub wall in the blue alliance zone.
+            self.drivetrain.reset_pose(
+                wpimath.geometry.Pose2d(3.6854, 4.0136, 0)
+            )
             self.vision._pose_seeded = False
         self.driveWithJoysicks()
-        self.controlHopper()
-        self.controlIndexer()
+        self.controlShooter()
         self.controlIntake()
         self.controlHood()
         self.controlTurret()
@@ -217,30 +249,16 @@ class MyRobot(magicbot.MagicRobot):
         command = self.driver_controller.getDriveCommand()
         self.drivetrain.setSpeeds(command)
 
-    def controlHopper(self) -> None:
-        """Drive the hopper motors."""
-        if self._tuning_mode:
-            return
-        if self.operator_controller.getRightBumper():
-            self.hopper.setEnabled(True)
-        else:
-            self.hopper.setEnabled(False)
-
-    def controlIndexer(self) -> None:
-        """Drive the indexer motors."""
-        if self._tuning_mode:
-            return
-        if self.operator_controller.getRightBumper():
-            self.indexer.setEnabled(True)
-        else:
-            self.indexer.setEnabled(False)
+    def controlShooter(self) -> None:
+        """Takes button inputs to control the shooter state machine."""
+        self.shooter_state_machine.setDriverWantsFeed(
+            self.driver_controller.feedFuel()
+        )
 
     def controlIntake(self) -> None:
         """Drive the intake motors."""
-        if self.driver_controller.runIntake():
-            self.intake.setMotorSpeed(1.0)
-        else:
-            self.intake.setMotorSpeed(0.0)
+        if self.driver_controller.toggleIntake():
+            self.intake.toggleActive()
 
     def controlHood(self) -> None:
         """Drive the hood motor."""
@@ -249,8 +267,11 @@ class MyRobot(magicbot.MagicRobot):
             self.hood.zeroEncoder()
 
         # Toggle between manual hood speed control v/s position control.
-        if self.operator_controller.getYButtonReleased():
+        if self.operator_controller.getYButtonPressed():
             self.hood.setControlType(not self.hood.isControlTypeSpeed())
+            self.hood._target_position_degrees = (
+                self.hood.get_measured_angle_degrees()
+            )
             self.logger.info(
                 "Hood control type is now: "
                 + ("speed" if self.hood.isControlTypeSpeed() else "position")

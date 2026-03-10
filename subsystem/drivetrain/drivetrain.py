@@ -8,7 +8,7 @@ import typing
 import magicbot
 import wpilib
 import wpimath
-from phoenix6 import hardware, swerve, units
+from phoenix6 import hardware, swerve, units, configs
 
 from common import joystick
 from subsystem import drivetrain
@@ -133,8 +133,7 @@ class Drivetrain(swerve.SwerveDrivetrain):
 
         This method is called at the end of the control loop.
         """
-        if not self._alliance and not wpilib.RobotBase.isSimulation(): 
-            # added 'and not simulation' because it would just spam this every frame otherwise
+        if not self._alliance and not wpilib.RobotBase.isSimulation():
             self.logger.error(
                 "Failed to apply operator prespective based on alliance."
             )
@@ -169,3 +168,7 @@ class Drivetrain(swerve.SwerveDrivetrain):
     @magicbot.feedback
     def get_robot_pose(self) -> wpimath.geometry.Pose2d:
         return self.get_state().pose
+
+    @magicbot.feedback
+    def get_robot_speed(self) -> swerve.ChassisSpeeds:
+        return self.get_state().speeds

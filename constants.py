@@ -2,9 +2,10 @@ import subprocess
 from dataclasses import dataclass
 
 import wpilib
+import typing
 
-# TODO: Set this to the competition robot's serial number.
-DEFAULT_ROBOT_SERIAL = "023AC96C"
+# Juno
+DEFAULT_ROBOT_SERIAL = "0323CA4B"
 
 
 @dataclass(frozen=True)
