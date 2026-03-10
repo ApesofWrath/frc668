@@ -100,6 +100,7 @@ class SwerveModuleConstants:
     # counter-clockwise (as seen from the top of the robot).
     encoder_inverted: bool = False
 
+
 # Common constants for a swerve drivetrain.
 @dataclass(frozen=True)
 class SwerveDrivetrainConstants:
@@ -257,7 +258,7 @@ DRIVETRAIN_CONSTANTS: dict[str, DrivetrainConstants] = {
             location_y=wpimath.units.inchesToMeters(13.75),
             drive_motor_inverted=False,
             steer_motor_inverted=False,
-            encoder_inverted=True,  
+            encoder_inverted=True,
         ),
         back_right=SwerveModuleConstants(
             steer_motor_id=6,
