@@ -167,8 +167,11 @@ class MyRobot(magicbot.MagicRobot):
         if not self._tuning_mode:
             self.shooter_state_machine.engage()
         else:
-            self.hub_tracker.trackPosition(False)
-            self.hub_tracker.trackSpeed(False)
+            # In tuning mode, have hub tracker actively track, but don't command
+            # the mechanisms.
+            self.hub_tracker.trackPosition(True)
+            self.hub_tracker.trackSpeed(True)
+            self.hub_tracker.setEnabled(False)
 
     def autonomousInit(self) -> None:
         """Initialize autonomous mode.
@@ -237,8 +240,6 @@ class MyRobot(magicbot.MagicRobot):
         self.driveWithJoysicks()
         self.controlShooter()
         self.controlIntake()
-        self.controlHood()
-        self.controlTurret()
 
     def driveWithJoysicks(self) -> None:
         """Use the main controller joystick inputs to drive the robot base."""
@@ -267,56 +268,16 @@ class MyRobot(magicbot.MagicRobot):
             self.hub_tracker.setTargetFlywheelSpeedRps(33.8)
         else:
             self.shooter_state_machine.setAuto(True)
-            if not self.driver_controller.feedFuel():
+            if self.driver_controller.feedFuel():
+                self.shooter_state_machine.setDriverWantsFeed(True)
+            else:
+                self.shooter_state_machine.setDriverWantsFeed(False)
                 self.hub_tracker.setTargetFlywheelSpeedRps(0.0)
-            self.shooter_state_machine.setDriverWantsFeed(
-                self.driver_controller.feedFuel()
-            )
 
     def controlIntake(self) -> None:
         """Drive the intake motors."""
         if self.driver_controller.toggleIntake():
             self.intake.toggleActive()
-
-    def controlHood(self) -> None:
-        """Drive the hood motor."""
-        # Zero the hood encoder if the B button was pressed.
-        if self.operator_controller.getBButtonPressed():
-            self.hood.zeroEncoder()
-
-        # Toggle between manual hood speed control v/s position control.
-        if self.operator_controller.getYButtonPressed():
-            self.hood.setControlType(not self.hood.isControlTypeSpeed())
-            self.hood._target_position_degrees = (
-                self.hood.get_measured_angle_degrees()
-            )
-            self.logger.info(
-                "Hood control type is now: "
-                + ("speed" if self.hood.isControlTypeSpeed() else "position")
-            )
-
-        # Drive the hood motor at one-fourth duty cycle.
-        if self.hood.isControlTypeSpeed():
-            self.hood.setSpeed(
-                -filterInput(self.operator_controller.getRightY()) * 0.1
-            )
-
-    def controlTurret(self) -> None:
-        """Drive the turret motor."""
-        if self.operator_controller.getXButtonReleased():
-            self.turret.setControlType(not self.turret.isControlTypeVelocity())
-            self.logger.info(
-                "Turret control type is now: "
-                + (
-                    "velocity"
-                    if self.turret.isControlTypeVelocity()
-                    else "position"
-                )
-            )
-        if self.turret.isControlTypeVelocity():
-            self.turret.setVelocity(
-                filterInput(self.operator_controller.getLeftX()) * 30
-            )
 
 
 def filterInput(controller_input: float, apply_deadband: bool = True) -> float:

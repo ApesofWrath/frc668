@@ -107,11 +107,12 @@ class HubTracker:
             phoenix6.units.degrees_per_second
         ] = self.drivetrain.pigeon2.get_angular_velocity_z_world()
 
-        # Whether to have turret and hood track their target positions.
+        # Whether to re-calculate the turret and hood positions each loop.
         self._track_position = True
-        # Whether to have flywheel track its target speed. This is False by
-        # default to save power.
+        # Whether to re-calculate the flywheel speed each loop.
         self._track_speed = False
+        # Whether to command mechanisms to the current targets.
+        self._enabled = True
 
     def execute(self) -> None:
         self._yaw_rate_signal.refresh()
@@ -130,45 +131,46 @@ class HubTracker:
 
         if self._track_position:
             self._target_turret_angle_degrees = (
-                self.get_predictive_turret_target_angle_degrees()
+                self._computeTargetTurretAngleDegrees()
             )
             self._target_hood_angle_degrees = target_hood_angle_degrees
 
         if self._track_speed:
             self._target_flywheel_speed_rps = target_flywheel_speed_rps
 
-        self.turret.setPosition(self._target_turret_angle_degrees)
-        self.hood.setPosition(self._target_hood_angle_degrees)
-        self.flywheel.setTargetRps(self._target_flywheel_speed_rps)
+        if self._enabled:
+            self.turret.setPosition(self._target_turret_angle_degrees)
+            self.hood.setPosition(self._target_hood_angle_degrees)
+            self.flywheel.setTargetRps(self._target_flywheel_speed_rps)
 
     def trackPosition(self, value: bool) -> None:
+        """If True, the turret and hood angles will be re-calculated each loop."""
         self._track_position = value
 
     def trackSpeed(self, value: bool) -> None:
+        """If True, the flywheel speed will be re-calculated each loop."""
         self._track_speed = value
 
     def setTargetHoodAngleDegrees(self, value: float) -> None:
+        """Set the target angle for the hood, in degrees."""
         self._target_hood_angle_degrees = value
 
     def setTargetTurretAngleDegrees(self, value: float) -> None:
+        """Set the target angle for the turret, in degrees."""
         self._target_turret_angle_degrees = value
 
     def setTargetFlywheelSpeedRps(self, value: float) -> None:
+        """Set the target speed for the flywheel, in rotations per second."""
         self._target_flywheel_speed_rps = value
 
-    @magicbot.feedback
-    def get_turret_distance_from_hub_meters(self) -> phoenix6.units.meter:
-        """Returns the absolute distance of the turret from the hub."""
-        # Vector from center of turret to center of hub.
-        turret_to_hub = (
-            self._hub_position - self._turret_field_pose.translation()
-        )
-        return turret_to_hub.norm()
+    def setEnabled(self, value: bool) -> None:
+        """If True, the mechanisms will be commanded to the current targets."""
+        self._enabled = value
 
-    @magicbot.feedback
-    def get_predictive_turret_target_angle_degrees(
+    def _computeTargetTurretAngleDegrees(
         self,
     ) -> phoenix6.units.degree:
+        """Returns the target angle of the turret, adjusted for predicted robot yaw."""
         # Vector from center of turret to center of hub.
         turret_to_hub = (
             self._hub_position - self._turret_field_pose.translation()
@@ -189,7 +191,17 @@ class HubTracker:
         )
 
     @magicbot.feedback
+    def get_turret_distance_from_hub_meters(self) -> phoenix6.units.meter:
+        """Returns the absolute distance of the turret from the hub."""
+        # Vector from center of turret to center of hub.
+        turret_to_hub = (
+            self._hub_position - self._turret_field_pose.translation()
+        )
+        return turret_to_hub.norm()
+
+    @magicbot.feedback
     def get_target_turret_angle_degrees(self) -> phoenix6.units.degree:
+        """Returns the target angle for the turret to track."""
         return self._target_turret_angle_degrees
 
     @magicbot.feedback
