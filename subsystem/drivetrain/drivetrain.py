@@ -135,7 +135,7 @@ class Drivetrain(swerve.SwerveDrivetrain, commands2.Subsystem):
             self.logger.error(
                 "Failed to apply operator prespective based on alliance."
             )
-        self.set_control(self._drive_request)
+        #self.set_control(self._drive_request) 
 
     def maybeSetOperatorPerspectiveForward(self) -> None:
         # If we have our alliance, we already set operator perspective.
@@ -199,7 +199,8 @@ class DrivetrainTuner:
         self._steer_request = swerve.requests.SysIdSwerveSteerGains()
 
         self._sysid_config = commands2_sysid.SysIdRoutine.Config(
-            stepVoltage=4.0,
+            stepVoltage=2.0,
+            timeout=2.0,
             recordState=lambda state: SignalLogger.write_string(
                 "state", wpilib.sysid.SysIdRoutineLog.stateEnumToString(state)
             ),
@@ -245,6 +246,7 @@ class DrivetrainTuner:
 
     def on_enable(self) -> None:
         self._scheduler.enable()
+        SignalLogger.start()
 
     def on_disable(self) -> None:
         self._scheduler.disable()
@@ -303,29 +305,35 @@ class DrivetrainTuner:
     def sysIdTranslationQuasistatic(
         self, direction: commands2_sysid.SysIdRoutine.Direction
     ) -> None:
+        self._scheduler.cancelAll()
         self._scheduler.schedule(self._sysid_translation.quasistatic(direction))
 
     def sysIdTranslationDynamic(
         self, direction: commands2_sysid.SysIdRoutine.Direction
     ) -> None:
+        self._scheduler.cancelAll()
         self._scheduler.schedule(self._sysid_translation.dynamic(direction))
 
     def sysIdRotationQuasistatic(
         self, direction: commands2_sysid.SysIdRoutine.Direction
     ) -> None:
+        self._scheduler.cancelAll()
         self._scheduler.schedule(self._sysid_rotation.quasistatic(direction))
 
     def sysIdRotationDynamic(
         self, direction: commands2_sysid.SysIdRoutine.Direction
     ) -> None:
+        self._scheduler.cancelAll()
         self._scheduler.schedule(self._sysid_rotation.dynamic(direction))
 
     def sysIdSteerQuasistatic(
         self, direction: commands2_sysid.SysIdRoutine.Direction
     ) -> None:
+        self._scheduler.cancelAll()
         self._scheduler.schedule(self._sysid_steer.quasistatic(direction))
 
     def sysIdSteerDynamic(
         self, direction: commands2_sysid.SysIdRoutine.Direction
     ) -> None:
+        self._scheduler.cancelAll()
         self._scheduler.schedule(self._sysid_steer.dynamic(direction))

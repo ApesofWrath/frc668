@@ -213,6 +213,20 @@ class MyRobot(magicbot.MagicRobot):
         called.
         """
         self.logger.info("Entering teleop mode")
+        self.drivetrain.set_control(
+            swerve.requests.FieldCentric().with_drive_request_type(
+                swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
+            )
+            .with_velocity_x(1.0)
+            )
+        
+        self.drivetrain.set_control(
+            swerve.requests.FieldCentric().with_drive_request_type(
+                swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
+            )
+            .with_velocity_x(0.0)
+            )
+        
 
     def teleopPeriodic(self) -> None:
         """Run during teleoperated mode.
