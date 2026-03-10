@@ -135,7 +135,7 @@ class Drivetrain(swerve.SwerveDrivetrain, commands2.Subsystem):
             self.logger.error(
                 "Failed to apply operator prespective based on alliance."
             )
-        #self.set_control(self._drive_request) 
+        self.set_control(self._drive_request) 
 
     def maybeSetOperatorPerspectiveForward(self) -> None:
         # If we have our alliance, we already set operator perspective.

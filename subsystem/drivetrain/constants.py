@@ -280,7 +280,7 @@ DRIVETRAIN_CONSTANTS: dict[str, DrivetrainConstants] = {
             .with_k_s(0.1321525)
             .with_k_v(2.531275)
             .with_k_a(0.036819)
-            .with_k_p(0.36512)
+            .with_k_p(100.0)
             .with_k_d(0.0)
             .with_static_feedforward_sign(
                 signals.StaticFeedforwardSignValue.USE_CLOSED_LOOP_SIGN
