@@ -41,7 +41,7 @@ class Intake:
                 .with_k_d(self.robot_constants.intake.k_d)
             )
             .with_current_limits(
-                phoenix6.configs.CurrentLimitsConfigs()
+                configs.CurrentLimitsConfigs()
                 .with_stator_current_limit(self.robot_constants.intake.stator_current_limit)
                 .with_stator_current_limit_enable(False)
             )
