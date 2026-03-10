@@ -80,6 +80,18 @@ class DriverController:
         )
         return self._command
 
+    def setLeftFieldDefaults(self) -> bool:
+        """Returns True if the robot should set its mechanisms up to shoot from the left side of the field."""
+        return self._controller.getXButton()
+
+    def setRightFieldDefaults(self) -> bool:
+        """Returns True if the robot should set its mechanisms up to shoot from the right side of the field."""
+        return self._controller.getBButton()
+    
+    def setCenterFieldDefaults(self) -> bool:
+        """Returns True if the robot should set its mechanisms up to shoot from the center side of the field."""
+        return self._controller.getAButton()
+    
     def _filterInput(self, input: float, apply_deadband: bool = True) -> float:
         """Filter the joystick input with a squared scaling and deadband.
 

@@ -166,6 +166,9 @@ class MyRobot(magicbot.MagicRobot):
 
         if not self._tuning_mode:
             self.shooter_state_machine.engage()
+        else:
+            self.hub_tracker.trackPosition(False)
+            self.hub_tracker.trackSpeed(False)
 
     def autonomousInit(self) -> None:
         """Initialize autonomous mode.
@@ -244,9 +247,31 @@ class MyRobot(magicbot.MagicRobot):
 
     def controlShooter(self) -> None:
         """Takes button inputs to control the shooter state machine."""
-        self.shooter_state_machine.setDriverWantsFeed(
-            self.driver_controller.feedFuel()
-        )
+        if self.driver_controller.setLeftFieldDefaults():
+            self.shooter_state_machine.setAuto(False)
+            self.shooter_state_machine.setDriverWantsFeed(True)
+            self.hub_tracker.setTargetTurretAngleDegrees(4.268)
+            self.hub_tracker.setTargetHoodAngleDegrees(4.8)
+            self.hub_tracker.setTargetFlywheelSpeedRps(30.8)
+        elif self.driver_controller.setRightFieldDefaults():
+            self.shooter_state_machine.setAuto(False)
+            self.shooter_state_machine.setDriverWantsFeed(True)
+            self.hub_tracker.setTargetTurretAngleDegrees(-4.268)
+            self.hub_tracker.setTargetHoodAngleDegrees(4.8)
+            self.hub_tracker.setTargetFlywheelSpeedRps(30.8)
+        elif self.driver_controller.setCenterFieldDefaults():
+            self.shooter_state_machine.setAuto(False)
+            self.shooter_state_machine.setDriverWantsFeed(True)
+            self.hub_tracker.setTargetTurretAngleDegrees(94.85)
+            self.hub_tracker.setTargetHoodAngleDegrees(6.9)
+            self.hub_tracker.setTargetFlywheelSpeedRps(33.8)
+        else:
+            self.shooter_state_machine.setAuto(True)
+            if not self.driver_controller.feedFuel():
+                self.hub_tracker.setTargetFlywheelSpeedRps(0.0)
+            self.shooter_state_machine.setDriverWantsFeed(
+                self.driver_controller.feedFuel()
+            )
 
     def controlIntake(self) -> None:
         """Drive the intake motors."""
