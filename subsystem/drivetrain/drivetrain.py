@@ -1,16 +1,18 @@
 import logging
 import typing
 
+import commands2
 import magicbot
 import wpilib
 import wpimath
-from phoenix6 import hardware, swerve, units, configs
+from commands2 import sysid as commands2_sysid
+from phoenix6 import hardware, swerve, units, configs, SignalLogger
 
 from common import joystick
 from subsystem import drivetrain
 
 
-class Drivetrain(swerve.SwerveDrivetrain):
+class Drivetrain(swerve.SwerveDrivetrain, commands2.Subsystem):
     def __init__(self, constants: drivetrain.DrivetrainConstants):
         constants_factory: swerve.SwerveModuleConstantsFactory[
             configs.TalonFXConfiguration,
@@ -120,7 +122,7 @@ class Drivetrain(swerve.SwerveDrivetrain):
 
         self._drive_request = (
             swerve.requests.FieldCentric().with_drive_request_type(
-                swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
+                swerve.SwerveModule.DriveRequestType.VELOCITY
             )
         )
 
@@ -168,3 +170,170 @@ class Drivetrain(swerve.SwerveDrivetrain):
     @magicbot.feedback
     def get_robot_speed(self) -> swerve.ChassisSpeeds:
         return self.get_state().speeds
+
+
+class DrivetrainTuner:
+    """Component for tuning the drivetrain."""
+
+    drivetrain: Drivetrain
+
+    translation_quasistatic = magicbot.tunable(False)
+    translation_dynamic = magicbot.tunable(False)
+    rotation_quasistatic = magicbot.tunable(False)
+    rotation_dynamic = magicbot.tunable(False)
+    steer_quasistatic = magicbot.tunable(False)
+    steer_dynamic = magicbot.tunable(False)
+
+    reverse = magicbot.tunable(False)
+
+    def setup(self) -> None:
+        self._last_tq = self.translation_quasistatic
+        self._last_td = self.translation_dynamic
+        self._last_rq = self.rotation_quasistatic
+        self._last_rd = self.rotation_dynamic
+        self._last_sq = self.steer_quasistatic
+        self._last_sd = self.steer_dynamic
+
+        self._translation_request = swerve.requests.SysIdSwerveTranslation()
+        self._rotation_request = swerve.requests.SysIdSwerveRotation()
+        self._steer_request = swerve.requests.SysIdSwerveSteerGains()
+
+        self._sysid_config = commands2_sysid.SysIdRoutine.Config(
+            stepVoltage=2.0,
+            timeout=2.0,
+            recordState=lambda state: SignalLogger.write_string(
+                "state", wpilib.sysid.SysIdRoutineLog.stateEnumToString(state)
+            ),
+        )
+
+        self._sysid_translation = commands2_sysid.SysIdRoutine(
+            self._sysid_config,
+            commands2_sysid.SysIdRoutine.Mechanism(
+                lambda volts: self.drivetrain.set_control(
+                    self._translation_request.with_volts(volts)
+                ),
+                lambda log: None,
+                self.drivetrain,
+                "Drivetrain",
+            ),
+        )
+
+        self._sysid_rotation = commands2_sysid.SysIdRoutine(
+            self._sysid_config,
+            commands2_sysid.SysIdRoutine.Mechanism(
+                lambda rotational_rate: self.drivetrain.set_control(
+                    self._rotation_request.with_rotational_rate(rotational_rate)
+                ),
+                lambda log: None,
+                self.drivetrain,
+                "Drivetrain",
+            ),
+        )
+
+        self._sysid_steer = commands2_sysid.SysIdRoutine(
+            self._sysid_config,
+            commands2_sysid.SysIdRoutine.Mechanism(
+                lambda volts: self.drivetrain.set_control(
+                    self._steer_request.with_volts(volts)
+                ),
+                lambda log: None,
+                self.drivetrain,
+                "Drivetrain",
+            ),
+        )
+
+        self._scheduler = commands2.CommandScheduler.getInstance()
+
+    def on_enable(self) -> None:
+        self._scheduler.enable()
+        SignalLogger.start()
+
+    def on_disable(self) -> None:
+        self._scheduler.disable()
+        SignalLogger.stop()
+
+    def execute(self) -> None:
+        if (
+            sum(
+                [
+                    self.translation_quasistatic,
+                    self.translation_dynamic,
+                    self.rotation_quasistatic,
+                    self.rotation_dynamic,
+                    self.steer_quasistatic,
+                    self.steer_dynamic,
+                ]
+            )
+            > 1
+        ):
+            self.logger.warning(
+                "Cannot apply multiple sysid routines simultaneously"
+            )
+            self._updateState()
+            return
+
+        direction = (
+            commands2_sysid.SysIdRoutine.Direction.kReverse
+            if self.reverse
+            else commands2_sysid.SysIdRoutine.Direction.kForward
+        )
+        # Only schedule a sysid command on a rising edge.
+        if self.translation_quasistatic and not self._last_tq:
+            self.sysIdTranslationQuasistatic(direction)
+        if self.translation_dynamic and not self._last_td:
+            self.sysIdTranslationDynamic(direction)
+        if self.rotation_quasistatic and not self._last_rq:
+            self.sysIdRotationQuasistatic(direction)
+        if self.rotation_dynamic and not self._last_rd:
+            self.sysIdRotationDynamic(direction)
+        if self.steer_quasistatic and not self._last_sq:
+            self.sysIdSteerQuasistatic(direction)
+        if self.steer_dynamic and not self._last_sd:
+            self.sysIdSteerDynamic(direction)
+
+        self._updateState()
+        self._scheduler.run()
+
+    def _updateState(self) -> None:
+        self._last_tq = self.translation_quasistatic
+        self._last_td = self.translation_dynamic
+        self._last_rq = self.rotation_quasistatic
+        self._last_rd = self.rotation_dynamic
+        self._last_sq = self.steer_quasistatic
+        self._last_sd = self.steer_dynamic
+
+    def sysIdTranslationQuasistatic(
+        self, direction: commands2_sysid.SysIdRoutine.Direction
+    ) -> None:
+        self._scheduler.cancelAll()
+        self._scheduler.schedule(self._sysid_translation.quasistatic(direction))
+
+    def sysIdTranslationDynamic(
+        self, direction: commands2_sysid.SysIdRoutine.Direction
+    ) -> None:
+        self._scheduler.cancelAll()
+        self._scheduler.schedule(self._sysid_translation.dynamic(direction))
+
+    def sysIdRotationQuasistatic(
+        self, direction: commands2_sysid.SysIdRoutine.Direction
+    ) -> None:
+        self._scheduler.cancelAll()
+        self._scheduler.schedule(self._sysid_rotation.quasistatic(direction))
+
+    def sysIdRotationDynamic(
+        self, direction: commands2_sysid.SysIdRoutine.Direction
+    ) -> None:
+        self._scheduler.cancelAll()
+        self._scheduler.schedule(self._sysid_rotation.dynamic(direction))
+
+    def sysIdSteerQuasistatic(
+        self, direction: commands2_sysid.SysIdRoutine.Direction
+    ) -> None:
+        self._scheduler.cancelAll()
+        self._scheduler.schedule(self._sysid_steer.quasistatic(direction))
+
+    def sysIdSteerDynamic(
+        self, direction: commands2_sysid.SysIdRoutine.Direction
+    ) -> None:
+        self._scheduler.cancelAll()
+        self._scheduler.schedule(self._sysid_steer.dynamic(direction))

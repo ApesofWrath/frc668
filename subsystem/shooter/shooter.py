@@ -41,8 +41,6 @@ class Shooter(magicbot.StateMachine):
     @magicbot.state(first=True)
     def idling(self):
         """Waiting for the driver to command fuel feed."""
-        self.logger.info("IDLING")
-
         if self._driver_wants_feed:
             self.next_state("targeting")
 
@@ -65,8 +63,6 @@ class Shooter(magicbot.StateMachine):
         This means the hub and turret must be close to their target angles, the
         flywheel must be close to its target speed, and the robot is stationary.
         """
-        self.logger.info("TARGETING")
-
         # First, check if the driver wants to shoot. If not, idle to save power.
         if not self._driver_wants_feed:
             self.next_state("idling")
@@ -89,8 +85,6 @@ class Shooter(magicbot.StateMachine):
 
         Continue tracking the hub, and feed fuel.
         """
-        self.logger.info("SHOOTING")
-
         if not self._driver_wants_feed:
             self.next_state("idling")
 
