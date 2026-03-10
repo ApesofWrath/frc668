@@ -124,14 +124,16 @@ class HubTracker:
 
         # Set the flywheel and hood targets based on current turret-to-hub
         # distance.
-        target_hood_angle_degrees, target_flywheel_speed_rps = (
-            ShotTable.get(self.get_turret_distance_from_hub_meters())
+        target_hood_angle_degrees, target_flywheel_speed_rps = ShotTable.get(
+            self.get_turret_distance_from_hub_meters()
         )
 
         if self._track_position:
-            self._target_turret_angle_degrees = self.get_predictive_turret_target_angle_degrees()
+            self._target_turret_angle_degrees = (
+                self.get_predictive_turret_target_angle_degrees()
+            )
             self._target_hood_angle_degrees = target_hood_angle_degrees
-        
+
         if self._track_speed:
             self._target_flywheel_speed_rps = target_flywheel_speed_rps
 
@@ -150,7 +152,7 @@ class HubTracker:
 
     def setTargetTurretAngleDegrees(self, value: float) -> None:
         self._target_turret_angle_degrees = value
-    
+
     def setTargetFlywheelSpeedRps(self, value: float) -> None:
         self._target_flywheel_speed_rps = value
 
@@ -162,7 +164,6 @@ class HubTracker:
             self._hub_position - self._turret_field_pose.translation()
         )
         return turret_to_hub.norm()
-
 
     @magicbot.feedback
     def get_predictive_turret_target_angle_degrees(
@@ -186,7 +187,7 @@ class HubTracker:
                 target_angle_degrees - predictive_lead_angle,
             ),
         )
-    
+
     @magicbot.feedback
     def get_target_turret_angle_degrees(self) -> phoenix6.units.degree:
         return self._target_turret_angle_degrees

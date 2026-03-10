@@ -107,7 +107,7 @@ class Shooter(magicbot.StateMachine):
 
     def setDriverWantsFeed(self, value: bool) -> None:
         self._driver_wants_feed = value
-    
+
     def setAuto(self, value: bool) -> None:
         self._auto = value
 
