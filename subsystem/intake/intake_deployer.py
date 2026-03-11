@@ -46,6 +46,11 @@ class IntakeDeployer(magicbot.StateMachine):
                 .with_inverted(intake_constants.deploy_motor_inverted)
                 .with_neutral_mode(phoenix6.signals.NeutralModeValue.BRAKE)
             )
+            .with_current_limits(
+                phoenix6.configs.CurrentLimitsConfigs()
+                .with_supply_current_limit(self.robot_constants.intake.supply_current_limit)
+                .with_supply_current_limit_enable(True)
+            )
         )
 
     def deploy(self) -> None:

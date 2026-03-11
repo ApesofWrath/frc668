@@ -55,7 +55,7 @@ class Vision:
                 0.0,
             )
 
-    def _updateRobotPose(self, xy_std_devs, theta_std_devs) -> None:
+    def _updateRobotPose(self) -> None:
         """Updates our robot pose estimate with the latest vision measurements."""
         for ll in self._limelights:
             pose_estimate: limelight.PoseEstimate = (
@@ -131,11 +131,10 @@ class Vision:
             #
             # Divide by tag count since more visible tags means higher
             # certainty.
-
             # xy_std_devs = (
             #     pose_estimate.avg_tag_dist**2
             # ) / pose_estimate.tag_count
-            # theta_std_devs = math.inf
+            # theta_std_dev = math.inf
 
             synced_timestamp = utils.fpga_to_current_time(
                 pose_estimate.timestamp_seconds
@@ -143,7 +142,11 @@ class Vision:
             self.drivetrain.add_vision_measurement(
                 pose_estimate.pose,
                 synced_timestamp,
-                (xy_std_devs, xy_std_devs, theta_std_devs),
+                (
+                    vision_constants.xy_std_dev,
+                    vision_constants.xy_std_dev,
+                    vision_constants.theta_std_dev,
+                ),
             )
 
     def set_std_devs(self, xy_std_dev, theta_std_dev) -> None:

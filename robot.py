@@ -23,6 +23,7 @@ class MyRobot(magicbot.MagicRobot):
     """
 
     intake_deployer: intake.IntakeDeployer
+    shooter_state_machine: shooter.Shooter
 
     hub_tracker: shooter.HubTracker
     drivetrain: drivetrain.Drivetrain
@@ -59,7 +60,6 @@ class MyRobot(magicbot.MagicRobot):
             wpilib.XboxController(0),
             self.robot_constants.drivetrain.drive_options,
         )
-        self.operator_controller = wpilib.XboxController(1)
 
         # Turret
         self.turret_motor = hardware.TalonFX(
@@ -163,6 +163,15 @@ class MyRobot(magicbot.MagicRobot):
                 # method does not get called when disabled.
                 self.vision.setRobotOrientation()
 
+        if not self._tuning_mode:
+            self.shooter_state_machine.engage()
+        else:
+            # In tuning mode, have hub tracker actively track, but don't command
+            # the mechanisms.
+            self.hub_tracker.trackPosition(True)
+            self.hub_tracker.trackSpeed(True)
+            self.hub_tracker.setEnabled(False)
+
     def autonomousInit(self) -> None:
         """Initialize autonomous mode.
 
@@ -196,10 +205,6 @@ class MyRobot(magicbot.MagicRobot):
         # Periodically try to set operator perspective, in case we weren't able
         # to during setup.
         self.drivetrain.maybeSetOperatorPerspectiveForward()
-        # We dont want to be zeroing the turret while it's moving, so we'll zero
-        # it while its disabled
-        if self.operator_controller.getStartButton():
-            self.turret.zeroEncoder()
 
     def teleopInit(self) -> None:
         """Initialize teleoperated mode.
@@ -228,79 +233,46 @@ class MyRobot(magicbot.MagicRobot):
             )
             self.vision._pose_seeded = False
         self.driveWithJoysicks()
-        self.controlHopper()
-        self.controlIndexer()
+        self.controlShooter()
         self.controlIntake()
-        self.controlHood()
-        self.controlTurret()
 
     def driveWithJoysicks(self) -> None:
         """Use the main controller joystick inputs to drive the robot base."""
         command = self.driver_controller.getDriveCommand()
         self.drivetrain.setSpeeds(command)
 
-    def controlHopper(self) -> None:
-        """Drive the hopper motors."""
-        if self._tuning_mode:
-            return
-        if self.driver_controller.feedFuel():
-            self.hopper.setEnabled(True)
+    def controlShooter(self) -> None:
+        """Takes button inputs to control the shooter state machine."""
+        if self.driver_controller.setLeftFieldDefaults():
+            self.shooter_state_machine.setAuto(False)
+            self.shooter_state_machine.setDriverWantsFeed(True)
+            self.hub_tracker.setTargetTurretAngleDegrees(4.268)
+            self.hub_tracker.setTargetHoodAngleDegrees(4.8)
+            self.hub_tracker.setTargetFlywheelSpeedRps(30.8)
+        elif self.driver_controller.setRightFieldDefaults():
+            self.shooter_state_machine.setAuto(False)
+            self.shooter_state_machine.setDriverWantsFeed(True)
+            self.hub_tracker.setTargetTurretAngleDegrees(-4.268)
+            self.hub_tracker.setTargetHoodAngleDegrees(4.8)
+            self.hub_tracker.setTargetFlywheelSpeedRps(30.8)
+        elif self.driver_controller.setCenterFieldDefaults():
+            self.shooter_state_machine.setAuto(False)
+            self.shooter_state_machine.setDriverWantsFeed(True)
+            self.hub_tracker.setTargetTurretAngleDegrees(94.85)
+            self.hub_tracker.setTargetHoodAngleDegrees(6.9)
+            self.hub_tracker.setTargetFlywheelSpeedRps(33.8)
         else:
-            self.hopper.setEnabled(False)
-
-    def controlIndexer(self) -> None:
-        """Drive the indexer motors."""
-        if self._tuning_mode:
-            return
-        if self.driver_controller.feedFuel():
-            self.indexer.setEnabled(True)
-        else:
-            self.indexer.setEnabled(False)
+            self.shooter_state_machine.setAuto(True)
+            if self.driver_controller.feedFuel():
+                self.shooter_state_machine.setDriverWantsFeed(True)
+            else:
+                self.shooter_state_machine.setDriverWantsFeed(False)
+                self.hub_tracker.setTargetFlywheelSpeedRps(0.0)
 
     def controlIntake(self) -> None:
         """Drive the intake motors."""
         if self.driver_controller.toggleIntake():
             self.intake.toggleActive()
-
-    def controlHood(self) -> None:
-        """Drive the hood motor."""
-        # Zero the hood encoder if the B button was pressed.
-        if self.operator_controller.getBButtonPressed():
-            self.hood.zeroEncoder()
-
-        # Toggle between manual hood speed control v/s position control.
-        if self.operator_controller.getYButtonPressed():
-            self.hood.setControlType(not self.hood.isControlTypeSpeed())
-            self.hood._target_position_degrees = (
-                self.hood.get_measured_angle_degrees()
-            )
-            self.logger.info(
-                "Hood control type is now: "
-                + ("speed" if self.hood.isControlTypeSpeed() else "position")
-            )
-
-        # Drive the hood motor at one-fourth duty cycle.
-        if self.hood.isControlTypeSpeed():
-            self.hood.setSpeed(
-                -filterInput(self.operator_controller.getRightY()) * 0.1
-            )
-
-    def controlTurret(self) -> None:
-        """Drive the turret motor."""
-        if self.operator_controller.getXButtonReleased():
-            self.turret.setControlType(not self.turret.isControlTypeVelocity())
-            self.logger.info(
-                "Turret control type is now: "
-                + (
-                    "velocity"
-                    if self.turret.isControlTypeVelocity()
-                    else "position"
-                )
-            )
-        if self.turret.isControlTypeVelocity():
-            self.turret.setVelocity(
-                filterInput(self.operator_controller.getLeftX()) * 30
-            )
 
 
 def filterInput(controller_input: float, apply_deadband: bool = True) -> float:
