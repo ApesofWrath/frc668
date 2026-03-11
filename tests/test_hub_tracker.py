@@ -276,13 +276,14 @@ def test_execute_zero_yaw_rate_does_not_offset_target_angle(mocker) -> None:
     """Zero yaw-rate should produce no predictive offset in commanded angle."""
     tracker = _make_tracker(
         mocker,
-        robot_pose=geometry.Pose2d(),
+        robot_pose=_robot_pose_with_turret_at(
+            geometry.Translation2d(),
+            robot_yaw_degrees=0.0,
+        ),
         yaw_rate_degrees_per_second=0.0,
     )
-    mocker.patch.object(
-        tracker,
-        "get_target_turret_angle_degrees",
-        return_value=17.5,
+    tracker._hub_position = geometry.Translation2d(1.0, 0.0).rotateBy(
+        geometry.Rotation2d.fromDegrees(17.5)
     )
 
     tracker.execute()
@@ -313,15 +314,16 @@ def test_execute_clamps_target_angle_to_limits(
     """execute clamps commanded turret angle to configured min/max limits."""
     tracker = _make_tracker(
         mocker,
-        robot_pose=geometry.Pose2d(),
+        robot_pose=_robot_pose_with_turret_at(
+            geometry.Translation2d(),
+            robot_yaw_degrees=0.0,
+        ),
         min_angle=-30.0,
         max_angle=30.0,
         yaw_rate_degrees_per_second=yaw_rate_degrees_per_second,
     )
-    mocker.patch.object(
-        tracker,
-        "get_target_turret_angle_degrees",
-        return_value=requested_angle,
+    tracker._hub_position = geometry.Translation2d(1.0, 0.0).rotateBy(
+        geometry.Rotation2d.fromDegrees(requested_angle)
     )
 
     tracker.execute()
@@ -352,15 +354,16 @@ def test_execute_compensation_applied_before_clamping(
     """Compensation happens before limit clamping and can push in-range targets out."""
     tracker = _make_tracker(
         mocker,
-        robot_pose=geometry.Pose2d(),
+        robot_pose=_robot_pose_with_turret_at(
+            geometry.Translation2d(),
+            robot_yaw_degrees=0.0,
+        ),
         min_angle=-30.0,
         max_angle=30.0,
         yaw_rate_degrees_per_second=yaw_rate_degrees_per_second,
     )
-    mocker.patch.object(
-        tracker,
-        "get_target_turret_angle_degrees",
-        return_value=requested_angle,
+    tracker._hub_position = geometry.Translation2d(1.0, 0.0).rotateBy(
+        geometry.Rotation2d.fromDegrees(requested_angle)
     )
 
     tracker.execute()
@@ -375,13 +378,14 @@ def test_execute_updates_compensation_across_control_loops(mocker) -> None:
     """Each execute loop should refresh yaw-rate and recompute compensation."""
     tracker = _make_tracker(
         mocker,
-        robot_pose=geometry.Pose2d(),
+        robot_pose=_robot_pose_with_turret_at(
+            geometry.Translation2d(),
+            robot_yaw_degrees=0.0,
+        ),
         yaw_rate_degrees_per_second=50.0,
     )
-    mocker.patch.object(
-        tracker,
-        "get_target_turret_angle_degrees",
-        return_value=10.0,
+    tracker._hub_position = geometry.Translation2d(1.0, 0.0).rotateBy(
+        geometry.Rotation2d.fromDegrees(10.0)
     )
 
     tracker.execute()
@@ -410,8 +414,10 @@ def test_get_turret_distance_from_hub_meters(mocker) -> None:
     assert tracker.get_turret_distance_from_hub_meters() == pytest.approx(5.0)
 
 
-def test_get_target_turret_angle_degrees_is_relative_to_heading(mocker) -> None:
-    """Target angle feedback is computed relative to current turret heading."""
+def test_compute_target_turret_angle_degrees_is_relative_to_heading(
+    mocker,
+) -> None:
+    """Computed target angle is relative to current turret heading."""
     tracker = _make_tracker(mocker, geometry.Pose2d())
     tracker._hub_position = geometry.Translation2d(1.0, 0.0)
     tracker._turret_field_pose = geometry.Pose2d(
@@ -419,4 +425,12 @@ def test_get_target_turret_angle_degrees_is_relative_to_heading(mocker) -> None:
         geometry.Rotation2d.fromDegrees(90.0),
     )
 
-    assert tracker.get_target_turret_angle_degrees() == pytest.approx(-90.0)
+    assert tracker._computeTargetTurretAngleDegrees() == pytest.approx(-90.0)
+
+
+def test_get_target_turret_angle_degrees_returns_cached_value(mocker) -> None:
+    """Target turret getter returns the cached target command value."""
+    tracker = _make_tracker(mocker, geometry.Pose2d())
+    tracker._target_turret_angle_degrees = 12.34
+
+    assert tracker.get_target_turret_angle_degrees() == pytest.approx(12.34)
