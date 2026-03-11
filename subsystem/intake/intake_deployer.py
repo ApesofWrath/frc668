@@ -60,7 +60,7 @@ class IntakeDeployer(magicbot.StateMachine):
     def deploying(self, state_tm) -> None:
         self._deployed = False
         self.intake_deploy_motor.set(0.25)
-        if self.intake_deploy_encoder.get_position_since_boot().value_as_double >= 0.02*constants.RobotConstants.intake.deploy_sensor_to_mechanism_ratio:
+        if self.intake_deploy_encoder.get_position_since_boot().value_as_double >= 0.25*constants.RobotConstants.intake.deploy_sensor_to_mechanism_ratio:
             self.next_state("deployed")
         # if self.intake_deploy_motor.get_stator_current().value >= 12.0:
         #     if self._first_spike:
@@ -80,7 +80,7 @@ class IntakeDeployer(magicbot.StateMachine):
 
     @magicbot.state()
     def deployed(self):
-        # self.intake_deploy_motor.set(0.0)
+        self.intake_deploy_motor.set(0.0)
         self.intake_deploy_motor.setNeutralMode(phoenix6.signals.NeutralModeValue.COAST)
         self._deployed = True
         self.done()
