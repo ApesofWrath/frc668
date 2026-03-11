@@ -4,7 +4,6 @@ import wpilib
 
 import constants
 
-
 class IntakeDeployer(magicbot.StateMachine):
     robot_constants: constants.RobotConstants
     intake_deploy_motor: phoenix6.hardware.TalonFX
@@ -61,17 +60,19 @@ class IntakeDeployer(magicbot.StateMachine):
     def deploying(self, state_tm) -> None:
         self._deployed = False
         self.intake_deploy_motor.set(0.25)
-        if self.intake_deploy_motor.get_stator_current().value >= 12.0:
-            if self._first_spike:
-                self._first_spike = False
-                self._timer.reset()
-                self._timer.start()
-            else:
-                if self._timer.hasElapsed(0.25):
-                    self._first_spike = True
-                    self._timer.stop()
-                    self._timer.reset()
-                    self.next_state("deployed")
+        if self.intake_deploy_encoder.get_position_since_boot().value_as_double >= 0.02*constants.RobotConstants.intake.deploy_sensor_to_mechanism_ratio:
+            self.next_state("deployed")
+        # if self.intake_deploy_motor.get_stator_current().value >= 12.0:
+        #     if self._first_spike:
+        #         self._first_spike = False
+        #         self._timer.reset()
+        #         self._timer.start()
+        #     else:
+        #         if self._timer.hasElapsed(0.25):
+        #             self._first_spike = True
+        #             self._timer.stop()
+        #             self._timer.reset()
+        #             self.next_state("deployed")
         elif state_tm >= 10.0:
             self.next_state("timeout")
         else:
@@ -79,7 +80,8 @@ class IntakeDeployer(magicbot.StateMachine):
 
     @magicbot.state()
     def deployed(self):
-        self.intake_deploy_motor.set(0.0)
+        # self.intake_deploy_motor.set(0.0)
+        self.intake_deploy_motor.setNeutralMode(phoenix6.signals.NeutralModeValue.COAST)
         self._deployed = True
         self.done()
         self._timer.stop()

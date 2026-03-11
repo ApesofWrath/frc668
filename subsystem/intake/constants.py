@@ -29,7 +29,7 @@ class IntakeConstants:
     k_p: float = 0.0
     k_i: float = 0.0
     k_d: float = 0.0
-    supply_current_limit: units.ampere = 40.0
+    supply_current_limit: units.ampere = 70.0
     active_roller_speed_rps: float = 0.0
 
 
