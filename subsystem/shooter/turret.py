@@ -118,7 +118,7 @@ class Turret:
         # Raw yaw rate of the robot (and the turret) from the external IMU.
         self._yaw_rate_signal: phoenix6.status_signal.StatusSignal[
             phoenix6.units.degrees_per_second
-        ] = self.drivetrain.pigeon2.get_angular_velocity_z_world()
+        ] = self.drivetrain.swerve_drive.pigeon2.get_angular_velocity_z_world()
         # Raw position from the external encoder.
         self._encoder_position_signal: phoenix6.status_signal.StatusSignal[
             phoenix6.units.rotation

@@ -3,16 +3,20 @@ from typing import Tuple
 
 import magicbot
 import phoenix6
+import wpilib
 from wpimath import geometry, units
 
 import constants
+from common import alliance
 from subsystem import drivetrain, shooter
 
 INCHES_TO_METERS = 0.0254
 TURRET_TO_ROBOT_X = 4.25 * INCHES_TO_METERS
 TURRET_TO_ROBOT_Y = 0.0 * INCHES_TO_METERS
-HUB_TO_FIELD_X = 182.11 * INCHES_TO_METERS
-HUB_TO_FIELD_Y = 158.845 * INCHES_TO_METERS
+RED_HUB_TO_FIELD_X = 469.11 * INCHES_TO_METERS
+RED_HUB_TO_FIELD_Y = 158.845 * INCHES_TO_METERS
+BLUE_HUB_TO_FIELD_X = 182.11 * INCHES_TO_METERS
+BLUE_HUB_TO_FIELD_Y = 158.845 * INCHES_TO_METERS
 
 
 class ShotTable:
@@ -75,6 +79,7 @@ class HubTracker:
     """
 
     robot_constants: constants.RobotConstants
+    alliance_fetcher: alliance.AllianceFetcher
     drivetrain: drivetrain.Drivetrain
     flywheel: shooter.Flywheel
     hood: shooter.Hood
@@ -89,8 +94,13 @@ class HubTracker:
             )
         )
         # Vector from field origin to center of the hub.
-        self._hub_position: geometry.Translation2d = geometry.Translation2d(
-            HUB_TO_FIELD_X, HUB_TO_FIELD_Y
+        self._hub_position: geometry.Translation2d = (
+            geometry.Translation2d(RED_HUB_TO_FIELD_X, RED_HUB_TO_FIELD_Y)
+            if self.alliance_fetcher.getAlliance()
+            == wpilib.DriverStation.Alliance.kRed
+            else geometry.Translation2d(
+                BLUE_HUB_TO_FIELD_X, BLUE_HUB_TO_FIELD_Y
+            )
         )
         # Pose of the turret relative to the field. This will be computed each
         # control loop based on the current robot pose estimate.
@@ -105,7 +115,7 @@ class HubTracker:
         # Raw yaw rate of the robot (and the turret).
         self._yaw_rate_signal: phoenix6.status_signal.StatusSignal[
             phoenix6.units.degrees_per_second
-        ] = self.drivetrain.pigeon2.get_angular_velocity_z_world()
+        ] = self.drivetrain.swerve_drive.pigeon2.get_angular_velocity_z_world()
 
         # Whether to re-calculate the turret and hood positions each loop.
         self._track_position = True
@@ -118,7 +128,9 @@ class HubTracker:
         self._yaw_rate_signal.refresh()
 
         # Pose of the robot relative to field origin.
-        robot_pose: geometry.Pose2d = self.drivetrain.get_state().pose
+        robot_pose: geometry.Pose2d = (
+            self.drivetrain.swerve_drive.get_state().pose
+        )
         self._turret_field_pose: geometry.Pose2d = robot_pose.transformBy(
             self._robot_to_turret_transform
         )
@@ -171,6 +183,17 @@ class HubTracker:
         self,
     ) -> phoenix6.units.degree:
         """Returns the target angle of the turret, adjusted for predicted robot yaw."""
+        # Vector from field origin to center of the hub. We set this again here
+        # since we may not have known our alliance at startup.
+        self._hub_position = (
+            geometry.Translation2d(RED_HUB_TO_FIELD_X, RED_HUB_TO_FIELD_Y)
+            if self.alliance_fetcher.getAlliance()
+            == wpilib.DriverStation.Alliance.kRed
+            else geometry.Translation2d(
+                BLUE_HUB_TO_FIELD_X, BLUE_HUB_TO_FIELD_Y
+            )
+        )
+
         # Vector from center of turret to center of hub.
         turret_to_hub = (
             self._hub_position - self._turret_field_pose.translation()

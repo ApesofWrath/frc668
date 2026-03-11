@@ -41,7 +41,7 @@ class Vision:
         robot's latest yaw estimate periodically.
         """
         orientation: float = (
-            self.drivetrain.get_state().pose.rotation().degrees()
+            self.drivetrain.swerve_drive.get_state().pose.rotation().degrees()
         )
 
         for ll in self._limelights:
@@ -65,7 +65,7 @@ class Vision:
             )
 
             pose: wpimath.geometry.Pose2d = pose_estimate.pose
-            drivetrain_pose = self.drivetrain.get_state().pose
+            drivetrain_pose = self.drivetrain.swerve_drive.get_state().pose
 
             vision_constants = self.robot_constants.drivetrain.vision
 
@@ -97,8 +97,7 @@ class Vision:
             # If this is the first good vision estimate since startup, hard
             # reset the translation portion of the drivetrain's estimate to it.
             if not self._pose_seeded:
-                # self.drivetrain.reset_translation(pose.translation())
-                self.drivetrain.reset_pose(pose)
+                self.drivetrain.setPose(pose)
                 self._pose_seeded = True
                 self.logger.info(
                     f"Pose seeded from {ll}: ({pose.X()}, {pose.Y()})"
@@ -139,7 +138,7 @@ class Vision:
             synced_timestamp = utils.fpga_to_current_time(
                 pose_estimate.timestamp_seconds
             )
-            self.drivetrain.add_vision_measurement(
+            self.drivetrain.swerve_drive.add_vision_measurement(
                 pose_estimate.pose,
                 synced_timestamp,
                 (
@@ -158,17 +157,19 @@ class Vision:
         """
         Returns robot pose as a Pose2d object.
         """
-        return self.drivetrain.get_state().pose
+        return self.drivetrain.swerve_drive.get_state().pose
 
     @feedback
     def get_robot_yaw_degrees(self) -> float:
         """
         Returns drivetrain's yaw estimate.
         """
-        return self.drivetrain.get_state().pose.rotation().degrees()
-    
-    @feedback 
-    def get_limelight_fl(self) -> wpimath.geometry.Pose2d:
+        return (
+            self.drivetrain.swerve_drive.get_state().pose.rotation().degrees()
+        )
+
+    @feedback
+    def get_limelight_fl_pose(self) -> wpimath.geometry.Pose2d:
         return limelight.LimelightHelpers.get_botpose_2d_wpiblue("limelight-fl")
     
     @feedback 
