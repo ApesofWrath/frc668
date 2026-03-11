@@ -3,16 +3,20 @@ from typing import Tuple
 
 import magicbot
 import phoenix6
+import wpilib
 from wpimath import geometry, units
 
 import constants
+from common import alliance
 from subsystem import drivetrain, shooter
 
 INCHES_TO_METERS = 0.0254
 TURRET_TO_ROBOT_X = 4.25 * INCHES_TO_METERS
 TURRET_TO_ROBOT_Y = 0.0 * INCHES_TO_METERS
-HUB_TO_FIELD_X = 182.11 * INCHES_TO_METERS
-HUB_TO_FIELD_Y = 158.845 * INCHES_TO_METERS
+RED_HUB_TO_FIELD_X = 469.11 * INCHES_TO_METERS
+RED_HUB_TO_FIELD_Y = 158.845 * INCHES_TO_METERS
+BLUE_HUB_TO_FIELD_X = 182.11 * INCHES_TO_METERS
+BLUE_HUB_TO_FIELD_Y = 158.845 * INCHES_TO_METERS
 
 
 class ShotTable:
@@ -75,6 +79,7 @@ class HubTracker:
     """
 
     robot_constants: constants.RobotConstants
+    alliance_fetcher: alliance.AllianceFetcher
     drivetrain: drivetrain.Drivetrain
     flywheel: shooter.Flywheel
     hood: shooter.Hood
@@ -89,56 +94,124 @@ class HubTracker:
             )
         )
         # Vector from field origin to center of the hub.
-        self._hub_position: geometry.Translation2d = geometry.Translation2d(
-            HUB_TO_FIELD_X, HUB_TO_FIELD_Y
+        self._hub_position: geometry.Translation2d = (
+            geometry.Translation2d(RED_HUB_TO_FIELD_X, RED_HUB_TO_FIELD_Y)
+            if self.alliance_fetcher.getAlliance()
+            == wpilib.DriverStation.Alliance.kRed
+            else geometry.Translation2d(
+                BLUE_HUB_TO_FIELD_X, BLUE_HUB_TO_FIELD_Y
+            )
         )
         # Pose of the turret relative to the field. This will be computed each
         # control loop based on the current robot pose estimate.
         self._turret_field_pose: geometry.Pose2d = geometry.Pose2d()
-        # Current target hood angle and flywheel speed.
+
+        # Current targets.
         # TODO: Find better defaults.
+        self._target_turret_angle_degrees: float = 0.0
         self._target_hood_angle_degrees: float = 0.0
         self._target_flywheel_speed_rps: float = 0.0
 
         # Raw yaw rate of the robot (and the turret).
         self._yaw_rate_signal: phoenix6.status_signal.StatusSignal[
             phoenix6.units.degrees_per_second
-        ] = self.drivetrain.pigeon2.get_angular_velocity_z_world()
+        ] = self.drivetrain.swerve_drive.pigeon2.get_angular_velocity_z_world()
 
-        # Whether to have turret and hood track their target positions.
+        # Whether to re-calculate the turret and hood positions each loop.
         self._track_position = True
-        # Whether to have flywheel track its target speed. This is False by
-        # default to save power.
+        # Whether to re-calculate the flywheel speed each loop.
         self._track_speed = False
+        # Whether to command mechanisms to the current targets.
+        self._enabled = True
 
     def execute(self) -> None:
         self._yaw_rate_signal.refresh()
 
         # Pose of the robot relative to field origin.
-        robot_pose: geometry.Pose2d = self.drivetrain.get_state().pose
+        robot_pose: geometry.Pose2d = (
+            self.drivetrain.swerve_drive.get_state().pose
+        )
         self._turret_field_pose: geometry.Pose2d = robot_pose.transformBy(
             self._robot_to_turret_transform
         )
 
-        turret_target_angle = self.get_predictive_turret_target_angle_degrees()
-
         # Set the flywheel and hood targets based on current turret-to-hub
         # distance.
-        self._target_hood_angle_degrees, self._target_flywheel_speed_rps = (
-            ShotTable.get(self.get_turret_distance_from_hub_meters())
+        target_hood_angle_degrees, target_flywheel_speed_rps = ShotTable.get(
+            self.get_turret_distance_from_hub_meters()
         )
 
         if self._track_position:
-            self.turret.setPosition(turret_target_angle)
-            self.hood.setPosition(self._target_hood_angle_degrees)
+            self._target_turret_angle_degrees = (
+                self._computeTargetTurretAngleDegrees()
+            )
+            self._target_hood_angle_degrees = target_hood_angle_degrees
+
         if self._track_speed:
+            self._target_flywheel_speed_rps = target_flywheel_speed_rps
+
+        if self._enabled:
+            self.turret.setPosition(self._target_turret_angle_degrees)
+            self.hood.setPosition(self._target_hood_angle_degrees)
             self.flywheel.setTargetRps(self._target_flywheel_speed_rps)
 
     def trackPosition(self, value: bool) -> None:
+        """If True, the turret and hood angles will be re-calculated each loop."""
         self._track_position = value
 
     def trackSpeed(self, value: bool) -> None:
+        """If True, the flywheel speed will be re-calculated each loop."""
         self._track_speed = value
+
+    def setTargetHoodAngleDegrees(self, value: float) -> None:
+        """Set the target angle for the hood, in degrees."""
+        self._target_hood_angle_degrees = value
+
+    def setTargetTurretAngleDegrees(self, value: float) -> None:
+        """Set the target angle for the turret, in degrees."""
+        self._target_turret_angle_degrees = value
+
+    def setTargetFlywheelSpeedRps(self, value: float) -> None:
+        """Set the target speed for the flywheel, in rotations per second."""
+        self._target_flywheel_speed_rps = value
+
+    def setEnabled(self, value: bool) -> None:
+        """If True, the mechanisms will be commanded to the current targets."""
+        self._enabled = value
+
+    def _computeTargetTurretAngleDegrees(
+        self,
+    ) -> phoenix6.units.degree:
+        """Returns the target angle of the turret, adjusted for predicted robot yaw."""
+        # Vector from field origin to center of the hub. We set this again here
+        # since we may not have known our alliance at startup.
+        self._hub_position = (
+            geometry.Translation2d(RED_HUB_TO_FIELD_X, RED_HUB_TO_FIELD_Y)
+            if self.alliance_fetcher.getAlliance()
+            == wpilib.DriverStation.Alliance.kRed
+            else geometry.Translation2d(
+                BLUE_HUB_TO_FIELD_X, BLUE_HUB_TO_FIELD_Y
+            )
+        )
+
+        # Vector from center of turret to center of hub.
+        turret_to_hub = (
+            self._hub_position - self._turret_field_pose.translation()
+        )
+        target_angle_degrees = (
+            turret_to_hub.angle() - self._turret_field_pose.rotation()
+        ).degrees()
+        # Predict how much the robot will yaw in the next control loop interval
+        # based on our current yaw rate.
+        predictive_lead_angle = self._yaw_rate_signal.value * 0.02
+
+        return max(
+            self.robot_constants.shooter.turret.min_angle,
+            min(
+                self.robot_constants.shooter.turret.max_angle,
+                target_angle_degrees - predictive_lead_angle,
+            ),
+        )
 
     @magicbot.feedback
     def get_turret_distance_from_hub_meters(self) -> phoenix6.units.meter:
@@ -151,34 +224,8 @@ class HubTracker:
 
     @magicbot.feedback
     def get_target_turret_angle_degrees(self) -> phoenix6.units.degree:
-        """Returns the target angle for the turret to track.
-
-        Tracking this angle ensures that the turret is always pointed at the
-        hub.
-        """
-        # Vector from center of turret to center of hub.
-        turret_to_hub = (
-            self._hub_position - self._turret_field_pose.translation()
-        )
-        return (
-            turret_to_hub.angle() - self._turret_field_pose.rotation()
-        ).degrees()
-
-    @magicbot.feedback
-    def get_predictive_turret_target_angle_degrees(
-        self,
-    ) -> phoenix6.units.degree:
-        # Predict how much the robot will yaw in the next control loop interval
-        # based on our current yaw rate.
-        predictive_lead_angle = self._yaw_rate_signal.value * 0.02
-
-        return max(
-            self.robot_constants.shooter.turret.min_angle,
-            min(
-                self.robot_constants.shooter.turret.max_angle,
-                self.get_target_turret_angle_degrees() - predictive_lead_angle,
-            ),
-        )
+        """Returns the target angle for the turret to track."""
+        return self._target_turret_angle_degrees
 
     @magicbot.feedback
     def get_target_hood_angle_degrees(self) -> phoenix6.units.degree:

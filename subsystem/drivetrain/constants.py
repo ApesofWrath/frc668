@@ -277,15 +277,21 @@ DRIVETRAIN_CONSTANTS: dict[str, DrivetrainConstants] = {
     # Juno
     "0323CA4B": DrivetrainConstants(
         common=SwerveModuleCommonConstants(
-            # TODO: Tune.
             steer_motor_gains=configs.Slot0Configs()
-            .with_k_p(100)
+            .with_k_s(0.1321525)
+            .with_k_v(2.531275)
+            .with_k_a(0.036819)
+            .with_k_p(100.0)
+            .with_k_d(0.0)
             .with_static_feedforward_sign(
                 signals.StaticFeedforwardSignValue.USE_CLOSED_LOOP_SIGN
             ),
             drive_motor_gains=configs.Slot0Configs()
-            .with_k_v(0.124)
-            .with_k_p(0.1),
+            .with_k_s(0.309905)
+            .with_k_v(0.1227175)
+            .with_k_a(0.014911)
+            .with_k_p(0.14912)
+            .with_k_d(0),
         ),
         front_left=SwerveModuleConstants(
             steer_motor_id=8,

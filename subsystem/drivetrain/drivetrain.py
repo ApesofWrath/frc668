@@ -5,17 +5,25 @@ from wpimath.geometry import Pose2d
 from phoenix6 import configs, hardware, swerve
 import typing
 
+import commands2
 import magicbot
 import wpilib
 import wpimath
-from phoenix6 import hardware, swerve, units, configs
+from commands2 import sysid as commands2_sysid
+from phoenix6 import hardware, swerve, units, configs, SignalLogger
 
-from common import joystick
+import constants
+from common import alliance, joystick
 from subsystem import drivetrain
 
 
-class Drivetrain(swerve.SwerveDrivetrain):
-    def __init__(self, constants: drivetrain.DrivetrainConstants):
+class Drivetrain(commands2.Subsystem):
+    robot_constants: constants.RobotConstants
+    alliance_fetcher: alliance.AllianceFetcher
+
+    def setup(self) -> None:
+        constants = self.robot_constants.drivetrain
+
         constants_factory: swerve.SwerveModuleConstantsFactory[
             configs.TalonFXConfiguration,
             configs.TalonFXConfiguration,
@@ -54,7 +62,7 @@ class Drivetrain(swerve.SwerveDrivetrain):
             )
         )
 
-        super().__init__(
+        self.swerve_drive = swerve.SwerveDrivetrain(
             hardware.TalonFX,
             hardware.TalonFX,
             hardware.CANcoder,
@@ -110,65 +118,220 @@ class Drivetrain(swerve.SwerveDrivetrain):
             ],
         )
 
-        self.logger = logging.getLogger(__name__)
-        self._alliance: typing.Optional[wpilib.DriverStation.Alliance] = None
-
-    def setup(self) -> None:
-        """Set up initial state for the drivetrain.
-
-        This method is called after createObjects has been called in the main
-        robot class, and after all components have been created.
-        """
-        # Try to apply operator perspective forward based on alliance.
-        self.maybeSetOperatorPerspectiveForward()
-
         self._drive_request = (
             swerve.requests.FieldCentric().with_drive_request_type(
-                swerve.SwerveModule.DriveRequestType.OPEN_LOOP_VOLTAGE
+                swerve.SwerveModule.DriveRequestType.VELOCITY
             )
         )
+        self._operator_perspective_set = False
+        self._maybeSetOperatorPerspectiveForward()
 
     def execute(self) -> None:
         """Command the drivetrain to the current speeds.
 
         This method is called at the end of the control loop.
         """
-        if not self._alliance and not wpilib.RobotBase.isSimulation():
-            self.logger.error(
-                "Failed to apply operator prespective based on alliance."
-            )
-        self.set_control(self._drive_request)
-
-    def maybeSetOperatorPerspectiveForward(self) -> None:
-        # If we have our alliance, we already set operator perspective.
-        if self._alliance:
-            return
-        # If not, try to get the alliance.
-        self._alliance = wpilib.DriverStation.getAlliance()
-        # If we got it, set the operator perspective.
-        if self._alliance:
-            self.logger.info(f"We are alliance: {self._alliance}")
-            self.set_operator_perspective_forward(
-                drivetrain.constants.RED_ALLIANCE_PERSPECTIVE_ROTATION
-                if self._alliance == wpilib.DriverStation.Alliance.kRed
-                else drivetrain.constants.BLUE_ALLIANCE_PERSPECTIVE_ROTATION
-            )
+        self._maybeSetOperatorPerspectiveForward()
+        if not self._operator_perspective_set:
+            self.logger.warning("Driving without operator perspective set")
+        self.swerve_drive.set_control(self._drive_request)
 
     def setSpeeds(
         self,
         command: joystick.DriveCommand,
     ) -> None:
+        """Set the drivetrain's target speeds."""
         self._drive_request.with_velocity_x(command.vx).with_velocity_y(
             command.vy
         ).with_rotational_rate(command.omega)
 
-    def isManual(self):
-        return True
-    
+    def setPose(self, pose: wpimath.geometry.Pose2d) -> None:
+        """Hard reset the robot's pose estimate."""
+        self.swerve_drive.reset_pose(pose)
+
+    def _maybeSetOperatorPerspectiveForward(self) -> None:
+        if self._operator_perspective_set:
+            return
+        alliance = self.alliance_fetcher.getAlliance()
+        if alliance:
+            self.logger.info(f"Setting operator perspective for {alliance}")
+            self.swerve_drive.set_operator_perspective_forward(
+                drivetrain.constants.RED_ALLIANCE_PERSPECTIVE_ROTATION
+                if alliance == wpilib.DriverStation.Alliance.kRed
+                else drivetrain.constants.BLUE_ALLIANCE_PERSPECTIVE_ROTATION
+            )
+            self._operator_perspective_set = True
+
     @magicbot.feedback
     def get_robot_pose(self) -> wpimath.geometry.Pose2d:
-        return self.get_state().pose
+        return self.swerve_drive.get_state().pose
 
     @magicbot.feedback
     def get_robot_speed(self) -> swerve.ChassisSpeeds:
-        return self.get_state().speeds
+        return self.swerve_drive.get_state().speeds
+
+
+class DrivetrainTuner:
+    """Component for tuning the drivetrain."""
+
+    drivetrain: Drivetrain
+
+    translation_quasistatic = magicbot.tunable(False)
+    translation_dynamic = magicbot.tunable(False)
+    rotation_quasistatic = magicbot.tunable(False)
+    rotation_dynamic = magicbot.tunable(False)
+    steer_quasistatic = magicbot.tunable(False)
+    steer_dynamic = magicbot.tunable(False)
+
+    reverse = magicbot.tunable(False)
+
+    def setup(self) -> None:
+        self._last_tq = self.translation_quasistatic
+        self._last_td = self.translation_dynamic
+        self._last_rq = self.rotation_quasistatic
+        self._last_rd = self.rotation_dynamic
+        self._last_sq = self.steer_quasistatic
+        self._last_sd = self.steer_dynamic
+
+        self._translation_request = swerve.requests.SysIdSwerveTranslation()
+        self._rotation_request = swerve.requests.SysIdSwerveRotation()
+        self._steer_request = swerve.requests.SysIdSwerveSteerGains()
+
+        self._sysid_config = commands2_sysid.SysIdRoutine.Config(
+            stepVoltage=2.0,
+            timeout=2.0,
+            recordState=lambda state: SignalLogger.write_string(
+                "state", wpilib.sysid.SysIdRoutineLog.stateEnumToString(state)
+            ),
+        )
+
+        self._sysid_translation = commands2_sysid.SysIdRoutine(
+            self._sysid_config,
+            commands2_sysid.SysIdRoutine.Mechanism(
+                lambda volts: self.drivetrain.swerve_drive.set_control(
+                    self._translation_request.with_volts(volts)
+                ),
+                lambda log: None,
+                self.drivetrain,
+                "Drivetrain",
+            ),
+        )
+
+        self._sysid_rotation = commands2_sysid.SysIdRoutine(
+            self._sysid_config,
+            commands2_sysid.SysIdRoutine.Mechanism(
+                lambda rotational_rate: self.drivetrain.swerve_drive.set_control(
+                    self._rotation_request.with_rotational_rate(rotational_rate)
+                ),
+                lambda log: None,
+                self.drivetrain,
+                "Drivetrain",
+            ),
+        )
+
+        self._sysid_steer = commands2_sysid.SysIdRoutine(
+            self._sysid_config,
+            commands2_sysid.SysIdRoutine.Mechanism(
+                lambda volts: self.drivetrain.swerve_drive.set_control(
+                    self._steer_request.with_volts(volts)
+                ),
+                lambda log: None,
+                self.drivetrain,
+                "Drivetrain",
+            ),
+        )
+
+        self._scheduler = commands2.CommandScheduler.getInstance()
+
+    def on_enable(self) -> None:
+        self._scheduler.enable()
+
+    def on_disable(self) -> None:
+        self._scheduler.disable()
+        SignalLogger.stop()
+
+    def execute(self) -> None:
+        if (
+            sum(
+                [
+                    self.translation_quasistatic,
+                    self.translation_dynamic,
+                    self.rotation_quasistatic,
+                    self.rotation_dynamic,
+                    self.steer_quasistatic,
+                    self.steer_dynamic,
+                ]
+            )
+            > 1
+        ):
+            self.logger.warning(
+                "Cannot apply multiple sysid routines simultaneously"
+            )
+            self._updateState()
+            return
+
+        direction = (
+            commands2_sysid.SysIdRoutine.Direction.kReverse
+            if self.reverse
+            else commands2_sysid.SysIdRoutine.Direction.kForward
+        )
+        # Only schedule a sysid command on a rising edge.
+        if self.translation_quasistatic and not self._last_tq:
+            self.sysIdTranslationQuasistatic(direction)
+        if self.translation_dynamic and not self._last_td:
+            self.sysIdTranslationDynamic(direction)
+        if self.rotation_quasistatic and not self._last_rq:
+            self.sysIdRotationQuasistatic(direction)
+        if self.rotation_dynamic and not self._last_rd:
+            self.sysIdRotationDynamic(direction)
+        if self.steer_quasistatic and not self._last_sq:
+            self.sysIdSteerQuasistatic(direction)
+        if self.steer_dynamic and not self._last_sd:
+            self.sysIdSteerDynamic(direction)
+
+        self._updateState()
+        self._scheduler.run()
+
+    def _updateState(self) -> None:
+        self._last_tq = self.translation_quasistatic
+        self._last_td = self.translation_dynamic
+        self._last_rq = self.rotation_quasistatic
+        self._last_rd = self.rotation_dynamic
+        self._last_sq = self.steer_quasistatic
+        self._last_sd = self.steer_dynamic
+
+    def sysIdTranslationQuasistatic(
+        self, direction: commands2_sysid.SysIdRoutine.Direction
+    ) -> None:
+        self._scheduler.cancelAll()
+        self._scheduler.schedule(self._sysid_translation.quasistatic(direction))
+
+    def sysIdTranslationDynamic(
+        self, direction: commands2_sysid.SysIdRoutine.Direction
+    ) -> None:
+        self._scheduler.cancelAll()
+        self._scheduler.schedule(self._sysid_translation.dynamic(direction))
+
+    def sysIdRotationQuasistatic(
+        self, direction: commands2_sysid.SysIdRoutine.Direction
+    ) -> None:
+        self._scheduler.cancelAll()
+        self._scheduler.schedule(self._sysid_rotation.quasistatic(direction))
+
+    def sysIdRotationDynamic(
+        self, direction: commands2_sysid.SysIdRoutine.Direction
+    ) -> None:
+        self._scheduler.cancelAll()
+        self._scheduler.schedule(self._sysid_rotation.dynamic(direction))
+
+    def sysIdSteerQuasistatic(
+        self, direction: commands2_sysid.SysIdRoutine.Direction
+    ) -> None:
+        self._scheduler.cancelAll()
+        self._scheduler.schedule(self._sysid_steer.quasistatic(direction))
+
+    def sysIdSteerDynamic(
+        self, direction: commands2_sysid.SysIdRoutine.Direction
+    ) -> None:
+        self._scheduler.cancelAll()
+        self._scheduler.schedule(self._sysid_steer.dynamic(direction))

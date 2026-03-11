@@ -8,6 +8,8 @@ from subsystem import drivetrain
 
 
 class TestChassis(magicbot.MagicRobot):
+    drivetrain: drivetrain.Drivetrain
+
     def createObjects(self) -> None:
         self.robot_constants: constants.RobotConstants = (
             constants.get_robot_constants()
@@ -16,9 +18,6 @@ class TestChassis(magicbot.MagicRobot):
             f"Using constants for serial #{self.robot_constants.serial}"
         )
 
-        self.drivetrain: drivetrain.Drivetrain = drivetrain.Drivetrain(
-            self.robot_constants.drivetrain
-        )
         self.joystick: joystick.DriverJoystick = joystick.DriverController(
             wpilib.XboxController(0),
             self.robot_constants.drivetrain.drive_options,
@@ -29,24 +28,10 @@ class TestChassis(magicbot.MagicRobot):
             )
         )
 
-        self.drivetrain.setup()
-
-    def robotInit(self) -> None:
-        """MagicBot internal API
-
-        Do NOT add anything in here!
-        """
-        super().robotInit()
-
-        # Technically, we shouldn't be overriding this method. But we need to
-        # add our Drivetrain component to magicbot's internal list so its
-        # on_enable, on_disable, and execute methods are called appropriately.
-        self._components.append(("drivetrain", self.drivetrain))
-
     def disabledPeriodic(self) -> None:
         # Periodically try to set operator perspective, in case we weren't able
         # to during setup.
-        self.drivetrain.maybeSetOperatorPerspectiveForward()
+        self.drivetrain._maybeSetOperatorPerspectiveForward()
 
     def teleopPeriodic(self) -> None:
         if self.joystick.shouldResetOrientation():
