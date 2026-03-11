@@ -85,8 +85,8 @@ class Turret:
             )
             .with_current_limits(
                 phoenix6.configs.CurrentLimitsConfigs()
-                .with_stator_current_limit(turret_constants.stator_current_limit)
-                .with_stator_current_limit_enable(False)
+                .with_supply_current_limit(turret_constants.supply_current_limit)
+                .with_supply_current_limit_enable(True)
             )
         )
         result = self.turret_motor.configurator.apply(self.turret_motor_configs)

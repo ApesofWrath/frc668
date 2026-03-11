@@ -43,8 +43,8 @@ class Indexer:
             )
             .with_current_limits(
                 phoenix6.configs.CurrentLimitsConfigs()
-                .with_stator_current_limit(indexer_constants.stator_current_limit)
-                .with_stator_current_limit_enable(False)
+                .with_supply_current_limit(indexer_constants.supply_current_limit)
+                .with_supply_current_limit_enable(True)
             )
         )
         # Configuration settings for front motor.
@@ -66,8 +66,8 @@ class Indexer:
             )
             .with_current_limits(
                 phoenix6.configs.CurrentLimitsConfigs()
-                .with_stator_current_limit(indexer_constants.stator_current_limit)
-                .with_stator_current_limit_enable(False)
+                .with_supply_current_limit(indexer_constants.supply_current_limit)
+                .with_supply_current_limit_enable(True)
             )
         )
 

@@ -42,8 +42,8 @@ class Intake:
             )
             .with_current_limits(
                 configs.CurrentLimitsConfigs()
-                .with_stator_current_limit(self.robot_constants.intake.stator_current_limit)
-                .with_stator_current_limit_enable(False)
+                .with_supply_current_limit(self.robot_constants.intake.supply_current_limit)
+                .with_supply_current_limit_enable(True)
             )
         )
 
