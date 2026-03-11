@@ -7,7 +7,7 @@ import wpimath
 from phoenix6 import swerve, hardware
 
 import constants
-from common import joystick
+from common import alliance, joystick
 from subsystem import drivetrain, shooter, intake
 from subsystem.drivetrain import limelight
 
@@ -24,6 +24,7 @@ class MyRobot(magicbot.MagicRobot):
 
     intake_deployer: intake.IntakeDeployer
     shooter_state_machine: shooter.Shooter
+    alliance_fetcher: alliance.AllianceFetcher
 
     hub_tracker: shooter.HubTracker
     drivetrain: drivetrain.Drivetrain
@@ -41,20 +42,6 @@ class MyRobot(magicbot.MagicRobot):
             constants.get_robot_constants()
         )
         self.logger.info(f"Robot serial number: {self.robot_constants.serial}")
-
-        # We instantiate the Drivetrain component manually, because magicbot
-        # does not allow accessing injected variables from component
-        # constructors. Our Drivetrain component needs to access robot constants
-        # in the constructor to properly initialize its parent class
-        # (phoenix6.swerve.SwerveDrivetrain). Therefore we cannot rely on
-        # self.robot_constants being injected automatically into Drivetrain, and
-        # must pass the constants into the constructor manually.
-        #
-        # Since we manually instantiate drivetrain, magicbot will not attempt to
-        # auto-instantiate it for us. Keeping the annotation above is helpful so
-        # that other components can benefit from automatic injection of
-        # Drivetrain, and other benefits like IDE autocomplete/type checking.
-        self.drivetrain = drivetrain.Drivetrain(self.robot_constants.drivetrain)
 
         self.driver_controller = joystick.DriverController(
             wpilib.XboxController(0),
@@ -127,26 +114,6 @@ class MyRobot(magicbot.MagicRobot):
 
         self._tuning_mode = False
 
-        # Since we manually instantiate Drivetrain, magicbot will not call setup
-        # for us.
-        self.drivetrain.setup()
-
-    def robotInit(self) -> None:
-        """MagicBot internal API
-
-        Do NOT add anything in here!
-        """
-        super().robotInit()
-
-        # Technically, we shouldn't be overriding this method. But we need to
-        # add our Drivetrain component to magicbot's internal list so its
-        # on_enable, on_disable, and execute methods are called appropriately.
-        self._components.append(("drivetrain", self.drivetrain))
-        # And we need to register its feedback methods.
-        self._feedbacks += magicbot.magic_tunable.collect_feedbacks(
-            self.drivetrain, "drivetrain", "components"
-        )
-
     def robotPeriodic(self) -> None:
         if wpilib.DriverStation.isEnabled():
             # If we haven't deployed the intake yet, do so.
@@ -201,10 +168,7 @@ class MyRobot(magicbot.MagicRobot):
         for ll in self.vision._limelights:
             limelight.LimelightHelpers.set_imu_mode(ll, 1)
             self.vision.setRobotOrientation()
-
-        # Periodically try to set operator perspective, in case we weren't able
-        # to during setup.
-        self.drivetrain.maybeSetOperatorPerspectiveForward()
+        self.drivetrain._maybeSetOperatorPerspectiveForward()
 
     def teleopInit(self) -> None:
         """Initialize teleoperated mode.
@@ -227,10 +191,19 @@ class MyRobot(magicbot.MagicRobot):
         """
         # TODO: Handle exceptions so robot code doesn't crash.
         if self.driver_controller.shouldResetOrientation():
-            # Robot's front touching the hub wall in the blue alliance zone.
-            self.drivetrain.reset_pose(
-                wpimath.geometry.Pose2d(3.6854, 4.0136, 0)
-            )
+            alliance = self.alliance_fetcher.getAlliance()
+            if alliance == wpilib.DriverStation.Alliance.kRed:
+                # Robot's front touching the hub wall in the red alliance zone.
+                self.drivetrain.setPose(
+                    wpimath.geometry.Pose2d(12.8556, 4.0136, math.pi)
+                )
+                self.logger.info(f"Reset pose for red alliance")
+            else:
+                # Robot's front touching the hub wall in the blue alliance zone.
+                self.drivetrain.setPose(
+                    wpimath.geometry.Pose2d(3.6854, 4.0136, 0)
+                )
+                self.logger.info(f"Reset pose for blue alliance")
             self.vision._pose_seeded = False
         self.driveWithJoysicks()
         self.controlShooter()
@@ -273,29 +246,3 @@ class MyRobot(magicbot.MagicRobot):
         """Drive the intake motors."""
         if self.driver_controller.toggleIntake():
             self.intake.toggleActive()
-
-
-def filterInput(controller_input: float, apply_deadband: bool = True) -> float:
-    """Filter the controller input with a squared scaling and deadband.
-
-    This function squares the input while preserving its sign to provide finer
-    control at lower values. If `apply_deadband` is True, it applies a deadband
-    to ignore small inputs that may result from controller drift.
-
-    Args:
-        controller_input:
-            The raw input from the controller, ranging from -1.0 to 1.0.
-        apply_deadband:
-            Whether to apply a deadband to the input. Defaults to True.
-
-    Returns:
-        A float that is the filtered controller input.
-    """
-    controller_input_corrected = math.copysign(
-        math.pow(controller_input, 2), controller_input
-    )
-
-    if apply_deadband:
-        return wpimath.applyDeadband(controller_input_corrected, DEADBAND)
-    else:
-        return controller_input_corrected
