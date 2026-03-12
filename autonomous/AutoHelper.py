@@ -7,7 +7,7 @@ from magicbot import AutonomousStateMachine, state
 import wpilib
 from common.joystick import DriveCommand
 import wpimath.controller
-# from common import alliance
+from common import alliance
 
 # from autonomous.DepotTrench import DepotTrenchNoNeutral
 # from autonomous.OutpostTrench import OutpostTrenchNoNeutral
@@ -23,7 +23,7 @@ class AutoHelper():
 
     hub_tracker: shooter.HubTracker
     shooter_state_machine: shooter.Shooter
-    # alliance_fetcher: alliance.AllianceFetcher
+    alliance_fetcher: alliance.AllianceFetcher
 
     vision: drivetrain.Vision
     
@@ -36,12 +36,12 @@ class AutoHelper():
 
     def reset(self,path:str,reset_rot = False):
         self.trajectory = choreo.load_swerve_trajectory(path)
-        initial_pose = self.trajectory.get_initial_pose()#red
+        initial_pose = self.trajectory.get_initial_pose(self.alliance_fetcher.getAlliance() == wpilib.DriverStation.Alliance.kRed)
         if initial_pose is None:
             self.logger.error("Choreo trajetory initial_pose is None")
             return
-        # if(reset_rot):
-        #     self.drivetrain.reset_pose(initial_pose)
+        if(reset_rot):
+            self.drivetrain.swerve_drive.reset_pose(initial_pose)
         self.traj_time = 0.0
         self.triggered_events = []
 
@@ -54,7 +54,7 @@ class AutoHelper():
         """
         self.traj_time = state_tm
         
-        sample = self.trajectory.sample_at(self.traj_time)#red
+        sample = self.trajectory.sample_at(self.traj_time,self.alliance_fetcher.getAlliance() == wpilib.DriverStation.Alliance.kRed)#red
         if sample is None:
             self.logger.error(f"Failed to get trajectory sample at time {self.traj_time}")
             return
