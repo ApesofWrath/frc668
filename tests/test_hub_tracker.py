@@ -276,16 +276,16 @@ def test_execute_updates_turret_pose_and_commands_angle(
 
 def test_execute_zero_yaw_rate_does_not_offset_target_angle(mocker) -> None:
     """Zero yaw-rate should produce no predictive offset in commanded angle."""
+    blue_hub = geometry.Translation2d(
+        hub_tracker.BLUE_HUB_TO_FIELD_X, hub_tracker.BLUE_HUB_TO_FIELD_Y
+    )
+    turret_pos = blue_hub - geometry.Translation2d(1.0, 0.0).rotateBy(
+        geometry.Rotation2d.fromDegrees(17.5)
+    )
     tracker = _make_tracker(
         mocker,
-        robot_pose=_robot_pose_with_turret_at(
-            geometry.Translation2d(),
-            robot_yaw_degrees=0.0,
-        ),
+        robot_pose=_robot_pose_with_turret_at(turret_pos, robot_yaw_degrees=0.0),
         yaw_rate_degrees_per_second=0.0,
-    )
-    tracker._hub_position = geometry.Translation2d(1.0, 0.0).rotateBy(
-        geometry.Rotation2d.fromDegrees(17.5)
     )
 
     tracker.execute()
@@ -314,18 +314,18 @@ def test_execute_clamps_target_angle_to_limits(
     expected_command: float,
 ) -> None:
     """execute clamps commanded turret angle to configured min/max limits."""
+    blue_hub = geometry.Translation2d(
+        hub_tracker.BLUE_HUB_TO_FIELD_X, hub_tracker.BLUE_HUB_TO_FIELD_Y
+    )
+    turret_pos = blue_hub - geometry.Translation2d(1.0, 0.0).rotateBy(
+        geometry.Rotation2d.fromDegrees(requested_angle)
+    )
     tracker = _make_tracker(
         mocker,
-        robot_pose=_robot_pose_with_turret_at(
-            geometry.Translation2d(),
-            robot_yaw_degrees=0.0,
-        ),
+        robot_pose=_robot_pose_with_turret_at(turret_pos, robot_yaw_degrees=0.0),
         min_angle=-30.0,
         max_angle=30.0,
         yaw_rate_degrees_per_second=yaw_rate_degrees_per_second,
-    )
-    tracker._hub_position = geometry.Translation2d(1.0, 0.0).rotateBy(
-        geometry.Rotation2d.fromDegrees(requested_angle)
     )
 
     tracker.execute()
@@ -354,18 +354,18 @@ def test_execute_compensation_applied_before_clamping(
     expected_command: float,
 ) -> None:
     """Compensation happens before limit clamping and can push in-range targets out."""
+    blue_hub = geometry.Translation2d(
+        hub_tracker.BLUE_HUB_TO_FIELD_X, hub_tracker.BLUE_HUB_TO_FIELD_Y
+    )
+    turret_pos = blue_hub - geometry.Translation2d(1.0, 0.0).rotateBy(
+        geometry.Rotation2d.fromDegrees(requested_angle)
+    )
     tracker = _make_tracker(
         mocker,
-        robot_pose=_robot_pose_with_turret_at(
-            geometry.Translation2d(),
-            robot_yaw_degrees=0.0,
-        ),
+        robot_pose=_robot_pose_with_turret_at(turret_pos, robot_yaw_degrees=0.0),
         min_angle=-30.0,
         max_angle=30.0,
         yaw_rate_degrees_per_second=yaw_rate_degrees_per_second,
-    )
-    tracker._hub_position = geometry.Translation2d(1.0, 0.0).rotateBy(
-        geometry.Rotation2d.fromDegrees(requested_angle)
     )
 
     tracker.execute()
@@ -378,16 +378,16 @@ def test_execute_compensation_applied_before_clamping(
 
 def test_execute_updates_compensation_across_control_loops(mocker) -> None:
     """Each execute loop should refresh yaw-rate and recompute compensation."""
+    blue_hub = geometry.Translation2d(
+        hub_tracker.BLUE_HUB_TO_FIELD_X, hub_tracker.BLUE_HUB_TO_FIELD_Y
+    )
+    turret_pos = blue_hub - geometry.Translation2d(1.0, 0.0).rotateBy(
+        geometry.Rotation2d.fromDegrees(10.0)
+    )
     tracker = _make_tracker(
         mocker,
-        robot_pose=_robot_pose_with_turret_at(
-            geometry.Translation2d(),
-            robot_yaw_degrees=0.0,
-        ),
+        robot_pose=_robot_pose_with_turret_at(turret_pos, robot_yaw_degrees=0.0),
         yaw_rate_degrees_per_second=50.0,
-    )
-    tracker._hub_position = geometry.Translation2d(1.0, 0.0).rotateBy(
-        geometry.Rotation2d.fromDegrees(10.0)
     )
 
     tracker.execute()
@@ -421,9 +421,11 @@ def test_compute_target_turret_angle_degrees_is_relative_to_heading(
 ) -> None:
     """Computed target angle is relative to current turret heading."""
     tracker = _make_tracker(mocker, geometry.Pose2d())
-    tracker._hub_position = geometry.Translation2d(1.0, 0.0)
+    blue_hub = geometry.Translation2d(
+        hub_tracker.BLUE_HUB_TO_FIELD_X, hub_tracker.BLUE_HUB_TO_FIELD_Y
+    )
     tracker._turret_field_pose = geometry.Pose2d(
-        geometry.Translation2d(),
+        blue_hub - geometry.Translation2d(1.0, 0.0),
         geometry.Rotation2d.fromDegrees(90.0),
     )
 
