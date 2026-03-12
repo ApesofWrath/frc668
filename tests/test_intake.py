@@ -20,6 +20,7 @@ class MockIntakeConstants:
         self.k_p = 0.2
         self.k_i = 0.0
         self.k_d = 0.0
+        self.supply_current_limit = 40.0
 
 
 @pytest.fixture
@@ -79,6 +80,10 @@ class TestIntake:
         assert s0.k_p == mock_constants.intake.k_p
         assert s0.k_i == mock_constants.intake.k_i
         assert s0.k_d == mock_constants.intake.k_d
+        assert (
+            config.current_limits.supply_current_limit
+            == mock_constants.intake.supply_current_limit
+        )
 
     def test_setup_creates_control_request(self, intake):
         """The VelocityVoltage request object should exist after setup."""

@@ -23,6 +23,7 @@ class TunerBot(robot.MyRobot):
     hopper_tuner: shooter.HopperTuner
     indexer_tuner: shooter.IndexerTuner
     turret_tuner: shooter.TurretTuner
+    vision_tuner: drivetrain.vision.VisionTuner
     intake_tuner: intake.IntakeTuner
     drivetrain_tuner: drivetrain.DrivetrainTuner
 
