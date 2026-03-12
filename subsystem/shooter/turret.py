@@ -85,7 +85,9 @@ class Turret:
             )
             .with_current_limits(
                 phoenix6.configs.CurrentLimitsConfigs()
-                .with_supply_current_limit(turret_constants.supply_current_limit)
+                .with_supply_current_limit(
+                    turret_constants.supply_current_limit
+                )
                 .with_supply_current_limit_enable(True)
             )
         )

@@ -43,7 +43,9 @@ class Hopper:
             )
             .with_current_limits(
                 phoenix6.configs.CurrentLimitsConfigs()
-                .with_supply_current_limit(hopper_constants.supply_current_limit)
+                .with_supply_current_limit(
+                    hopper_constants.supply_current_limit
+                )
                 .with_supply_current_limit_enable(True)
             )
         )
@@ -65,8 +67,10 @@ class Hopper:
             )
             .with_current_limits(
                 phoenix6.configs.CurrentLimitsConfigs()
-                .with_supply_current_limit(hopper_constants.supply_current_limit)
-                .with_supply_current_limit_enable(True)            
+                .with_supply_current_limit(
+                    hopper_constants.supply_current_limit
+                )
+                .with_supply_current_limit_enable(True)
             )
         )
 

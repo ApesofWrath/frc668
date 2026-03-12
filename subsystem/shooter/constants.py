@@ -30,6 +30,7 @@ class HopperConstants:
     default_speed_rps: units.rotations_per_second = 30.0
     supply_current_limit: units.ampere = 40.0
 
+
 @dataclass(frozen=True)
 class IndexerConstants:
     back_motor_can_id: int = 0
@@ -56,6 +57,7 @@ class IndexerConstants:
     front_k_d: float = 0.0
     default_speed_rps: units.rotations_per_second = 20.0
     supply_current_limit: units.ampere = 40.0
+
 
 @dataclass(frozen=True)
 class FlywheelConstants:

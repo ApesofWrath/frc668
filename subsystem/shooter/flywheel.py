@@ -51,7 +51,9 @@ class Flywheel:
             )
             .with_current_limits(
                 phoenix6.configs.CurrentLimitsConfigs()
-                .with_supply_current_limit(flywheel_constants.supply_current_limit)
+                .with_supply_current_limit(
+                    flywheel_constants.supply_current_limit
+                )
                 .with_supply_current_limit_enable(True)
             )
         )
@@ -111,10 +113,11 @@ class Flywheel:
     @magicbot.feedback
     def get_target_rps(self) -> float:
         return self._target_rps
-    
+
     @magicbot.feedback
     def get_measured_rps(self) -> float:
         return self.flywheel_encoder.get_velocity().value
+
 
 class FlywheelTuner:
     """Component for tuning the flywheel gains.

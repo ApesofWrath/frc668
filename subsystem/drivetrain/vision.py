@@ -1,7 +1,7 @@
 import math
 
 import wpimath
-from magicbot import feedback, tunable 
+from magicbot import feedback, tunable
 from phoenix6 import utils
 
 import constants
@@ -28,7 +28,7 @@ class Vision:
         self._pose_seeded = False
 
         self.xy_std_devs = 0.0
-        self.theta_std_devs = 0.0 
+        self.theta_std_devs = 0.0
 
     def execute(self) -> None:
         self.setRobotOrientation()
@@ -171,27 +171,32 @@ class Vision:
     @feedback
     def get_limelight_fl_pose(self) -> wpimath.geometry.Pose2d:
         return limelight.LimelightHelpers.get_botpose_2d_wpiblue("limelight-fl")
-    
-    @feedback 
+
+    @feedback
     def get_limelight_fr(self) -> wpimath.geometry.Pose2d:
         return limelight.LimelightHelpers.get_botpose_2d_wpiblue("limelight-fr")
-    
-    @feedback 
+
+    @feedback
     def get_limelight_upfl(self) -> wpimath.geometry.Pose2d:
-        return limelight.LimelightHelpers.get_botpose_2d_wpiblue("limelight-upfl")
-    
-    @feedback 
+        return limelight.LimelightHelpers.get_botpose_2d_wpiblue(
+            "limelight-upfl"
+        )
+
+    @feedback
     def get_limelight_upfr(self) -> wpimath.geometry.Pose2d:
-        return limelight.LimelightHelpers.get_botpose_2d_wpiblue("limelight-upfr")
-    
+        return limelight.LimelightHelpers.get_botpose_2d_wpiblue(
+            "limelight-upfr"
+        )
+
     @feedback
     def get_xy_std_deviation(self) -> float:
         return self.xy_std_devs
-    
+
     @feedback
     def get_theta_std_deviation(self) -> float:
         return self.theta_std_devs
-    
+
+
 class VisionTuner:
     robot_constants: constants.RobotConstants
     drivetrain: drivetrain.Drivetrain
@@ -217,8 +222,10 @@ class VisionTuner:
         self.last_theta_std_devs = self.theta_std_devs
 
     def valuesChanged(self) -> bool:
-        return (self.last_xy_std_devs != self.xy_std_devs 
-                or self.last_theta_std_devs != self.theta_std_devs)
-    
+        return (
+            self.last_xy_std_devs != self.xy_std_devs
+            or self.last_theta_std_devs != self.theta_std_devs
+        )
+
     def applyValues(self) -> None:
         self.vision.set_std_devs(self.xy_std_devs, self.theta_std_devs)

@@ -43,7 +43,9 @@ class Indexer:
             )
             .with_current_limits(
                 phoenix6.configs.CurrentLimitsConfigs()
-                .with_supply_current_limit(indexer_constants.supply_current_limit)
+                .with_supply_current_limit(
+                    indexer_constants.supply_current_limit
+                )
                 .with_supply_current_limit_enable(True)
             )
         )
@@ -66,7 +68,9 @@ class Indexer:
             )
             .with_current_limits(
                 phoenix6.configs.CurrentLimitsConfigs()
-                .with_supply_current_limit(indexer_constants.supply_current_limit)
+                .with_supply_current_limit(
+                    indexer_constants.supply_current_limit
+                )
                 .with_supply_current_limit_enable(True)
             )
         )
