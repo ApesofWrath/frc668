@@ -40,6 +40,13 @@ class Intake:
                 .with_k_i(self.robot_constants.intake.k_i)
                 .with_k_d(self.robot_constants.intake.k_d)
             )
+            .with_current_limits(
+                configs.CurrentLimitsConfigs()
+                .with_supply_current_limit(
+                    self.robot_constants.intake.supply_current_limit
+                )
+                .with_supply_current_limit_enable(True)
+            )
         )
 
         self._request = controls.VelocityVoltage(0.0).with_slot(0)

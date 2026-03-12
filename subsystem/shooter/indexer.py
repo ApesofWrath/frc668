@@ -41,6 +41,13 @@ class Indexer:
                 .with_k_i(indexer_constants.back_k_i)
                 .with_k_d(indexer_constants.back_k_d)
             )
+            .with_current_limits(
+                phoenix6.configs.CurrentLimitsConfigs()
+                .with_supply_current_limit(
+                    indexer_constants.supply_current_limit
+                )
+                .with_supply_current_limit_enable(True)
+            )
         )
         # Configuration settings for front motor.
         self.indexer_front_motor.configurator.apply(
@@ -58,6 +65,13 @@ class Indexer:
                 .with_k_p(indexer_constants.front_k_p)
                 .with_k_i(indexer_constants.front_k_i)
                 .with_k_d(indexer_constants.front_k_d)
+            )
+            .with_current_limits(
+                phoenix6.configs.CurrentLimitsConfigs()
+                .with_supply_current_limit(
+                    indexer_constants.supply_current_limit
+                )
+                .with_supply_current_limit_enable(True)
             )
         )
 

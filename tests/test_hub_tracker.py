@@ -99,8 +99,8 @@ def _make_tracker(
     tracker.drivetrain.swerve_drive.pigeon2.get_angular_velocity_z_world.return_value = (
         yaw_rate_signal
     )
-    tracker.drivetrain.swerve_drive.get_state.return_value = types.SimpleNamespace(
-        pose=robot_pose
+    tracker.drivetrain.swerve_drive.get_state.return_value = (
+        types.SimpleNamespace(pose=robot_pose)
     )
     tracker.flywheel = mocker.Mock()
     tracker.hood = mocker.Mock()

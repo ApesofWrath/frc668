@@ -1,7 +1,7 @@
 import math
 
 import wpimath
-from magicbot import feedback
+from magicbot import feedback, tunable
 from phoenix6 import utils
 
 import constants
@@ -26,6 +26,9 @@ class Vision:
         # Tracks whether the drivetrain's pose estimator has been seeded with a
         # good vision estimate since startup.
         self._pose_seeded = False
+
+        self.xy_std_devs = 0.0
+        self.theta_std_devs = 0.0
 
     def execute(self) -> None:
         self.setRobotOrientation()
@@ -145,6 +148,10 @@ class Vision:
                 ),
             )
 
+    def set_std_devs(self, xy_std_dev, theta_std_dev) -> None:
+        self.xy_std_devs = xy_std_dev
+        self.theta_std_devs = theta_std_dev
+
     @feedback
     def get_robot_pose(self) -> wpimath.geometry.Pose2d:
         """
@@ -162,23 +169,63 @@ class Vision:
         )
 
     @feedback
-    def get_limelight_fl_pose(self) -> wpimath.geometry.Pose2d:
+    def get_limelight_fl(self) -> wpimath.geometry.Pose2d:
         return limelight.LimelightHelpers.get_botpose_2d_wpiblue("limelight-fl")
 
     @feedback
-    def get_limelight_fr_pose(self) -> wpimath.geometry.Pose2d:
+    def get_limelight_fr(self) -> wpimath.geometry.Pose2d:
         return limelight.LimelightHelpers.get_botpose_2d_wpiblue("limelight-fr")
-        # 2.5 dist
 
     @feedback
-    def get_limelight_upfl_pose(self) -> wpimath.geometry.Pose2d:
+    def get_limelight_upfl(self) -> wpimath.geometry.Pose2d:
         return limelight.LimelightHelpers.get_botpose_2d_wpiblue(
             "limelight-upfl"
         )
 
     @feedback
-    def get_limelight_upfr_pose(self) -> wpimath.geometry.Pose2d:
+    def get_limelight_upfr(self) -> wpimath.geometry.Pose2d:
         return limelight.LimelightHelpers.get_botpose_2d_wpiblue(
             "limelight-upfr"
         )
-        # 2.2 dist
+
+    @feedback
+    def get_xy_std_deviation(self) -> float:
+        return self.xy_std_devs
+
+    @feedback
+    def get_theta_std_deviation(self) -> float:
+        return self.theta_std_devs
+
+
+class VisionTuner:
+    robot_constants: constants.RobotConstants
+    drivetrain: drivetrain.Drivetrain
+    vision: Vision
+
+    xy_std_devs = tunable(0.0)
+    theta_std_devs = tunable(0.0)
+
+    def setup(self) -> None:
+        self.xy_std_devs = 0.0
+        self.last_xy_std_devs = self.xy_std_devs
+
+        self.theta_std_devs = 0.0
+        self.last_theta_std_devs = self.theta_std_devs
+
+    def execute(self) -> None:
+        if not self.valuesChanged():
+            return
+
+        self.applyValues()
+
+        self.last_xy_std_devs = self.xy_std_devs
+        self.last_theta_std_devs = self.theta_std_devs
+
+    def valuesChanged(self) -> bool:
+        return (
+            self.last_xy_std_devs != self.xy_std_devs
+            or self.last_theta_std_devs != self.theta_std_devs
+        )
+
+    def applyValues(self) -> None:
+        self.vision.set_std_devs(self.xy_std_devs, self.theta_std_devs)
