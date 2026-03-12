@@ -149,18 +149,6 @@ class MyRobot(magicbot.MagicRobot):
         This is called each time the robot enters autonomous mode, regardless of
         the selected autonomous routine.
         """
-        self.auto_selected = self.auto_chooser.getSelected()
-        print(f"Auto selected: {self.auto_selected}")
-
-        if self.auto_selected == "test":
-            self.logger.info("TESTS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-            
-            # Run code for option 1
-            pass
-        else:
-            # Run default code
-            self.logger.info("NOT TESTS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-            pass
 
         self.logger.info("Entering autonomous mode")
 

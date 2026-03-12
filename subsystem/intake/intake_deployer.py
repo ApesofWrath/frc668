@@ -51,7 +51,7 @@ class IntakeDeployer(magicbot.StateMachine):
             .with_current_limits(
                 phoenix6.configs.CurrentLimitsConfigs()
                 .with_supply_current_limit(
-                    self.robot_constants.intake.supply_current_limit
+                    self.robot_constants.intake.rotation_supply_current_limit
                 )
                 .with_supply_current_limit_enable(True)
             )
