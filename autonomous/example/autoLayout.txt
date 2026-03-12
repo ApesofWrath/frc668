@@ -11,7 +11,11 @@ class _AUTONAME(AutonomousStateMachine): # CHANGE CLASS NAME
         self.AutoHelper.reset("FirstTrajName",True) # SET FIRST TRAJ NAME
         super().on_enable()
 
-    @state(first=True)
+    @timed_state(first=True,duration=1,next_state="first_state_name") # SET FIRST STATE NAME
+    def wait_for_intake(self):
+        pass
+
+    @state()
     def first_state_name(self,state_tm): # SET STATE NAME FOR FIRST STATE
         tick_result = self.AutoHelper.Tick(state_tm)
         if(tick_result == 1):

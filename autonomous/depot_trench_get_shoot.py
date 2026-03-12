@@ -9,8 +9,12 @@ class DepotTrench_GetAndShoot(AutonomousStateMachine):
     def on_enable(self):
         self.AutoHelper.reset("testpath",True)#Depot_GetDepotAndShoot
         super().on_enable()
+    
+    @timed_state(first=True,duration=1,next_state="get_depot_and_shoot")
+    def wait_for_intake(self):
+        pass
 
-    @state(first=True)
+    @state()
     def get_depot_and_shoot(self,state_tm):
         tick_result = self.AutoHelper.Tick(state_tm)
         if(tick_result == 1):
