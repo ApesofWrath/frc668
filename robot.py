@@ -150,6 +150,7 @@ class MyRobot(magicbot.MagicRobot):
         This is called each time the robot enters autonomous mode, regardless of
         the selected autonomous routine.
         """
+
         self.logger.info("Entering autonomous mode")
 
     def disabledPeriodic(self) -> None:
@@ -163,6 +164,7 @@ class MyRobot(magicbot.MagicRobot):
             limelight.LimelightHelpers.set_imu_mode(ll, 1)
             self.vision.setRobotOrientation()
         self.drivetrain._maybeSetOperatorPerspectiveForward()
+        self.logger.info(self._automodes.chooser.getSelected())
 
     def teleopInit(self) -> None:
         """Initialize teleoperated mode.
