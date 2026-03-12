@@ -141,6 +141,7 @@ class MyRobot(magicbot.MagicRobot):
             self.hub_tracker.trackSpeed(True)
             self.hub_tracker.setEnabled(False)
 
+        # Required for SmartDashboard choosers to work (without this, you cant change autos)
         super().robotPeriodic()
 
     def autonomousInit(self) -> None:
