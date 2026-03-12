@@ -4,6 +4,7 @@
 from magicbot import AutonomousStateMachine, state, timed_state
 from subsystem import drivetrain
 from phoenix6 import swerve
+from common.joystick import DriveCommand
 
 class Auton_Test(AutonomousStateMachine):
     MODE_NAME = "Test"
@@ -14,17 +15,9 @@ class Auton_Test(AutonomousStateMachine):
 
     @timed_state(first=True, duration=2, next_state="stop")
     def spin(self):
-        self.drivetrain.set_control(
-            self.drive_request.with_velocity_x(0)
-            .with_velocity_y(0)
-            .with_rotational_rate(0.6)
-        )
+        self.drivetrain.setSpeeds(DriveCommand(0,0,1))
 
     @state
     def stop(self):
-        self.drivetrain.set_control(
-            self.drive_request.with_velocity_x(0)
-            .with_velocity_y(0)
-            .with_rotational_rate(0)
-        )
+        self.drivetrain.setSpeeds(DriveCommand(0,0,0))
         self.done()

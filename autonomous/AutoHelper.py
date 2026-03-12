@@ -6,6 +6,8 @@ from wpimath.geometry import Pose2d
 from magicbot import AutonomousStateMachine, state
 import wpilib
 from common.joystick import DriveCommand
+import wpimath.controller
+# from common import alliance
 
 # from autonomous.DepotTrench import DepotTrenchNoNeutral
 # from autonomous.OutpostTrench import OutpostTrenchNoNeutral
@@ -19,16 +21,22 @@ class AutoHelper():
     hopper: shooter.Hopper
     intake: intake.Intake
 
+    hub_tracker: shooter.HubTracker
+    shooter_state_machine: shooter.Shooter
+    # alliance_fetcher: alliance.AllianceFetcher
+
     vision: drivetrain.Vision
     
     # drive_request: swerve.requests.FieldCentric
 
     def __init__(self) -> None:
-        pass
+        self.x_controller = wpimath.controller.PIDController(1, 0, 0)
+        self.y_controller = wpimath.controller.PIDController(1, 0, 0)
+        self.omega_controller = wpimath.controller.PIDController(0.75, 0, 0)
 
     def reset(self,path:str,reset_rot = False):
         self.trajectory = choreo.load_swerve_trajectory(path)
-        initial_pose = self.trajectory.get_initial_pose()
+        initial_pose = self.trajectory.get_initial_pose()#red
         if initial_pose is None:
             self.logger.error("Choreo trajetory initial_pose is None")
             return
@@ -46,17 +54,20 @@ class AutoHelper():
         """
         self.traj_time = state_tm
         
-        sample = self.trajectory.sample_at(self.traj_time)
+        sample = self.trajectory.sample_at(self.traj_time)#red
         if sample is None:
             self.logger.error(f"Failed to get trajectory sample at time {self.traj_time}")
             return
         
         # this control method should probably get improved to use more of the sample's info at some point
-        self.drivetrain.setSpeeds(DriveCommand(sample.vx,sample.vy,sample.omega))
+        targetvx = min(sample.vx + self.x_controller.calculate(self.drivetrain.get_robot_pose().X(), sample.x), 2)
+        targetvy = min(sample.vy + self.y_controller.calculate(self.drivetrain.get_robot_pose().Y(), sample.y), 2)
+        targetomega = min(sample.omega + self.omega_controller.calculate(self.drivetrain.get_robot_pose().rotation().radians(), sample.heading),1.5)
+        self.drivetrain.setSpeeds(DriveCommand(targetvx,targetvy,targetomega))
 
-        self.logger.info(f"x:{self.vision.get_robot_pose().X()},y:{self.vision.get_robot_pose().Y()},r:{self.vision.get_robot_pose().rotation().radians()}")
-        self.logger.info(f"x:{sample.x},y:{sample.y},r:{sample.get_pose().rotation().radians()}")
-        # self.logger.info(f"dx:{self.vision.get_robot_pose().X()-sample.x},dy:{self.vision.get_robot_pose().Y()-sample.y},dr:{self.vision.get_robot_pose().rotation().radians()-sample.get_pose().rotation().radians()}")
+        # self.logger.info(f"x:{self.vision.get_robot_pose().X()},y:{self.vision.get_robot_pose().Y()},r:{self.vision.get_robot_pose().rotation().radians()}")
+        # self.logger.info(f"x:{sample.x},y:{sample.y},r:{sample.get_pose().rotation().radians()}")
+        self.logger.info(f"dx:{sample.x-self.vision.get_robot_pose().X()},dy:{sample.y-self.vision.get_robot_pose().Y()},dr:{sample.get_pose().rotation().radians()-self.vision.get_robot_pose().rotation().radians()}")
 
 
         for i in range(len(self.trajectory.events)):
@@ -69,12 +80,14 @@ class AutoHelper():
             return 1
         return 0
 
+    def stop_moving(self):
+        self.drivetrain.setSpeeds(DriveCommand(0,0,0))
 
     def end(self):
         self.drivetrain.setSpeeds(DriveCommand(0,0,0))
         self.hopper.setEnabled(False)
         self.indexer.setEnabled(False)
-        self.intake.setMotorSpeed(0.0)
+        self.intake.setActive(False)
         if(self.flywheel.get_target_rps() > 10):
             self.flywheel.setTargetRps(10)
 
@@ -85,25 +98,27 @@ class AutoHelper():
         if(event.count(":") != 0):
             val = event.split(":")[1]
         match func:
-            case "flywheel.speed":
-                if val is None: self._raise_value_not_specified(event)
-                self.flywheel.setTargetRps(float(val))
-            case "turret.position":
-                if val is None: self._raise_value_not_specified(event)
-                self.turret.setPosition(float(val))
-            case "hood.position":
-                if val is None: self._raise_value_not_specified(event)
-                self.hood.setPosition(float(val))
+            # case "flywheel.speed":
+            #     if val is None: self._raise_value_not_specified(event)
+            #     self.flywheel.setTargetRps(float(val))
+            # case "turret.position":
+            #     if val is None: self._raise_value_not_specified(event)
+            #     self.turret.setPosition(float(val))
+            # case "hood.position":
+            #     if val is None: self._raise_value_not_specified(event)
+            #     self.hood.setPosition(float(val))
+            case "shooter_auto.enable": # only use if you have already disabled the hubtracker
+                self.hub_tracker.setEnabled(True)
+            case "shooter_auto.disable": # only use if you have want to disable the hubtracker
+                self.hub_tracker.setEnabled(False)
             case "shooter.enable":
-                self.hopper.setEnabled(True)
-                self.indexer.setEnabled(True)
+                self.shooter_state_machine.setDriverWantsFeed(True)
             case "shooter.disable":
-                self.hopper.setEnabled(False)
-                self.indexer.setEnabled(False)
+                self.shooter_state_machine.setDriverWantsFeed(False)
             case "intake.enable":
-                self.intake.setMotorSpeed(1.0)
+                self.intake.setActive(True)
             case "intake.disable":
-                self.intake.setMotorSpeed(0.0)
+                self.intake.setActive(False)
             case "logger.log":
                 self.logger.info(val)
             
