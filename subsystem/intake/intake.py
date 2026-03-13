@@ -43,7 +43,7 @@ class Intake:
             .with_current_limits(
                 configs.CurrentLimitsConfigs()
                 .with_supply_current_limit(
-                    self.robot_constants.intake.roller_supply_current_limit
+                    self.robot_constants.intake.roller_motor_supply_current_limit
                 )
                 .with_supply_current_limit_enable(True)
             )

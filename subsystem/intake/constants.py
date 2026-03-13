@@ -10,11 +10,13 @@ class IntakeConstants:
     roller_motor_inverted: signals.InvertedValue = (
         signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
     )
+    roller_motor_supply_current_limit: units.ampere = 40.0
     deploy_motor_can_id: int = 0
     deploy_motor_can_bus: str = ""
     deploy_motor_inverted: signals.InvertedValue = (
         signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
     )
+    deploy_motor_supply_current_limit: units.ampere = 10.0
     deploy_encoder_can_id: int = 0
     deploy_encoder_can_bus: str = ""
     deploy_encoder_direction: signals.SensorDirectionValue = (
@@ -29,8 +31,6 @@ class IntakeConstants:
     k_p: float = 0.0
     k_i: float = 0.0
     k_d: float = 0.0
-    roller_supply_current_limit: units.ampere = 10.0
-    rotation_supply_current_limit: units.ampere = 40.0
     active_roller_speed_rps: float = 0.0
 
 

@@ -284,7 +284,9 @@ def test_execute_zero_yaw_rate_does_not_offset_target_angle(mocker) -> None:
     )
     tracker = _make_tracker(
         mocker,
-        robot_pose=_robot_pose_with_turret_at(turret_pos, robot_yaw_degrees=0.0),
+        robot_pose=_robot_pose_with_turret_at(
+            turret_pos, robot_yaw_degrees=0.0
+        ),
         yaw_rate_degrees_per_second=0.0,
     )
 
@@ -322,7 +324,9 @@ def test_execute_clamps_target_angle_to_limits(
     )
     tracker = _make_tracker(
         mocker,
-        robot_pose=_robot_pose_with_turret_at(turret_pos, robot_yaw_degrees=0.0),
+        robot_pose=_robot_pose_with_turret_at(
+            turret_pos, robot_yaw_degrees=0.0
+        ),
         min_angle=-30.0,
         max_angle=30.0,
         yaw_rate_degrees_per_second=yaw_rate_degrees_per_second,
@@ -362,7 +366,9 @@ def test_execute_compensation_applied_before_clamping(
     )
     tracker = _make_tracker(
         mocker,
-        robot_pose=_robot_pose_with_turret_at(turret_pos, robot_yaw_degrees=0.0),
+        robot_pose=_robot_pose_with_turret_at(
+            turret_pos, robot_yaw_degrees=0.0
+        ),
         min_angle=-30.0,
         max_angle=30.0,
         yaw_rate_degrees_per_second=yaw_rate_degrees_per_second,
@@ -386,7 +392,9 @@ def test_execute_updates_compensation_across_control_loops(mocker) -> None:
     )
     tracker = _make_tracker(
         mocker,
-        robot_pose=_robot_pose_with_turret_at(turret_pos, robot_yaw_degrees=0.0),
+        robot_pose=_robot_pose_with_turret_at(
+            turret_pos, robot_yaw_degrees=0.0
+        ),
         yaw_rate_degrees_per_second=50.0,
     )
 
