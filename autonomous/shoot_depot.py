@@ -27,7 +27,7 @@ class ShootDepot(AutonomousStateMachine):
     def shoot(self):
         self.AutoHelper.stop_moving()
 
-    @state
+    @state()
     def end(self):
         self.AutoHelper.shooter_state_machine.setDriverWantsFeed(False)
         self.AutoHelper.end()

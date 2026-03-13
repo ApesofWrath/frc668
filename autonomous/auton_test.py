@@ -17,7 +17,7 @@ class Auton_Test(AutonomousStateMachine):
     def spin(self):
         self.drivetrain.setSpeeds(DriveCommand(0,0,1))
 
-    @state
+    @state()
     def stop(self):
         self.drivetrain.setSpeeds(DriveCommand(0,0,0))
         self.done()

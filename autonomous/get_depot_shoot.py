@@ -27,7 +27,7 @@ class BumpDepotShoot(AutonomousStateMachine):
     def shoot_until_end(self):
         self.AutoHelper.stop_moving()
         
-    @state
+    @state()
     def end(self):
         self.AutoHelper.shooter_state_machine.setDriverWantsFeed(False)
         self.AutoHelper.end()
