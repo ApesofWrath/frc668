@@ -30,9 +30,9 @@ class AutoHelper():
     # drive_request: swerve.requests.FieldCentric
 
     def __init__(self) -> None:
-        self.x_controller = wpimath.controller.PIDController(1, 0, 0)
-        self.y_controller = wpimath.controller.PIDController(1, 0, 0)
-        self.omega_controller = wpimath.controller.PIDController(1.5, 0, 0)
+        self.x_controller = wpimath.controller.PIDController(0.8, 0, 0)
+        self.y_controller = wpimath.controller.PIDController(0.8, 0, 0)
+        self.omega_controller = wpimath.controller.PIDController(0.65, 0, 0)
 
     def reset(self,path:str,reset_rot = False):
         if reset_rot:
@@ -65,8 +65,7 @@ class AutoHelper():
         # this control method should probably get improved to use more of the sample's info at some point
         targetvx = flip_speeds * min(sample.vx + self.x_controller.calculate(self.drivetrain.get_robot_pose().X(), sample.x), 2)
         targetvy = flip_speeds * min(sample.vy + self.y_controller.calculate(self.drivetrain.get_robot_pose().Y(), sample.y), 2)
-        # targetomega = min(-sample.omega + self.omega_controller.calculate(self.drivetrain.get_robot_pose().rotation().radians(), sample.heading),1.5)
-        targetomega = sample.omega - self.omega_controller.calculate(self.drivetrain.get_robot_pose().rotation().radians(), sample.heading)
+        targetomega = sample.omega# - self.omega_controller.calculate(self.drivetrain.get_robot_pose().rotation().radians(), sample.heading)
         self.drivetrain.setSpeeds(DriveCommand(targetvx,targetvy,targetomega))
 
         self.logger.info(f"theta: {sample.heading}, omega: {sample.omega}, target omega: {targetomega}")
@@ -93,6 +92,7 @@ class AutoHelper():
         self.hopper.setEnabled(False)
         self.indexer.setEnabled(False)
         self.intake.setActive(False)
+        self.shooter_state_machine.setDriverWantsFeed(False)
         if(self.flywheel.get_target_rps() > 10):
             self.flywheel.setTargetRps(10)
 

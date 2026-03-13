@@ -1,13 +1,13 @@
 from magicbot import AutonomousStateMachine, state, timed_state
 from autonomous import AutoHelper
 
-class DepotTrench_GetAndShoot(AutonomousStateMachine):
-    MODE_NAME = "depottrench_depot_shoot"
+class RampDepotShoot(AutonomousStateMachine):
+    MODE_NAME = "ramp_depot_side_shoot"
 
     AutoHelper: AutoHelper.AutoHelper
 
     def on_enable(self):
-        self.AutoHelper.reset("Depot_GetDepotAndShoot",True)#testpath
+        self.AutoHelper.reset("RampDepot_GetDepotAndShoot_copy1",True)#testpath
         super().on_enable()
     
     @timed_state(first=True,duration=1,next_state="get_depot_and_shoot")

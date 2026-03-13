@@ -9,7 +9,7 @@ class ShootDepotBumps(AutonomousStateMachine):
     intake_deployer: intake.IntakeDeployer 
 
     def on_enable(self):
-        self.AutoHelper.reset("shootFromDepotDriveBumps",True)
+        self.AutoHelper.reset("shootDepotDriveBumps",True)
         super().on_enable()
 
     @timed_state(first=True, duration=1.0, next_state="move")
