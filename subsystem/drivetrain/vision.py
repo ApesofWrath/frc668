@@ -106,14 +106,14 @@ class Vision:
                 )
                 continue
 
-            if (
-                drivetrain_pose.translation().distance(pose.translation())
-                > vision_constants.max_diff_from_robot_pose
-            ):
-                self.logger.warning(
-                    f"{ll}: Rejected large jump: {drivetrain_pose.translation().distance(pose.translation())}m"
-                )
-                continue
+            # if (
+            #     drivetrain_pose.translation().distance(pose.translation())
+            #     > vision_constants.max_diff_from_robot_pose
+            # ):
+            #     self.logger.warning(
+            #         f"{ll}: Rejected large jump: {drivetrain_pose.translation().distance(pose.translation())}m"
+            #     )
+            #     continue
 
             # Nudge the drivetrain's pose estimator in the direction of the
             # vision estimate.
