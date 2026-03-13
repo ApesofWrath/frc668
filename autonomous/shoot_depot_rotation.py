@@ -2,14 +2,14 @@ from magicbot import AutonomousStateMachine, state, timed_state
 from autonomous import AutoHelper
 from subsystem import intake
 
-class ShootDepot(AutonomousStateMachine):    
-    MODE_NAME = "shoot_from_depot"
+class ShootDepotRot(AutonomousStateMachine):    
+    MODE_NAME = "test_shoot_from_depot_rot"
 
     AutoHelper: AutoHelper.AutoHelper
     intake_deployer: intake.IntakeDeployer 
 
     def on_enable(self):
-        self.AutoHelper.reset("shootFromDepot",True)
+        self.AutoHelper.reset("testShootFromDepotRot",True)
         super().on_enable()
 
     @timed_state(first=True, duration=1.0, next_state="move")

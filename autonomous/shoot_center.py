@@ -1,21 +1,21 @@
 from magicbot import AutonomousStateMachine, state, timed_state
 from autonomous import AutoHelper
-from subsystem import intake 
+from subsystem import intake
 
-class ShootOutpost(AutonomousStateMachine):
-    MODE_NAME = "shoot_from_outpost"
+class ShootCenter(AutonomousStateMachine):
+    MODE_NAME = "shoot_from_center"
 
     AutoHelper: AutoHelper.AutoHelper
     intake_deployer: intake.IntakeDeployer 
 
     def on_enable(self):
-        self.AutoHelper.reset("shootFromOutpost",True)
+        self.AutoHelper.reset("ShootFromCenter",True)
         super().on_enable()
 
-    @timed_state(first=True, duration=1.0, next_state="move")
+    @timed_state(first=True, duration=1.0, next_state="moveToCenter")
     def deployIntake(self):
         if self.intake_deployer._deployed: 
-            self.next_state("move")
+            self.next_state("moveToCenter")
 
     @state()
     def moveToCenter(self,state_tm): 

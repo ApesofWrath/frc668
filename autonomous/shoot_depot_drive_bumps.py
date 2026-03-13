@@ -3,13 +3,13 @@ from autonomous import AutoHelper
 from subsystem import intake
 
 class ShootDepotBumps(AutonomousStateMachine):
-    MODE_NAME = "shoot_from_depot_bumps"
+    MODE_NAME = "shoot_from_depot_drive_over_bumps"
 
     AutoHelper: AutoHelper.AutoHelper
     intake_deployer: intake.IntakeDeployer 
 
     def on_enable(self):
-        self.AutoHelper.reset("shootDepotDriveBumps",True)
+        self.AutoHelper.reset("ShootFromDepot_DriveOverBumps",True)
         super().on_enable()
 
     @timed_state(first=True, duration=1.0, next_state="move")
