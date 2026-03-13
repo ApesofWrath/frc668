@@ -35,6 +35,8 @@ class AutoHelper():
         self.omega_controller = wpimath.controller.PIDController(0.75, 0, 0)
 
     def reset(self,path:str,reset_rot = False):
+        if reset_rot:
+            self.logger.info(f"resetting as {self.alliance_fetcher.getAlliance()}")
         self.trajectory = choreo.load_swerve_trajectory(path)
         initial_pose = self.trajectory.get_initial_pose(self.alliance_fetcher.getAlliance() == wpilib.DriverStation.Alliance.kRed)
         if initial_pose is None:
@@ -53,21 +55,22 @@ class AutoHelper():
         :rtype: int
         """
         self.traj_time = state_tm
-        
-        sample = self.trajectory.sample_at(self.traj_time,self.alliance_fetcher.getAlliance() == wpilib.DriverStation.Alliance.kRed)#red
+        sample = self.trajectory.sample_at(self.traj_time, self.alliance_fetcher.getAlliance() == wpilib.DriverStation.Alliance.kRed)#red
         if sample is None:
             self.logger.error(f"Failed to get trajectory sample at time {self.traj_time}")
             return
+        self.logger.info(f"t={state_tm}s: x={sample.x}, y={sample.y}, theta={sample.heading}, vx={sample.vx}, vy={sample.vy}, omega={sample.omega}")
         
+        flip_speeds = -1.0 if self.alliance_fetcher.getAlliance() == wpilib.DriverStation.Alliance.kRed else 1.0
         # this control method should probably get improved to use more of the sample's info at some point
-        targetvx = min(sample.vx + self.x_controller.calculate(self.drivetrain.get_robot_pose().X(), sample.x), 2)
-        targetvy = min(sample.vy + self.y_controller.calculate(self.drivetrain.get_robot_pose().Y(), sample.y), 2)
-        targetomega = min(sample.omega + self.omega_controller.calculate(self.drivetrain.get_robot_pose().rotation().radians(), sample.heading),1.5)
+        targetvx = flip_speeds * min(sample.vx + self.x_controller.calculate(self.drivetrain.get_robot_pose().X(), sample.x), 2)
+        targetvy = flip_speeds * min(sample.vy + self.y_controller.calculate(self.drivetrain.get_robot_pose().Y(), sample.y), 2)
+        targetomega = flip_speeds * min(sample.omega + self.omega_controller.calculate(self.drivetrain.get_robot_pose().rotation().radians(), sample.heading),1.5)
         self.drivetrain.setSpeeds(DriveCommand(targetvx,targetvy,targetomega))
 
         # self.logger.info(f"x:{self.vision.get_robot_pose().X()},y:{self.vision.get_robot_pose().Y()},r:{self.vision.get_robot_pose().rotation().radians()}")
         # self.logger.info(f"x:{sample.x},y:{sample.y},r:{sample.get_pose().rotation().radians()}")
-        self.logger.info(f"dx:{sample.x-self.vision.get_robot_pose().X()},dy:{sample.y-self.vision.get_robot_pose().Y()},dr:{sample.get_pose().rotation().radians()-self.vision.get_robot_pose().rotation().radians()}")
+        # self.logger.info(f"dx:{sample.x-self.vision.get_robot_pose().X()},dy:{sample.y-self.vision.get_robot_pose().Y()},dr:{sample.get_pose().rotation().radians()-self.vision.get_robot_pose().rotation().radians()}")
 
 
         for i in range(len(self.trajectory.events)):
