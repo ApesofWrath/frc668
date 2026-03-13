@@ -113,6 +113,7 @@ class MyRobot(magicbot.MagicRobot):
         )
 
         self._tuning_mode = False
+        self._auto_done = False
 
     def robotPeriodic(self) -> None:
         if wpilib.DriverStation.isEnabled():
@@ -145,6 +146,8 @@ class MyRobot(magicbot.MagicRobot):
         the selected autonomous routine.
         """
         self.logger.info("Entering autonomous mode")
+        self.drivetrain.setAutoEnabled(True)
+        self._auto_done = True
 
     def disabledInit(self) -> None:
         """Initialize disabled mode.
@@ -154,6 +157,7 @@ class MyRobot(magicbot.MagicRobot):
         called.
         """
         self.logger.info("Robot disabled")
+        self.drivetrain.setAutoEnabled(False)
         self.vision._pose_seeded = False
         self.vision.imu_four = False
 
@@ -164,6 +168,13 @@ class MyRobot(magicbot.MagicRobot):
         disabled mode. This code executes before the `execute` method of all
         components are called.
         """
+        # Seed our pose estimator with the initial pose of the selected auto
+        # mode, if we haven't run our auto yet.
+        if not self._auto_done and self._automodes is not None:
+            auto_mode = self._automodes.chooser.getSelected()
+            if auto_mode is not None:
+                self.drivetrain.setPose(auto_mode.getInitialPose())
+
         for ll in self.vision._limelights:
             limelight.LimelightHelpers.set_imu_mode(ll, 1)
             self.vision.setRobotOrientation()
