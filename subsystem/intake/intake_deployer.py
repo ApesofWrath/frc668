@@ -7,14 +7,17 @@ from subsystem import intake
 
 
 class IntakeDeployer(magicbot.StateMachine):
+    """Component that deploys the intake
+
+    This class deploys our intake using a simple state machine.
+    """
+
     robot_constants: constants.RobotConstants
     intake_deploy_motor: phoenix6.hardware.TalonFX
     intake_deploy_encoder: phoenix6.hardware.CANcoder
     intake: intake.Intake
 
     def __init__(self):
-        self._first_spike = True
-        self._timer = wpilib.Timer()
         self._deployed = False
 
     def setup(self) -> None:
@@ -51,47 +54,51 @@ class IntakeDeployer(magicbot.StateMachine):
             .with_current_limits(
                 phoenix6.configs.CurrentLimitsConfigs()
                 .with_supply_current_limit(
-                    self.robot_constants.intake.supply_current_limit
+                    self.robot_constants.intake.deploy_motor_supply_current_limit
                 )
                 .with_supply_current_limit_enable(True)
             )
         )
+
+        # Assume the intake has been reset to its vertical position, and set the
+        # mechanism position to zero.
         self.intake_deploy_encoder.set_position(0.0)
 
     def deploy(self) -> None:
-        self.engage()
-        self.logger.info(self.current_state)
+        """Deploy the intake.
 
-    @magicbot.state(first=True, must_finish=True)
+        Call this each control loop when the robot is enabled.
+        """
+        if not self._deployed:
+            self.engage()
+
+    @magicbot.state(first=True)
     def deploying(self, state_tm) -> None:
-        self.intake.setActive(True)
-        self.intake_deploy_motor.set(0.25)
-        if (
-            self.intake_deploy_encoder.get_position().value_as_double
-            >= 0.25
-            * self.robot_constants.intake.deploy_sensor_to_mechanism_ratio
-        ):
+        # Based on testing on the robot, deploying the intake corresponds to
+        # roughly one full rotation on the encoder. Apply a motor input most of
+        # the way there, but stop a bit early so that we don't push against the
+        # bumper.
+        if self.intake_deploy_encoder.get_position().value >= 0.85:
             self.next_state("deployed")
         elif state_tm >= 10.0:
-            self.next_state("timeout")
-        else:
-            self.logger.info("Deploying")
+            self.next_state("timed_out")
 
-    @magicbot.state()
+        self.intake.setActive(True)
+        self.intake_deploy_motor.set(0.25)
+
+    @magicbot.state
     def deployed(self):
+        self.logger.info("Success: Intake deployed")
         self._deployed = True
         self.intake_deploy_motor.set(0.0)
         self.done()
-        self._timer.stop()
-        self._timer.reset()
-        self.logger.info("Success: Intake deployed")
 
-    @magicbot.state()
-    def timeout(self) -> None:
-        self.logger.warning("Intake deploy timed out!")
+    @magicbot.state
+    def timed_out(self) -> None:
+        self.logger.error("Intake deploy timed out!")
         self.intake_deploy_motor.set(0.0)
         self.done()
 
     @magicbot.feedback
     def get_encoder_rotation(self) -> float:
-        return self.intake_deploy_encoder.get_position().value_as_double
+        return self.intake_deploy_encoder.get_position().value

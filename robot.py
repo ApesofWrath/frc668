@@ -116,9 +116,8 @@ class MyRobot(magicbot.MagicRobot):
 
     def robotPeriodic(self) -> None:
         if wpilib.DriverStation.isEnabled():
-            # If we haven't deployed the intake yet, do so.
-            if not self.intake_deployer._deployed:
-                self.intake_deployer.deploy()
+            # Deploy the intake.
+            self.intake_deployer.deploy()
             # Use external IMU assist when enabled.
             for ll in self.vision._limelights:
                 limelight.LimelightHelpers.set_imu_mode(ll, 4)
