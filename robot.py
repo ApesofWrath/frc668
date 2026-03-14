@@ -120,6 +120,7 @@ class MyRobot(magicbot.MagicRobot):
         )
 
         self._tuning_mode = False
+        self._auto_done = False
 
     def robotPeriodic(self) -> None:
         if wpilib.DriverStation.isEnabled():
@@ -129,7 +130,7 @@ class MyRobot(magicbot.MagicRobot):
                 limelight.LimelightHelpers.set_imu_mode(ll, 4)
         else:
             auto_mode = self._automodes.chooser.getSelected()
-            if auto_mode:
+            if auto_mode and not self._auto_done:
                 # self.logger.info(f"Alliance: {self.alliance_fetcher.getAlliance()}")
                 # self.logger.info(f"Auto mode: {auto_mode.MODE_NAME}")
                 initial_pose = auto_mode.trajectory.get_initial_pose(self.alliance_fetcher.getAlliance() == wpilib.DriverStation.Alliance.kRed)
@@ -159,6 +160,7 @@ class MyRobot(magicbot.MagicRobot):
         """
 
         self.logger.info("Entering autonomous mode")
+        self._auto_done = True
 
     def disabledPeriodic(self) -> None:
         """Run during disabled mode.
