@@ -196,7 +196,7 @@ class MyRobot(magicbot.MagicRobot):
         """
         # TODO: Handle exceptions so robot code doesn't crash.
         if self.driver_controller.shouldResetOrientation():
-            alliance = self.alliance_fetcher.getAlliance()
+            alliance = wpilib.DriverStation.getAlliance()
             if alliance == wpilib.DriverStation.Alliance.kRed:
                 # Robot's front touching the hub wall in the red alliance zone.
                 self.drivetrain.setPose(

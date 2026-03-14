@@ -55,13 +55,13 @@ class AutoHelper():
         :rtype: int
         """
         self.traj_time = state_tm
-        sample = self.trajectory.sample_at(self.traj_time, self.alliance_fetcher.getAlliance() == wpilib.DriverStation.Alliance.kRed)#red
+        sample = self.trajectory.sample_at(self.traj_time, wpilib.DriverStation.getAlliance() != wpilib.DriverStation.Alliance.kBlue)
         if sample is None:
             self.logger.error(f"Failed to get trajectory sample at time {self.traj_time}")
             return
         self.logger.info(f"t={state_tm}s: x={sample.x}, y={sample.y}, theta={sample.heading}, vx={sample.vx}, vy={sample.vy}, omega={sample.omega}")
         
-        flip_speeds = -1.0 if self.alliance_fetcher.getAlliance() == wpilib.DriverStation.Alliance.kRed else 1.0
+        flip_speeds = -1.0 if wpilib.DriverStation.getAlliance() != wpilib.DriverStation.Alliance.kBlue else 1.0
         # this control method should probably get improved to use more of the sample's info at some point
         targetvx = flip_speeds * min(sample.vx + self.x_controller.calculate(self.drivetrain.get_robot_pose().X(), sample.x), 2)
         targetvy = flip_speeds * min(sample.vy + self.y_controller.calculate(self.drivetrain.get_robot_pose().Y(), sample.y), 2)

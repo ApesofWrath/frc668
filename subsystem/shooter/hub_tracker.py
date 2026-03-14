@@ -96,7 +96,7 @@ class HubTracker:
         # Vector from field origin to center of the hub.
         self._hub_position: geometry.Translation2d = (
             geometry.Translation2d(RED_HUB_TO_FIELD_X, RED_HUB_TO_FIELD_Y)
-            if self.alliance_fetcher.getAlliance()
+            if wpilib.DriverStation.getAlliance()
             == wpilib.DriverStation.Alliance.kRed
             else geometry.Translation2d(
                 BLUE_HUB_TO_FIELD_X, BLUE_HUB_TO_FIELD_Y
@@ -187,7 +187,7 @@ class HubTracker:
         # since we may not have known our alliance at startup.
         self._hub_position = (
             geometry.Translation2d(RED_HUB_TO_FIELD_X, RED_HUB_TO_FIELD_Y)
-            if self.alliance_fetcher.getAlliance()
+            if wpilib.DriverStation.getAlliance()
             == wpilib.DriverStation.Alliance.kRed
             else geometry.Translation2d(
                 BLUE_HUB_TO_FIELD_X, BLUE_HUB_TO_FIELD_Y
