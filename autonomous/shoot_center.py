@@ -3,6 +3,7 @@ from autonomous import AutoHelper
 from subsystem import intake
 
 class ShootCenter(AutonomousStateMachine):
+    """Start at the center, shoot preloaded fuel."""
     MODE_NAME = "shoot_from_center"
 
     AutoHelper: AutoHelper.AutoHelper

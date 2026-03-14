@@ -7,6 +7,7 @@ from phoenix6 import swerve
 from common.joystick import DriveCommand
 
 class Auton_Test(AutonomousStateMachine):
+    """Test routine."""
     MODE_NAME = "Test"
     DEFAULT = False
 

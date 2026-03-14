@@ -3,6 +3,7 @@ from autonomous import AutoHelper
 from subsystem import intake 
 
 class BumpDepotShoot(AutonomousStateMachine):
+    """Start on the depot side, intake from the depot, and shoot into the hub."""
     MODE_NAME = "get_depot_shoot"
 
     AutoHelper: AutoHelper.AutoHelper

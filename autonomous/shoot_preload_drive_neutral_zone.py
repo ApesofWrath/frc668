@@ -3,6 +3,7 @@ from autonomous import AutoHelper
 from subsystem import intake
 
 class ShootPreloadDepotBumps(AutonomousStateMachine):
+    """Start at the depot side of the ramp. Shoot the preloaded fuel, then drive over the bumps to the neutral zone. No intake in neutral zone."""
     MODE_NAME = "shoot_preloaded_from_depot_drive_over_bumps"
 
     AutoHelper: AutoHelper.AutoHelper

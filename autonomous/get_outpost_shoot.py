@@ -3,6 +3,7 @@ from autonomous import AutoHelper
 from subsystem import intake 
 
 class BumpOutpostShoot(AutonomousStateMachine):
+    """Start on the outpose side of the ramp, drive  to outpost, wait for human to load fuel, then shoot."""
     MODE_NAME = "get_outpost_shoot"
 
     AutoHelper: AutoHelper.AutoHelper

@@ -3,6 +3,7 @@ from autonomous import AutoHelper
 from subsystem import intake 
 
 class DepotNeutralZoneShoot(AutonomousStateMachine):
+    """Start on the depot side of the ramp, drive to the neutral zone, intake fuel, come back and shoot."""
     MODE_NAME = "get_neutral_zone_shoot_starting_depot_side"
 
     AutoHelper: AutoHelper.AutoHelper
