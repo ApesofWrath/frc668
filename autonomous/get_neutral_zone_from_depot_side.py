@@ -1,3 +1,4 @@
+import choreo
 from magicbot import AutonomousStateMachine, state, timed_state
 from autonomous import AutoHelper
 from subsystem import intake 
@@ -8,6 +9,9 @@ class DepotNeutralZoneShoot(AutonomousStateMachine):
 
     AutoHelper: AutoHelper.AutoHelper
     intake_deployer: intake.IntakeDeployer
+
+    def __init__(self):
+        self.trajectory = choreo.load_swerve_trajectory("DepotSideBump_IntakeNeutralZone_Shoot")
 
     def on_enable(self):
         self.AutoHelper.reset("DepotSideBump_IntakeNeutralZone_Shoot",True)

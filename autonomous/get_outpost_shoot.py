@@ -1,3 +1,4 @@
+import choreo
 from magicbot import AutonomousStateMachine, state, timed_state
 from autonomous import AutoHelper
 from subsystem import intake 
@@ -7,7 +8,10 @@ class BumpOutpostShoot(AutonomousStateMachine):
     MODE_NAME = "get_outpost_shoot"
 
     AutoHelper: AutoHelper.AutoHelper
-    intake_deployer: intake.IntakeDeployer 
+    intake_deployer: intake.IntakeDeployer
+
+    def __init__(self):
+        self.trajectory = choreo.load_swerve_trajectory("bump_to_outpost")
 
     def on_enable(self):
         self.AutoHelper.reset("bump_to_outpost",True)

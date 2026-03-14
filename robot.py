@@ -128,6 +128,13 @@ class MyRobot(magicbot.MagicRobot):
             for ll in self.vision._limelights:
                 limelight.LimelightHelpers.set_imu_mode(ll, 4)
         else:
+            auto_mode = self._automodes.chooser.getSelected()
+            if auto_mode:
+                # self.logger.info(f"Alliance: {self.alliance_fetcher.getAlliance()}")
+                # self.logger.info(f"Auto mode: {auto_mode.MODE_NAME}")
+                initial_pose = auto_mode.trajectory.get_initial_pose(self.alliance_fetcher.getAlliance() != wpilib.DriverStation.Alliance.kBlue)
+                # self.logger.info(f"Initial pose: {initial_pose}")
+                self.drivetrain.swerve_drive.reset_pose(initial_pose)
             for ll in self.vision._limelights:
                 limelight.LimelightHelpers.set_imu_mode(ll, 1)
                 self.vision.setRobotOrientation()
@@ -217,19 +224,19 @@ class MyRobot(magicbot.MagicRobot):
             self.shooter_state_machine.setDriverWantsFeed(True)
             self.hub_tracker.setTargetTurretAngleDegrees(4.268)
             self.hub_tracker.setTargetHoodAngleDegrees(4.8)
-            self.hub_tracker.setTargetFlywheelSpeedRps(30.8)
+            self.hub_tracker.setTargetFlywheelSpeedRps(31.5)
         elif self.driver_controller.setRightFieldDefaults():
             self.shooter_state_machine.setAuto(False)
             self.shooter_state_machine.setDriverWantsFeed(True)
             self.hub_tracker.setTargetTurretAngleDegrees(-4.268)
             self.hub_tracker.setTargetHoodAngleDegrees(4.8)
-            self.hub_tracker.setTargetFlywheelSpeedRps(30.8)
+            self.hub_tracker.setTargetFlywheelSpeedRps(31.5)
         elif self.driver_controller.setCenterFieldDefaults():
             self.shooter_state_machine.setAuto(False)
             self.shooter_state_machine.setDriverWantsFeed(True)
             self.hub_tracker.setTargetTurretAngleDegrees(94.85)
             self.hub_tracker.setTargetHoodAngleDegrees(6.9)
-            self.hub_tracker.setTargetFlywheelSpeedRps(33.8)
+            self.hub_tracker.setTargetFlywheelSpeedRps(34.5)
         else:
             self.shooter_state_machine.setAuto(True)
             if self.driver_controller.feedFuel():

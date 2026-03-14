@@ -1,3 +1,4 @@
+import choreo
 from magicbot import AutonomousStateMachine, state, timed_state
 from autonomous import AutoHelper
 from subsystem import intake
@@ -10,7 +11,10 @@ class ShootDepotBumps(AutonomousStateMachine):
     # shoot the preloaded fuel before driving to neutral zone.
 
     AutoHelper: AutoHelper.AutoHelper
-    intake_deployer: intake.IntakeDeployer 
+    intake_deployer: intake.IntakeDeployer
+
+    def __init__(self):
+        self.trajectory = choreo.load_swerve_trajectory("ShootFromDepot_DriveOverBumps")
 
     def on_enable(self):
         self.AutoHelper.reset("ShootFromDepot_DriveOverBumps",True)

@@ -1,3 +1,4 @@
+import choreo
 from magicbot import AutonomousStateMachine, state, timed_state
 from autonomous import AutoHelper
 from subsystem import intake
@@ -7,7 +8,10 @@ class ShootDepot(AutonomousStateMachine):
     MODE_NAME = "shoot_from_depot"
 
     AutoHelper: AutoHelper.AutoHelper
-    intake_deployer: intake.IntakeDeployer 
+    intake_deployer: intake.IntakeDeployer
+
+    def __init__(self):
+        self.trajectory = choreo.load_swerve_trajectory("ShootFromDepot")
 
     def on_enable(self):
         self.AutoHelper.reset("ShootFromDepot",True)

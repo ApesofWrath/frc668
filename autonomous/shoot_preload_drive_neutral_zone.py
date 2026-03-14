@@ -1,3 +1,4 @@
+import choreo
 from magicbot import AutonomousStateMachine, state, timed_state
 from autonomous import AutoHelper
 from subsystem import intake
@@ -7,10 +8,13 @@ class ShootPreloadDepotBumps(AutonomousStateMachine):
     MODE_NAME = "shoot_preloaded_from_depot_drive_over_bumps"
 
     AutoHelper: AutoHelper.AutoHelper
-    intake_deployer: intake.IntakeDeployer 
+    intake_deployer: intake.IntakeDeployer
+
+    def __init__(self):
+        self.trajectory = choreo.load_swerve_trajectory("depot_to_shoot")
 
     def on_enable(self):
-        self.AutoHelper.reset("depot_to_shot",True)
+        self.AutoHelper.reset("depot_to_shoot",True)
         super().on_enable()
 
     @timed_state(first=True, duration=1.0, next_state="move_to_shoot")
