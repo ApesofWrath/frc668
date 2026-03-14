@@ -133,7 +133,7 @@ class MyRobot(magicbot.MagicRobot):
             if auto_mode and not self._auto_done:
                 # self.logger.info(f"Alliance: {self.alliance_fetcher.getAlliance()}")
                 # self.logger.info(f"Auto mode: {auto_mode.MODE_NAME}")
-                initial_pose = auto_mode.trajectory.get_initial_pose(self.alliance_fetcher.getAlliance() == wpilib.DriverStation.Alliance.kRed)
+                initial_pose = auto_mode.trajectory.get_initial_pose(wpilib.DriverStation.getAlliance() == wpilib.DriverStation.Alliance.kRed)
                 # self.logger.info(f"Initial pose: {initial_pose}")
                 self.drivetrain.swerve_drive.reset_pose(initial_pose)
             for ll in self.vision._limelights:

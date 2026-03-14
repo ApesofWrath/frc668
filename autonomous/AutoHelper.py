@@ -38,12 +38,12 @@ class AutoHelper():
         if reset_rot:
             self.logger.info(f"resetting as {self.alliance_fetcher.getAlliance()}")
         self.trajectory = choreo.load_swerve_trajectory(path)
-        initial_pose = self.trajectory.get_initial_pose(self.alliance_fetcher.getAlliance() == wpilib.DriverStation.Alliance.kRed)
-        if initial_pose is None:
-            self.logger.error("Choreo trajetory initial_pose is None")
-            return
-        if(reset_rot):
-            self.drivetrain.swerve_drive.reset_pose(initial_pose)
+        # initial_pose = self.trajectory.get_initial_pose(self.alliance_fetcher.getAlliance() == wpilib.DriverStation.Alliance.kRed)
+        # if initial_pose is None:
+        #     self.logger.error("Choreo trajetory initial_pose is None")
+        #     return
+        # if(reset_rot):
+        #     self.drivetrain.swerve_drive.reset_pose(initial_pose)
         self.traj_time = 0.0
         self.triggered_events = []
 
