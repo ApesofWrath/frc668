@@ -6,9 +6,13 @@ import wpilib
 import wpimath
 from phoenix6 import swerve, hardware
 
+from magicbot import MagicRobot
+from wpilib import DriverStation, SmartDashboard
+
 import constants
 from common import alliance, joystick
 from subsystem import drivetrain, shooter, intake
+from autonomous import AutoHelper
 from subsystem.drivetrain import limelight
 
 DEADBAND = 0.15**2
@@ -35,6 +39,9 @@ class MyRobot(magicbot.MagicRobot):
     intake: intake.Intake
     turret: shooter.Turret
     vision: drivetrain.Vision
+
+    AutoHelper: AutoHelper.AutoHelper
+
 
     def createObjects(self) -> None:
         """Create and initialize robot objects."""
@@ -116,17 +123,13 @@ class MyRobot(magicbot.MagicRobot):
 
     def robotPeriodic(self) -> None:
         if wpilib.DriverStation.isEnabled():
-            # Deploy the intake.
-            self.intake_deployer.deploy()
-            # Use external IMU assist when enabled.
+            if not self.intake_deployer._deployed:
+                self.intake_deployer.deploy()
             for ll in self.vision._limelights:
                 limelight.LimelightHelpers.set_imu_mode(ll, 4)
         else:
-            # Hard reset each lime light's yaw to the external IMU when disabled.
             for ll in self.vision._limelights:
                 limelight.LimelightHelpers.set_imu_mode(ll, 1)
-                # We call this here because the Vision component's execute
-                # method does not get called when disabled.
                 self.vision.setRobotOrientation()
 
         if not self._tuning_mode:
@@ -138,24 +141,17 @@ class MyRobot(magicbot.MagicRobot):
             self.hub_tracker.trackSpeed(True)
             self.hub_tracker.setEnabled(False)
 
+        # Required for SmartDashboard choosers to work (without this, you cant change autos)
+        super().robotPeriodic()
+
     def autonomousInit(self) -> None:
         """Initialize autonomous mode.
 
         This is called each time the robot enters autonomous mode, regardless of
         the selected autonomous routine.
         """
+
         self.logger.info("Entering autonomous mode")
-
-    def disabledInit(self) -> None:
-        """Initialize disabled mode.
-
-        This is called each time the robot enters disabled mode. The
-        `on_disable` method of all components are called before this method is
-        called.
-        """
-        self.logger.info("Robot disabled")
-        self.vision._pose_seeded = False
-        self.vision.imu_four = False
 
     def disabledPeriodic(self) -> None:
         """Run during disabled mode.
@@ -168,6 +164,7 @@ class MyRobot(magicbot.MagicRobot):
             limelight.LimelightHelpers.set_imu_mode(ll, 1)
             self.vision.setRobotOrientation()
         self.drivetrain._maybeSetOperatorPerspectiveForward()
+        # self.logger.info(self._automodes.chooser.getSelected())
 
     def teleopInit(self) -> None:
         """Initialize teleoperated mode.
