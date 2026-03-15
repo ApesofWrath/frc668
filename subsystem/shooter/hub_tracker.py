@@ -27,10 +27,10 @@ class ShotTable:
     #  * hood angle in degrees
     #  * flywheel speed in rotations per second
     _TABLE: Tuple[Tuple[float, float, float], ...] = (
-        (1.75, 0.5, 26.5),
-        (2.25, 3.0, 29.5),
-        (2.75, 4.0, 30.5),
-        (3.25, 5.0, 31.5),
+        (1.75, 0.5, 26.0),
+        (2.25, 3.0, 29.0),
+        (2.75, 4.0, 30.0),
+        (3.25, 5.0, 31.25),
         (3.75, 6.5, 33.5),
         (4.25, 7.0, 34.5),
         (4.75, 7.5, 35.5),
