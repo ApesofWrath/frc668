@@ -196,13 +196,13 @@ class TestShooter:
         mock_indexer.setEnabled.assert_called_with(False)
 
     def test_idling_sets_flywheel_to_default_speed(
-        self, shooter_sm, mock_flywheel, mock_constants
+        self, shooter_sm, mock_hub_tracker, mock_constants
     ):
         """Idling state should set flywheel to default idle speed."""
         shooter_sm.engage()
         shooter_sm.execute()
 
-        mock_flywheel.setTargetRps.assert_called_with(
+        mock_hub_tracker.setTargetFlywheelSpeedRps.assert_called_with(
             mock_constants.shooter.flywheel.default_speed_rps
         )
 

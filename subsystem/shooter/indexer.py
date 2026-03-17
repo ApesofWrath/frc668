@@ -141,12 +141,36 @@ class Indexer:
         self._enabled = value
 
     @magicbot.feedback
-    def get_target_rps(self) -> float:
+    def get_target_rps(self) -> phoenix6.units.rotations_per_second:
         return self._target_rps
+
+    @magicbot.feedback
+    def get_back_measured_rps(self) -> phoenix6.units.rotations_per_second:
+        return self.indexer_back_motor.get_velocity().value
+
+    @magicbot.feedback
+    def get_front_measured_rps(self) -> phoenix6.units.rotations_per_second:
+        return self.indexer_front_motor.get_velocity().value
 
     @magicbot.feedback
     def get_enabled(self) -> bool:
         return self._enabled
+
+    @magicbot.feedback
+    def get_back_supply_current(self) -> phoenix6.units.ampere:
+        return self.indexer_back_motor.get_supply_current().value
+
+    @magicbot.feedback
+    def get_back_stator_current(self) -> phoenix6.units.ampere:
+        return self.indexer_back_motor.get_stator_current().value
+
+    @magicbot.feedback
+    def get_front_supply_current(self) -> phoenix6.units.ampere:
+        return self.indexer_front_motor.get_supply_current().value
+
+    @magicbot.feedback
+    def get_front_stator_current(self) -> phoenix6.units.ampere:
+        return self.indexer_front_motor.get_stator_current().value
 
 
 class IndexerTuner:
@@ -291,11 +315,3 @@ class IndexerTuner:
             self.logger.error(
                 f"Failed to apply new gains to indexer front motor: {result.name}: {result.description}"
             )
-
-    @magicbot.feedback
-    def get_back_measured_rps(self) -> float:
-        return self.indexer_back_motor.get_velocity().value
-
-    @magicbot.feedback
-    def get_front_measured_rps(self) -> float:
-        return self.indexer_front_motor.get_velocity().value

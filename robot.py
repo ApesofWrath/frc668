@@ -145,6 +145,8 @@ class MyRobot(magicbot.MagicRobot):
         the selected autonomous routine.
         """
         self.logger.info("Entering autonomous mode")
+        # In case it wasn't started in disabledInit. If it was, this is a no-op.
+        wpilib.DataLogManager.start()
 
     def disabledInit(self) -> None:
         """Initialize disabled mode.
@@ -154,6 +156,8 @@ class MyRobot(magicbot.MagicRobot):
         called.
         """
         self.logger.info("Robot disabled")
+        # This starts the log manager if it wasn't already started.
+        wpilib.DataLogManager.getLog().flush()
         self.vision._pose_seeded = False
         self.vision.imu_four = False
 
@@ -177,6 +181,8 @@ class MyRobot(magicbot.MagicRobot):
         called.
         """
         self.logger.info("Entering teleop mode")
+        # In case it wasn't started in disabledInit. If it was, this is a no-op.
+        wpilib.DataLogManager.start()
 
     def teleopPeriodic(self) -> None:
         """Run during teleoperated mode.
