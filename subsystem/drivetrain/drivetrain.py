@@ -163,12 +163,11 @@ class Drivetrain(commands2.Subsystem):
     def _maybeSetOperatorPerspectiveForward(self) -> None:
         if self._operator_perspective_set:
             return
-        alliance = self.alliance_fetcher.getAlliance()
-        if alliance:
+        if self.alliance_fetcher.hasAlliance():
             self.logger.info(f"Setting operator perspective for {alliance}")
             self.swerve_drive.set_operator_perspective_forward(
                 drivetrain.constants.RED_ALLIANCE_PERSPECTIVE_ROTATION
-                if alliance == wpilib.DriverStation.Alliance.kRed
+                if self.alliance_fetcher.isRedAlliance()
                 else drivetrain.constants.BLUE_ALLIANCE_PERSPECTIVE_ROTATION
             )
             self._operator_perspective_set = True
