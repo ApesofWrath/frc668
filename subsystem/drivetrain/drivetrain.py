@@ -119,6 +119,14 @@ class Drivetrain(commands2.Subsystem):
                 swerve.SwerveModule.DriveRequestType.VELOCITY
             )
         )
+        self._brake_request = (
+            swerve.requests.SwerveDriveBrake().with_drive_request_type(
+                swerve.SwerveModule.DriveRequestType.VELOCITY
+            )
+        )
+        # When set to True, the brake request will be used instead of the drive
+        # request.
+        self._brake_enabled = False
         self._operator_perspective_set = False
         self._maybeSetOperatorPerspectiveForward()
 
@@ -130,7 +138,10 @@ class Drivetrain(commands2.Subsystem):
         self._maybeSetOperatorPerspectiveForward()
         if not self._operator_perspective_set:
             self.logger.warning("Driving without operator perspective set")
-        self.swerve_drive.set_control(self._drive_request)
+        if self._brake_enabled:
+            self.swerve_drive.set_control(self._brake_request)
+        else:
+            self.swerve_drive.set_control(self._drive_request)
 
     def setSpeeds(
         self,
@@ -144,6 +155,9 @@ class Drivetrain(commands2.Subsystem):
     def setPose(self, pose: wpimath.geometry.Pose2d) -> None:
         """Hard reset the robot's pose estimate."""
         self.swerve_drive.reset_pose(pose)
+
+    def setBrakeEnabled(self, value: bool) -> None:
+        self._brake_enabled = value
 
     def _maybeSetOperatorPerspectiveForward(self) -> None:
         if self._operator_perspective_set:

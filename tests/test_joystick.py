@@ -42,7 +42,7 @@ class TestShouldResetOrientation:
 
         driver = joystick.DriverController(mock_controller, mock_options)
 
-        assert driver.shouldResetOrientation() is True
+        assert driver.resetOrientation() is True
         mock_controller.getStartButtonReleased.assert_called_once()
 
     def test_returns_false_when_start_button_not_released(self, mocker):
@@ -53,7 +53,7 @@ class TestShouldResetOrientation:
 
         driver = joystick.DriverController(mock_controller, mock_options)
 
-        assert driver.shouldResetOrientation() is False
+        assert driver.resetOrientation() is False
 
 
 class TestFilterInput:

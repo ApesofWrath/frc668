@@ -33,7 +33,7 @@ class DriverController:
         self._options: "subsystem.drivetrain.constants.DriveOptions" = options
         self._command: DriveCommand = DriveCommand()
 
-    def shouldResetOrientation(self) -> bool:
+    def resetOrientation(self) -> bool:
         """Returns True if the robot's orientation should be reset.
 
         When the driver releases the start button, it is an indication that the
@@ -80,17 +80,37 @@ class DriverController:
         )
         return self._command
 
-    def setLeftFieldDefaults(self) -> bool:
-        """Returns True if the robot should set its mechanisms up to shoot from the left side of the field."""
+    def shootFromLeftTrench(self) -> bool:
+        """Indicates if the driver wants to shoot from the left trench.
+
+        If this returns True, the robot should command its mechanisms to the
+        necessary presets to be able to shoot from the left trench position.
+        """
         return self._controller.getXButton()
 
-    def setRightFieldDefaults(self) -> bool:
-        """Returns True if the robot should set its mechanisms up to shoot from the right side of the field."""
+    def shootFromRightTrench(self) -> bool:
+        """Indicates if the driver wants to shoot from the right trench.
+
+        If this returns True, the robot should command its mechanisms to the
+        necessary presets to be able to shoot from the left trench position.
+        """
         return self._controller.getBButton()
 
-    def setCenterFieldDefaults(self) -> bool:
-        """Returns True if the robot should set its mechanisms up to shoot from the center side of the field."""
+    def shootFromBehindTower(self) -> bool:
+        """Indicates if the driver wants to shoot from behind the tower.
+
+        If this returns True, the robot should command its mechanisms to the
+        necessary presets to be able to shoot from behind the tower.
+        """
         return self._controller.getAButton()
+
+    def brake(self) -> bool:
+        """Returns True if the driver wants the robot to brake.
+
+        This can be useful when shooting from a stationary spot, so we don't get
+        pushed around too easily.
+        """
+        return self._controller.getYButton()
 
     def _filterInput(self, input: float, apply_deadband: bool = True) -> float:
         """Filter the joystick input with a squared scaling and deadband.
