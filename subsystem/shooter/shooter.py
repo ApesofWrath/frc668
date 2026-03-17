@@ -1,6 +1,7 @@
 import math
 
 import magicbot
+from phoenix6 import swerve 
 
 import constants
 from subsystem import shooter, drivetrain
@@ -48,7 +49,7 @@ class Shooter(magicbot.StateMachine):
         # position.
         self.hub_tracker.trackPosition(self._auto)
         self.hub_tracker.trackSpeed(False)
-        self.flywheel.setTargetRps(
+        self.hub_tracker.setTargetFlywheelSpeedRps(
             self.robot_constants.shooter.flywheel.default_speed_rps
         )
 

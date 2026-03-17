@@ -79,6 +79,10 @@ class DriverController:
             * modifier
         )
         return self._command
+    
+    def setXStance(self) -> bool:
+        """Returns True if the robot should set its wheels in an X stance."""
+        return self._controller.getYButton()
 
     def setLeftFieldDefaults(self) -> bool:
         """Returns True if the robot should set its mechanisms up to shoot from the left side of the field."""

@@ -6,9 +6,13 @@ import wpilib
 import wpimath
 from phoenix6 import swerve, hardware
 
+from magicbot import MagicRobot
+from wpilib import DriverStation, SmartDashboard
+
 import constants
 from common import alliance, joystick
 from subsystem import drivetrain, shooter, intake
+from autonomous import AutoHelper
 from subsystem.drivetrain import limelight
 
 DEADBAND = 0.15**2
@@ -35,6 +39,9 @@ class MyRobot(magicbot.MagicRobot):
     intake: intake.Intake
     turret: shooter.Turret
     vision: drivetrain.Vision
+
+    AutoHelper: AutoHelper.AutoHelper
+
 
     def createObjects(self) -> None:
         """Create and initialize robot objects."""
@@ -113,20 +120,24 @@ class MyRobot(magicbot.MagicRobot):
         )
 
         self._tuning_mode = False
+        self._auto_done = False
 
     def robotPeriodic(self) -> None:
         if wpilib.DriverStation.isEnabled():
-            # Deploy the intake.
-            self.intake_deployer.deploy()
-            # Use external IMU assist when enabled.
+            if not self.intake_deployer._deployed:
+                self.intake_deployer.deploy()
             for ll in self.vision._limelights:
                 limelight.LimelightHelpers.set_imu_mode(ll, 4)
         else:
-            # Hard reset each lime light's yaw to the external IMU when disabled.
+            auto_mode = self._automodes.chooser.getSelected()
+            if auto_mode and not self._auto_done:
+                # self.logger.info(f"Alliance: {self.alliance_fetcher.getAlliance()}")
+                # self.logger.info(f"Auto mode: {auto_mode.MODE_NAME}")
+                initial_pose = auto_mode.trajectory.get_initial_pose(wpilib.DriverStation.getAlliance() == wpilib.DriverStation.Alliance.kRed)
+                # self.logger.info(f"Initial pose: {initial_pose}")
+                self.drivetrain.swerve_drive.reset_pose(initial_pose)
             for ll in self.vision._limelights:
                 limelight.LimelightHelpers.set_imu_mode(ll, 1)
-                # We call this here because the Vision component's execute
-                # method does not get called when disabled.
                 self.vision.setRobotOrientation()
 
         if not self._tuning_mode:
@@ -138,24 +149,18 @@ class MyRobot(magicbot.MagicRobot):
             self.hub_tracker.trackSpeed(True)
             self.hub_tracker.setEnabled(False)
 
+        # Required for SmartDashboard choosers to work (without this, you cant change autos)
+        super().robotPeriodic()
+
     def autonomousInit(self) -> None:
         """Initialize autonomous mode.
 
         This is called each time the robot enters autonomous mode, regardless of
         the selected autonomous routine.
         """
+
         self.logger.info("Entering autonomous mode")
-
-    def disabledInit(self) -> None:
-        """Initialize disabled mode.
-
-        This is called each time the robot enters disabled mode. The
-        `on_disable` method of all components are called before this method is
-        called.
-        """
-        self.logger.info("Robot disabled")
-        self.vision._pose_seeded = False
-        self.vision.imu_four = False
+        self._auto_done = True
 
     def disabledPeriodic(self) -> None:
         """Run during disabled mode.
@@ -168,6 +173,7 @@ class MyRobot(magicbot.MagicRobot):
             limelight.LimelightHelpers.set_imu_mode(ll, 1)
             self.vision.setRobotOrientation()
         self.drivetrain._maybeSetOperatorPerspectiveForward()
+        # self.logger.info(self._automodes.chooser.getSelected())
 
     def teleopInit(self) -> None:
         """Initialize teleoperated mode.
@@ -190,7 +196,7 @@ class MyRobot(magicbot.MagicRobot):
         """
         # TODO: Handle exceptions so robot code doesn't crash.
         if self.driver_controller.shouldResetOrientation():
-            alliance = self.alliance_fetcher.getAlliance()
+            alliance = wpilib.DriverStation.getAlliance()
             if alliance == wpilib.DriverStation.Alliance.kRed:
                 # Robot's front touching the hub wall in the red alliance zone.
                 self.drivetrain.setPose(
@@ -212,6 +218,7 @@ class MyRobot(magicbot.MagicRobot):
         """Use the main controller joystick inputs to drive the robot base."""
         command = self.driver_controller.getDriveCommand()
         self.drivetrain.setSpeeds(command)
+        self.drivetrain.setXStance(self.driver_controller.setXStance())
 
     def controlShooter(self) -> None:
         """Takes button inputs to control the shooter state machine."""
@@ -220,19 +227,19 @@ class MyRobot(magicbot.MagicRobot):
             self.shooter_state_machine.setDriverWantsFeed(True)
             self.hub_tracker.setTargetTurretAngleDegrees(4.268)
             self.hub_tracker.setTargetHoodAngleDegrees(4.8)
-            self.hub_tracker.setTargetFlywheelSpeedRps(30.8)
+            self.hub_tracker.setTargetFlywheelSpeedRps(31.5)
         elif self.driver_controller.setRightFieldDefaults():
             self.shooter_state_machine.setAuto(False)
             self.shooter_state_machine.setDriverWantsFeed(True)
             self.hub_tracker.setTargetTurretAngleDegrees(-4.268)
             self.hub_tracker.setTargetHoodAngleDegrees(4.8)
-            self.hub_tracker.setTargetFlywheelSpeedRps(30.8)
+            self.hub_tracker.setTargetFlywheelSpeedRps(31.5)
         elif self.driver_controller.setCenterFieldDefaults():
             self.shooter_state_machine.setAuto(False)
             self.shooter_state_machine.setDriverWantsFeed(True)
             self.hub_tracker.setTargetTurretAngleDegrees(94.85)
             self.hub_tracker.setTargetHoodAngleDegrees(6.9)
-            self.hub_tracker.setTargetFlywheelSpeedRps(33.8)
+            self.hub_tracker.setTargetFlywheelSpeedRps(34.5)
         else:
             self.shooter_state_machine.setAuto(True)
             if self.driver_controller.feedFuel():

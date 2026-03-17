@@ -106,14 +106,14 @@ class Vision:
                 )
                 continue
 
-            if (
-                drivetrain_pose.translation().distance(pose.translation())
-                > vision_constants.max_diff_from_robot_pose
-            ):
-                self.logger.warning(
-                    f"{ll}: Rejected large jump: {drivetrain_pose.translation().distance(pose.translation())}m"
-                )
-                continue
+            # if (
+            #     drivetrain_pose.translation().distance(pose.translation())
+            #     > vision_constants.max_diff_from_robot_pose
+            # ):
+            #     self.logger.warning(
+            #         f"{ll}: Rejected large jump: {drivetrain_pose.translation().distance(pose.translation())}m"
+            #     )
+            #     continue
 
             # Nudge the drivetrain's pose estimator in the direction of the
             # vision estimate.
@@ -171,7 +171,7 @@ class Vision:
         )
 
     @feedback
-    def get_limelight_fl_pose(self) -> wpimath.geometry.Pose2d:
+    def get_limelight_fl(self) -> wpimath.geometry.Pose2d:
         return limelight.LimelightHelpers.get_botpose_2d_wpiblue("limelight-fl")
 
     @feedback

@@ -30,10 +30,10 @@ class ShotTable:
         (1.75, 0.5, 26.0),
         (2.25, 3.0, 29.0),
         (2.75, 4.0, 30.0),
-        (3.25, 5.0, 31.0),
-        (3.75, 6.5, 33.0),
-        (4.25, 7.0, 34.0),
-        (4.75, 7.5, 35.0),
+        (3.25, 5.0, 31.25),
+        (3.75, 6.5, 33.5),
+        (4.25, 7.0, 34.5),
+        (4.75, 7.5, 35.5),
     )
     # A tuple of just the distances from _TABLE.
     _DISTANCES: Tuple[float, ...] = tuple(row[0] for row in _TABLE)
@@ -96,7 +96,7 @@ class HubTracker:
         # Vector from field origin to center of the hub.
         self._hub_position: geometry.Translation2d = (
             geometry.Translation2d(RED_HUB_TO_FIELD_X, RED_HUB_TO_FIELD_Y)
-            if self.alliance_fetcher.getAlliance()
+            if wpilib.DriverStation.getAlliance()
             == wpilib.DriverStation.Alliance.kRed
             else geometry.Translation2d(
                 BLUE_HUB_TO_FIELD_X, BLUE_HUB_TO_FIELD_Y
@@ -187,7 +187,7 @@ class HubTracker:
         # since we may not have known our alliance at startup.
         self._hub_position = (
             geometry.Translation2d(RED_HUB_TO_FIELD_X, RED_HUB_TO_FIELD_Y)
-            if self.alliance_fetcher.getAlliance()
+            if wpilib.DriverStation.getAlliance()
             == wpilib.DriverStation.Alliance.kRed
             else geometry.Translation2d(
                 BLUE_HUB_TO_FIELD_X, BLUE_HUB_TO_FIELD_Y
