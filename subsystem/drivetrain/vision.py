@@ -44,16 +44,15 @@ class Vision:
             self.drivetrain.swerve_drive.get_state().pose.rotation().degrees()
         )
 
-        pitch_roll = self.drivetrain.swerve_drive.get_rotation3d()
-
+        pitch = self.drivetrain.swerve_drive.pigeon2.get_pitch().value
         for ll in self._limelights:
             limelight.LimelightHelpers.set_robot_orientation(
                 ll,
                 orientation,
                 0.0,
-                pitch_roll.Y() * RADIANS_TO_DEGREES,
+                pitch.Y(),
                 0.0,
-                pitch_roll.X() * RADIANS_TO_DEGREES,
+                0.0,
                 0.0,
             )
 
@@ -146,7 +145,7 @@ class Vision:
                 (
                     vision_constants.xy_std_dev,
                     vision_constants.xy_std_dev,
-                    vision_constants.theta_std_dev,
+                    math.inf,
                 ),
             )
 
