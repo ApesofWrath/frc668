@@ -92,7 +92,7 @@ class DriverController:
         """Indicates if the driver wants to shoot from the right trench.
 
         If this returns True, the robot should command its mechanisms to the
-        necessary presets to be able to shoot from the left trench position.
+        necessary presets to be able to shoot from the right trench position.
         """
         return self._controller.getBButton()
 
