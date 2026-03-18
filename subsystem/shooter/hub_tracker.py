@@ -4,6 +4,7 @@ from typing import Tuple
 import magicbot
 import phoenix6
 import wpilib
+import math 
 from wpimath import geometry, units
 
 import constants
@@ -138,7 +139,7 @@ class HubTracker:
         # Set the flywheel and hood targets based on current turret-to-hub
         # distance.
         target_hood_angle_degrees, target_flywheel_speed_rps = ShotTable.get(
-            self.get_turret_distance_from_hub_meters()
+            self.get_future_turret_to_hub_distance()
         )
 
         if self._track_position:
@@ -212,7 +213,7 @@ class HubTracker:
                 target_angle_degrees - predictive_lead_angle,
             ),
         )
-
+           
     @magicbot.feedback
     def get_turret_distance_from_hub_meters(self) -> phoenix6.units.meter:
         """Returns the absolute distance of the turret from the hub."""
@@ -221,6 +222,22 @@ class HubTracker:
             self._hub_position - self._turret_field_pose.translation()
         )
         return turret_to_hub.norm()
+    
+    @magicbot.feedback
+    def get_future_turret_to_hub_distance(self) -> phoenix6.units.meter:
+        robot_vx = self.drivetrain.swerve_drive.get_state().speeds.vx
+        robot_vy = self.drivetrain.swerve_drive.get_state().speeds.vy
+        robot_omega = self.drivetrain.swerve_drive.get_state().speeds.omega
+        robot_angle = self.drivetrain.swerve_drive.get_state().pose.rotation().degrees()
+
+        self.turret_vx = robot_vx + robot_omega * (TURRET_TO_ROBOT_Y * math.cos(robot_angle) - TURRET_TO_ROBOT_X * math.sin(robot_angle))
+        self.turret_vy = robot_vy + robot_omega * (TURRET_TO_ROBOT_X * math.cos(robot_angle) - TURRET_TO_ROBOT_Y * math.sin(robot_angle))
+        
+        # dx = self.turret_vx * self.get_time_of_flight()
+        # dy = self.turret_vy * self.get_time_of_flight()
+        # dtheta = self.turret.get_measured_angle_degrees()
+        # future_pose = self.drivetrain.swerve_drive.get_state().pose.transformBy(dx, dy, dtheta) 
+        return self.get_turret_distance_from_hub_meters() - math.sqrt(self.turret_vx**2 + self.turret_vy**2) * self.robot_constants.shooter.turret.time_of_flight 
 
     @magicbot.feedback
     def get_target_turret_angle_degrees(self) -> phoenix6.units.degree:
@@ -238,3 +255,4 @@ class HubTracker:
     ) -> phoenix6.units.rotations_per_second:
         """Returns the target rps for the flywheel to track."""
         return self._target_flywheel_speed_rps
+
