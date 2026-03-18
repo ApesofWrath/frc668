@@ -67,6 +67,11 @@ class Vision:
             )
 
             pose: wpimath.geometry.Pose2d = pose_estimate.pose
+
+            # Reject anything close to origin
+            if pose.X() < 0.02 and pose.Y() < 0.02:
+                continue
+
             drivetrain_pose = self.drivetrain.swerve_drive.get_state().pose
 
             vision_constants = self.robot_constants.drivetrain.vision
