@@ -189,7 +189,7 @@ class MyRobot(magicbot.MagicRobot):
         `use_teleop_in_autonomous=True` in this class' instance.
         """
         # TODO: Handle exceptions so robot code doesn't crash.
-        if self.driver_controller.shouldResetOrientation():
+        if self.driver_controller.resetOrientation():
             alliance = self.alliance_fetcher.getAlliance()
             if alliance == wpilib.DriverStation.Alliance.kRed:
                 # Robot's front touching the hub wall in the red alliance zone.
@@ -212,22 +212,23 @@ class MyRobot(magicbot.MagicRobot):
         """Use the main controller joystick inputs to drive the robot base."""
         command = self.driver_controller.getDriveCommand()
         self.drivetrain.setSpeeds(command)
+        self.drivetrain.setBrakeEnabled(self.driver_controller.brake())
 
     def controlShooter(self) -> None:
         """Takes button inputs to control the shooter state machine."""
-        if self.driver_controller.setLeftFieldDefaults():
+        if self.driver_controller.shootFromLeftTrench():
             self.shooter_state_machine.setAuto(False)
             self.shooter_state_machine.setDriverWantsFeed(True)
             self.hub_tracker.setTargetTurretAngleDegrees(4.268)
             self.hub_tracker.setTargetHoodAngleDegrees(4.8)
             self.hub_tracker.setTargetFlywheelSpeedRps(30.8)
-        elif self.driver_controller.setRightFieldDefaults():
+        elif self.driver_controller.shootFromRightTrench():
             self.shooter_state_machine.setAuto(False)
             self.shooter_state_machine.setDriverWantsFeed(True)
             self.hub_tracker.setTargetTurretAngleDegrees(-4.268)
             self.hub_tracker.setTargetHoodAngleDegrees(4.8)
             self.hub_tracker.setTargetFlywheelSpeedRps(30.8)
-        elif self.driver_controller.setCenterFieldDefaults():
+        elif self.driver_controller.shootFromBehindTower():
             self.shooter_state_machine.setAuto(False)
             self.shooter_state_machine.setDriverWantsFeed(True)
             self.hub_tracker.setTargetTurretAngleDegrees(94.85)
