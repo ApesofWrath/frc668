@@ -212,6 +212,7 @@ class MyRobot(magicbot.MagicRobot):
         """Use the main controller joystick inputs to drive the robot base."""
         command = self.driver_controller.getDriveCommand()
         self.drivetrain.setSpeeds(command)
+        self.drivetrain.setBrakeEnabled(self.driver_controller.brake())
 
     def controlShooter(self) -> None:
         """Takes button inputs to control the shooter state machine."""

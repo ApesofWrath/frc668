@@ -127,6 +127,7 @@ class Drivetrain(commands2.Subsystem):
         # When set to True, the brake request will be used instead of the drive
         # request.
         self._brake_enabled = False
+
         self._operator_perspective_set = False
         self._maybeSetOperatorPerspectiveForward()
 
