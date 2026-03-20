@@ -27,7 +27,8 @@ class HopperConstants:
     right_k_p: float = 0.0
     right_k_i: float = 0.0
     right_k_d: float = 0.0
-    default_speed_rps: units.rotations_per_second = 30.0
+    default_left_speed_rps: units.rotations_per_second = 30.0
+    default_right_speed_rps: units.rotations_per_second = 30.0
     supply_current_limit: units.ampere = 40.0
 
 
