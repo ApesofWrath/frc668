@@ -34,7 +34,7 @@ class TestChassis(magicbot.MagicRobot):
         self.drivetrain._maybeSetOperatorPerspectiveForward()
 
     def teleopPeriodic(self) -> None:
-        if self.joystick.shouldResetOrientation():
+        if self.joystick.resetOrientation():
             self.drivetrain.seed_field_centric()
 
         command = self.joystick.getDriveCommand()
