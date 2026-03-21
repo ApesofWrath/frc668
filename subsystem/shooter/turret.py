@@ -238,7 +238,7 @@ class Turret:
         self.turret_encoder.set_position(0.0)
 
     @magicbot.feedback
-    def get_measured_angle_degrees(self) -> float:
+    def get_measured_angle_degrees(self) -> phoenix6.units.degree:
         return (
             self._encoder_position_signal.value
             * self.ROTATIONS_TO_DEGREES
@@ -246,8 +246,16 @@ class Turret:
         )
 
     @magicbot.feedback
-    def get_target_angle_degrees(self) -> float:
+    def get_target_angle_degrees(self) -> phoenix6.units.degree:
         return self._turret_postion_degrees
+
+    @magicbot.feedback
+    def get_supply_current(self) -> phoenix6.units.ampere:
+        return self.turret_motor.get_supply_current().value
+
+    @magicbot.feedback
+    def get_stator_current(self) -> phoenix6.units.ampere:
+        return self.turret_motor.get_stator_current().value
 
 
 class TurretTuner:
@@ -444,22 +452,6 @@ class TurretTuner:
         )
         if not result.is_ok():
             self.logger.error("Failed to apply new gains to turret motor")
-
-    @magicbot.feedback
-    def get_motor_voltage(self) -> phoenix6.units.volt:
-        return self.turret_motor.get_motor_voltage().value
-
-    @magicbot.feedback
-    def get_motor_supply_current(self) -> phoenix6.units.ampere:
-        return self.turret_motor.get_supply_current().value
-
-    @magicbot.feedback
-    def get_motor_stator_current(self) -> phoenix6.units.ampere:
-        return self.turret_motor.get_stator_current().value
-
-    @magicbot.feedback
-    def get_position(self) -> float:
-        return self.turret_encoder.get_position().value
 
     @magicbot.feedback
     def get_measured_dps(self) -> float:

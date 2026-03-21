@@ -56,7 +56,9 @@ def mock_intake():
 
 
 @pytest.fixture
-def deployer(mock_constants, mock_deploy_motor, mock_deploy_encoder, mock_intake):
+def deployer(
+    mock_constants, mock_deploy_motor, mock_deploy_encoder, mock_intake
+):
     """Fresh IntakeDeployer with mocks injected and setup() called."""
     d = intake.IntakeDeployer()
     d.robot_constants = mock_constants
@@ -165,7 +167,9 @@ class TestDeployedState:
         self._run_to_deployed(deployer, mock_deploy_encoder)
         assert deployer._deployed is True
 
-    def test_stops_motor(self, deployer, mock_deploy_motor, mock_deploy_encoder):
+    def test_stops_motor(
+        self, deployer, mock_deploy_motor, mock_deploy_encoder
+    ):
         """deployed state commands the motor to stop."""
         self._run_to_deployed(deployer, mock_deploy_encoder)
         mock_deploy_motor.set.assert_called_with(0.0)
@@ -195,7 +199,9 @@ class TestTimedOutState:
         self._run_to_timed_out(deployer, mock_deploy_encoder)
         assert deployer._deployed is False
 
-    def test_stops_motor(self, deployer, mock_deploy_motor, mock_deploy_encoder):
+    def test_stops_motor(
+        self, deployer, mock_deploy_motor, mock_deploy_encoder
+    ):
         """timed_out commands the motor to stop."""
         self._run_to_timed_out(deployer, mock_deploy_encoder)
         mock_deploy_motor.set.assert_called_with(0.0)
@@ -210,4 +216,4 @@ class TestGetEncoderRotation:
     def test_returns_encoder_position(self, deployer, mock_deploy_encoder):
         """Feedback method returns the raw encoder position value."""
         mock_deploy_encoder.get_position.return_value.value = 0.42
-        assert deployer.get_encoder_rotation() == pytest.approx(0.42)
+        assert deployer.get_encoder_position_rotations() == pytest.approx(0.42)

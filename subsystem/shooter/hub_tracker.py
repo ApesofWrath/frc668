@@ -181,6 +181,44 @@ class HubTracker:
         """If True, the mechanisms will be commanded to the current targets."""
         self._enabled = value
 
+    @magicbot.feedback
+    def get_track_position(self) -> bool:
+        return self._track_position
+
+    @magicbot.feedback
+    def get_track_speed(self) -> bool:
+        return self._track_speed
+
+    @magicbot.feedback
+    def get_enabled(self) -> bool:
+        return self._enabled
+
+    @magicbot.feedback
+    def get_turret_distance_from_hub_meters(self) -> phoenix6.units.meter:
+        """Returns the absolute distance of the turret from the hub."""
+        # Vector from center of turret to center of hub.
+        turret_to_hub = (
+            self._hub_position - self._turret_field_pose.translation()
+        )
+        return turret_to_hub.norm()
+
+    @magicbot.feedback
+    def get_target_turret_angle_degrees(self) -> phoenix6.units.degree:
+        """Returns the target angle for the turret to track."""
+        return self._target_turret_angle_degrees
+
+    @magicbot.feedback
+    def get_target_hood_angle_degrees(self) -> phoenix6.units.degree:
+        """Returns the target angle for the hood to track."""
+        return self._target_hood_angle_degrees
+
+    @magicbot.feedback
+    def get_target_flywheel_speed_rps(
+        self,
+    ) -> phoenix6.units.rotations_per_second:
+        """Returns the target rps for the flywheel to track."""
+        return self._target_flywheel_speed_rps
+
     def _computeTargetTurretAngleDegrees(
         self,
     ) -> phoenix6.units.degree:
