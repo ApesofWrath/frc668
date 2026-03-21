@@ -69,7 +69,7 @@ class Shooter(magicbot.StateMachine):
             self.next_state("idling")
 
         # Then, check if we are ready to shoot.
-        if self._shooterIsReady() and not self._robotIsMoving():
+        if self._shooterIsReady():
             self.next_state_now("shooting")
 
         # The driver wants to shoot but the shooter isn't ready or the robot is
@@ -89,7 +89,7 @@ class Shooter(magicbot.StateMachine):
         if not self._driver_wants_feed:
             self.next_state("idling")
 
-        if not self._shooterIsReady() or self._robotIsMoving():
+        if not self._shooterIsReady():
             self.next_state("targeting")
 
         # Fully track the hub.
