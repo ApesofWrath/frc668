@@ -39,10 +39,10 @@ class AllienceTracker:
         # Current targets.
         # TODO: Find better defaults.
         self._target_turret_angle_degrees: float = 0.0
-        self._target_hood_angle_degrees: float = 0.0
-        self._target_flywheel_speed_rps: float = 0.0
+        self._target_hood_angle_degrees: float = SHOOT_BACK_HOOD_ANGLE_DEG
+        self._target_flywheel_speed_rps: float = SHOOT_BACK_FLYWHEEL_RPS
         
-        # Whether to re-calculate the flywheel speed each loop.
+        # Whether to reset the flywheel speed each loop.
         self._track_speed = False
         # Whether to command mechanisms to the current targets.
         self._enabled = True
@@ -68,9 +68,11 @@ class AllienceTracker:
                 self._target_turret_angle_degrees = self._computeTargetTurretAngleDegrees(-10)
             self.turret.setPosition(self._target_turret_angle_degrees)
             self.hood.setPosition(self._target_hood_angle_degrees)
-            self.flywheel.setTargetRps(self._target_flywheel_speed_rps)
+            if self._track_speed:
+                self.flywheel.setTargetRps(self._target_flywheel_speed_rps)
         else:
-            self.flywheel.setTargetRps(self.robot_constants.shooter.flywheel.default_speed_rps)
+            if self._track_speed:
+                self.flywheel.setTargetRps(self.robot_constants.shooter.flywheel.default_speed_rps)
 
 
     def _computeTargetTurretAngleDegrees(
@@ -84,7 +86,7 @@ class AllienceTracker:
                                    self._turret_field_pose.Y())
         )
 
-        # Vector from center of turret to center of hub.
+        # Vector from center of turret to the alllience.
         turret_to_allience = (
             alliance_pos - self._turret_field_pose.translation()
         )
@@ -96,3 +98,29 @@ class AllienceTracker:
             self.robot_constants.shooter.turret.min_angle,
             min(self.robot_constants.shooter.turret.max_angle,target_angle_degrees),
         )
+    
+    def getInAllienceZone(self) -> bool:
+        return (self._turret_field_pose.X() > BLUE_ALLIENCE_START_X
+                if self.alliance_fetcher.getAlliance() == wpilib.DriverStation.Alliance.kBlue else
+                self._turret_field_pose.X() < RED_ALLIENCE_START_X)
+
+    def setTrack(self, speed, position):
+        self._track_speed = speed
+        self._enabled = position
+
+    # @magicbot.feedback
+    def get_target_turret_angle_degrees(self) -> phoenix6.units.degree:
+        """Returns the target angle for the turret to track."""
+        return self._target_turret_angle_degrees
+
+    # @magicbot.feedback
+    def get_target_hood_angle_degrees(self) -> phoenix6.units.degree:
+        """Returns the target angle for the hood to track."""
+        return self._target_hood_angle_degrees
+
+    # @magicbot.feedback
+    def get_target_flywheel_speed_rps(
+        self,
+    ) -> phoenix6.units.rotations_per_second:
+        """Returns the target rps for the flywheel to track."""
+        return self._target_flywheel_speed_rps

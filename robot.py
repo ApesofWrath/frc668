@@ -27,6 +27,7 @@ class MyRobot(magicbot.MagicRobot):
     alliance_fetcher: alliance.AllianceFetcher
 
     hub_tracker: shooter.HubTracker
+    allience_tracker: shooter.AllienceTracker
     drivetrain: drivetrain.Drivetrain
     flywheel: shooter.Flywheel
     hopper: shooter.Hopper

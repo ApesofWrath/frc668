@@ -32,6 +32,7 @@ class Shooter(magicbot.StateMachine):
     indexer: shooter.Indexer
     drivetrain: drivetrain.Drivetrain
     hub_tracker: shooter.HubTracker
+    allience_tracker: shooter.AllienceTracker
     robot_constants: constants.RobotConstants
 
     def setup(self) -> None:
@@ -46,8 +47,10 @@ class Shooter(magicbot.StateMachine):
 
         # Idle the flywheel to save power, but have the turret and hood track
         # position.
-        self.hub_tracker.trackPosition(self._auto)
-        self.hub_tracker.trackSpeed(False)
+        self.allience_tracker.setTrack(False,self._auto) #TODO: yea do this for the other ones too
+        if self.allience_tracker.getInAllienceZone():
+            self.hub_tracker.trackPosition(self._auto)
+            self.hub_tracker.trackSpeed(False)
         self.flywheel.setTargetRps(
             self.robot_constants.shooter.flywheel.default_speed_rps
         )
@@ -73,8 +76,10 @@ class Shooter(magicbot.StateMachine):
 
         # The driver wants to shoot but the shooter isn't ready or the robot is
         # moving. We want to continue tracking the hub, but don't feed fuel.
-        self.hub_tracker.trackPosition(self._auto)
-        self.hub_tracker.trackSpeed(self._auto)
+        self.allience_tracker.setTrack(self._auto,self._auto)
+        if self.allience_tracker.getInAllienceZone():
+            self.hub_tracker.trackPosition(self._auto)
+            self.hub_tracker.trackSpeed(self._auto)
 
         self.hopper.setEnabled(False)
         self.indexer.setEnabled(False)
@@ -92,8 +97,10 @@ class Shooter(magicbot.StateMachine):
             self.next_state("targeting")
 
         # Fully track the hub.
-        self.hub_tracker.trackPosition(self._auto)
-        self.hub_tracker.trackSpeed(self._auto)
+        self.allience_tracker.setTrack(self._auto,self._auto)
+        if self.allience_tracker.getInAllienceZone():
+            self.hub_tracker.trackPosition(self._auto)
+            self.hub_tracker.trackSpeed(self._auto)
 
         # Feed fuel.
         self.hopper.setEnabled(True)
@@ -107,31 +114,53 @@ class Shooter(magicbot.StateMachine):
 
     def _shooterIsReady(self) -> bool:
         """Indicates if shooter components are close enough to their targets."""
-        return self._getShooterIsWithin(
-            turret_tolerance_degrees=3.0,
-            hood_tolerance_degrees=1.5,
-            flywheel_tolerance_rotations_per_second=3.0,
-        )
+        if self.allience_tracker.getInAllienceZone():
+            return self._getShooterIsWithin(
+                turret_tolerance_degrees=3.0,
+                hood_tolerance_degrees=1.5,
+                flywheel_tolerance_rotations_per_second=3.0,
+            )
+        else:
+            return self._getShooterIsWithin(
+                turret_tolerance_degrees=10,
+                hood_tolerance_degrees=5,
+                flywheel_tolerance_rotations_per_second=15 #it doesn't need to be accurate, it needs to be continuous
+            )
 
     def _getShooterIsWithin(
         self,
         turret_tolerance_degrees: float,
         hood_tolerance_degrees: float,
         flywheel_tolerance_rotations_per_second: float,
+        hubtracker: bool = True #True if hubtracker, false if alliencetracker
     ) -> bool:
         """Indicates if shooter is within provided tolerances."""
-        turret_error = abs(
-            self.hub_tracker.get_target_turret_angle_degrees()
-            - self.turret.get_measured_angle_degrees()
-        )
-        hood_error = abs(
-            self.hub_tracker.get_target_hood_angle_degrees()
-            - self.hood.get_measured_angle_degrees()
-        )
-        flywheel_error = abs(
-            self.hub_tracker.get_target_flywheel_speed_rps()
-            - self.flywheel.get_measured_speed_rps()
-        )
+        if hubtracker:
+            turret_error = abs(
+                self.hub_tracker.get_target_turret_angle_degrees()
+                - self.turret.get_measured_angle_degrees()
+            )
+            hood_error = abs(
+                self.hub_tracker.get_target_hood_angle_degrees()
+                - self.hood.get_measured_angle_degrees()
+            )
+            flywheel_error = abs(
+                self.hub_tracker.get_target_flywheel_speed_rps()
+                - self.flywheel.get_measured_speed_rps()
+            )
+        else:
+            turret_error = abs(
+                self.allience_tracker.get_target_turret_angle_degrees()
+                - self.turret.get_measured_angle_degrees()
+            )
+            hood_error = abs(
+                self.allience_tracker.get_target_hood_angle_degrees()
+                - self.hood.get_measured_angle_degrees()
+            )
+            flywheel_error = abs(
+                self.allience_tracker.get_target_flywheel_speed_rps()
+                - self.flywheel.get_measured_speed_rps()
+            )
         return (
             (turret_error <= turret_tolerance_degrees)
             and (hood_error <= hood_tolerance_degrees)
