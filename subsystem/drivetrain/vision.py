@@ -1,7 +1,7 @@
 import math
 
+import magicbot
 import wpimath
-from magicbot import feedback, tunable
 from phoenix6 import utils
 
 import constants
@@ -29,6 +29,10 @@ class Vision:
 
         self.xy_std_devs = 0.0
         self.theta_std_devs = 0.0
+
+        self._pose_estimates: dict[str, wpimath.geometry.Pose2d] = dict(
+            [(ll, wpimath.geometry.Pose2d()) for ll in self._limelights]
+        )
 
     def execute(self) -> None:
         self.setRobotOrientation()
@@ -67,6 +71,7 @@ class Vision:
             )
 
             pose: wpimath.geometry.Pose2d = pose_estimate.pose
+            self._pose_estimates[ll] = pose
             drivetrain_pose = self.drivetrain.swerve_drive.get_state().pose
 
             vision_constants = self.robot_constants.drivetrain.vision
@@ -154,47 +159,27 @@ class Vision:
         self.xy_std_devs = xy_std_dev
         self.theta_std_devs = theta_std_dev
 
-    @feedback
-    def get_robot_pose(self) -> wpimath.geometry.Pose2d:
-        """
-        Returns robot pose as a Pose2d object.
-        """
-        return self.drivetrain.swerve_drive.get_state().pose
-
-    @feedback
-    def get_robot_yaw_degrees(self) -> float:
-        """
-        Returns drivetrain's yaw estimate.
-        """
-        return (
-            self.drivetrain.swerve_drive.get_state().pose.rotation().degrees()
-        )
-
-    @feedback
+    @magicbot.feedback
     def get_limelight_fl_pose(self) -> wpimath.geometry.Pose2d:
-        return limelight.LimelightHelpers.get_botpose_2d_wpiblue("limelight-fl")
+        return self._pose_estimates["limelight-fl"]
 
-    @feedback
-    def get_limelight_fr(self) -> wpimath.geometry.Pose2d:
-        return limelight.LimelightHelpers.get_botpose_2d_wpiblue("limelight-fr")
+    @magicbot.feedback
+    def get_limelight_fr_pose(self) -> wpimath.geometry.Pose2d:
+        return self._pose_estimates["limelight-fr"]
 
-    @feedback
-    def get_limelight_upfl(self) -> wpimath.geometry.Pose2d:
-        return limelight.LimelightHelpers.get_botpose_2d_wpiblue(
-            "limelight-upfl"
-        )
+    @magicbot.feedback
+    def get_limelight_upfl_pose(self) -> wpimath.geometry.Pose2d:
+        return self._pose_estimates["limelight-upfl"]
 
-    @feedback
-    def get_limelight_upfr(self) -> wpimath.geometry.Pose2d:
-        return limelight.LimelightHelpers.get_botpose_2d_wpiblue(
-            "limelight-upfr"
-        )
+    @magicbot.feedback
+    def get_limelight_upfr_pose(self) -> wpimath.geometry.Pose2d:
+        return self._pose_estimates["limelight-upfr"]
 
-    @feedback
+    @magicbot.feedback
     def get_xy_std_deviation(self) -> float:
         return self.xy_std_devs
 
-    @feedback
+    @magicbot.feedback
     def get_theta_std_deviation(self) -> float:
         return self.theta_std_devs
 
@@ -204,8 +189,8 @@ class VisionTuner:
     drivetrain: drivetrain.Drivetrain
     vision: Vision
 
-    xy_std_devs = tunable(0.0)
-    theta_std_devs = tunable(0.0)
+    xy_std_devs = magicbot.tunable(0.0)
+    theta_std_devs = magicbot.tunable(0.0)
 
     def setup(self) -> None:
         self.xy_std_devs = 0.0

@@ -180,6 +180,134 @@ class Drivetrain(commands2.Subsystem):
     def get_robot_speed(self) -> swerve.ChassisSpeeds:
         return self.swerve_drive.get_state().speeds
 
+    @magicbot.feedback
+    def get_front_left_drive_supply_current(self) -> units.ampere:
+        return (
+            self.swerve_drive.get_module(0)
+            .drive_motor.get_supply_current()
+            .value
+        )
+
+    @magicbot.feedback
+    def get_front_left_drive_stator_current(self) -> units.ampere:
+        return (
+            self.swerve_drive.get_module(0)
+            .drive_motor.get_stator_current()
+            .value
+        )
+
+    @magicbot.feedback
+    def get_front_left_steer_supply_current(self) -> units.ampere:
+        return (
+            self.swerve_drive.get_module(0)
+            .steer_motor.get_supply_current()
+            .value
+        )
+
+    @magicbot.feedback
+    def get_front_left_steer_stator_current(self) -> units.ampere:
+        return (
+            self.swerve_drive.get_module(0)
+            .steer_motor.get_stator_current()
+            .value
+        )
+
+    @magicbot.feedback
+    def get_front_right_drive_supply_current(self) -> units.ampere:
+        return (
+            self.swerve_drive.get_module(1)
+            .drive_motor.get_supply_current()
+            .value
+        )
+
+    @magicbot.feedback
+    def get_front_right_drive_stator_current(self) -> units.ampere:
+        return (
+            self.swerve_drive.get_module(1)
+            .drive_motor.get_stator_current()
+            .value
+        )
+
+    @magicbot.feedback
+    def get_front_right_steer_supply_current(self) -> units.ampere:
+        return (
+            self.swerve_drive.get_module(1)
+            .steer_motor.get_supply_current()
+            .value
+        )
+
+    @magicbot.feedback
+    def get_front_right_steer_stator_current(self) -> units.ampere:
+        return (
+            self.swerve_drive.get_module(1)
+            .steer_motor.get_stator_current()
+            .value
+        )
+
+    @magicbot.feedback
+    def get_back_left_drive_supply_current(self) -> units.ampere:
+        return (
+            self.swerve_drive.get_module(2)
+            .drive_motor.get_supply_current()
+            .value
+        )
+
+    @magicbot.feedback
+    def get_back_left_drive_stator_current(self) -> units.ampere:
+        return (
+            self.swerve_drive.get_module(2)
+            .drive_motor.get_stator_current()
+            .value
+        )
+
+    @magicbot.feedback
+    def get_back_left_steer_supply_current(self) -> units.ampere:
+        return (
+            self.swerve_drive.get_module(2)
+            .steer_motor.get_supply_current()
+            .value
+        )
+
+    @magicbot.feedback
+    def get_back_left_steer_stator_current(self) -> units.ampere:
+        return (
+            self.swerve_drive.get_module(2)
+            .steer_motor.get_stator_current()
+            .value
+        )
+
+    @magicbot.feedback
+    def get_back_right_drive_supply_current(self) -> units.ampere:
+        return (
+            self.swerve_drive.get_module(3)
+            .drive_motor.get_supply_current()
+            .value
+        )
+
+    @magicbot.feedback
+    def get_back_right_drive_stator_current(self) -> units.ampere:
+        return (
+            self.swerve_drive.get_module(3)
+            .drive_motor.get_stator_current()
+            .value
+        )
+
+    @magicbot.feedback
+    def get_back_right_steer_supply_current(self) -> units.ampere:
+        return (
+            self.swerve_drive.get_module(3)
+            .steer_motor.get_supply_current()
+            .value
+        )
+
+    @magicbot.feedback
+    def get_back_right_steer_stator_current(self) -> units.ampere:
+        return (
+            self.swerve_drive.get_module(3)
+            .steer_motor.get_stator_current()
+            .value
+        )
+
 
 class DrivetrainTuner:
     """Component for tuning the drivetrain."""
