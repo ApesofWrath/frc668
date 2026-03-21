@@ -191,6 +191,7 @@ class MyRobot(magicbot.MagicRobot):
         # TODO: Handle exceptions so robot code doesn't crash.
         if self.driver_controller.resetOrientation():
             # TODO: Reset our pose from MT1 vision instead.
+            self.drivetrain.swerve_drive.pigeon2.set_yaw(0.0)
             if self.alliance_fetcher.isRedAlliance():
                 # Robot's front touching the hub wall in the red alliance zone.
                 self.drivetrain.setPose(

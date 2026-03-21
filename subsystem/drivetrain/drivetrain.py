@@ -348,7 +348,7 @@ class DrivetrainTuner:
 
     @magicbot.feedback
     def get_pigeon_yaw(self) -> units.degree:
-        return self.drivetrain.swerve_drive.pigeon2.get_yaw().value 
+        return wpimath.inputModulus(self.drivetrain.swerve_drive.pigeon2.get_yaw().value, -180.0, 180.0)
 
     @magicbot.feedback
     def get_pigeon_rotation2d(self) -> units.degree:
