@@ -11,9 +11,14 @@ from common import alliance
 from subsystem import drivetrain, shooter
 
 #In meters.
+BLUE_ALLIENCE_START_X = 0
 BLUE_ALLIENCE_END_X = 5.05
+RED_ALLIENCE_START_X = 16.5
 RED_ALLIENCE_END_X = 11.5
 FIELD_HEIGHT = 8.05
+
+SHOOT_BACK_HOOD_ANGLE_DEG = 40
+SHOOT_BACK_FLYWHEEL_RPS = 20 #TODO: find what this
 
 class AllienceTracker:
     """For tracking our allience zone"""
@@ -50,17 +55,44 @@ class AllienceTracker:
         # An approxamation of the turret position, it doesn't really matter that much if it's off a bit
         self._turret_field_pose: geometry.Pose2d = robot_pose
 
-        if self._enabled:
-            # TODO: make the shooter track the allience side (0/180deg) +/- 5 or 10deg depending on the pose y
+        in_neutral_zone = (self._turret_field_pose.X() >= BLUE_ALLIENCE_START_X 
+                          and self._turret_field_pose.X() <= RED_ALLIENCE_START_X)
+        in_enemy_zone = (self._turret_field_pose.X() < BLUE_ALLIENCE_START_X
+                         if self.alliance_fetcher.getAlliance() == wpilib.DriverStation.Alliance.kRed else
+                         self._turret_field_pose.X() > RED_ALLIENCE_START_X)
+
+        if self._enabled and (in_neutral_zone or in_enemy_zone):
             if(self._turret_field_pose.Y() > FIELD_HEIGHT/2):
-                #do stuff
-                pass
+                self._target_turret_angle_degrees = self._computeTargetTurretAngleDegrees(10) #TODO: check that this is the right way (it should be)
             else:
-                pass
-                #do the other stuff
-            # self.turret.setPosition(self._target_turret_angle_degrees)
-            # self.hood.setPosition(self._target_hood_angle_degrees)
-            # self.flywheel.setTargetRps(self._target_flywheel_speed_rps)
+                self._target_turret_angle_degrees = self._computeTargetTurretAngleDegrees(-10)
+            self.turret.setPosition(self._target_turret_angle_degrees)
+            self.hood.setPosition(self._target_hood_angle_degrees)
+            self.flywheel.setTargetRps(self._target_flywheel_speed_rps)
+        else:
+            self.flywheel.setTargetRps(self.robot_constants.shooter.flywheel.default_speed_rps)
 
 
+    def _computeTargetTurretAngleDegrees(
+        self, offset_degrees: phoenix6.units.degree
+    ) -> phoenix6.units.degree:
+        """Returns the target angle of the turret."""
+        alliance_pos = (
+            geometry.Translation2d(RED_ALLIENCE_START_X 
+                                   if self.alliance_fetcher.getAlliance() == wpilib.DriverStation.Alliance.kRed else 
+                                   BLUE_ALLIENCE_START_X, 
+                                   self._turret_field_pose.Y())
+        )
 
+        # Vector from center of turret to center of hub.
+        turret_to_allience = (
+            alliance_pos - self._turret_field_pose.translation()
+        )
+        target_angle_degrees = (
+            turret_to_allience.angle() - self._turret_field_pose.rotation()
+        ).degrees() + offset_degrees
+
+        return max(
+            self.robot_constants.shooter.turret.min_angle,
+            min(self.robot_constants.shooter.turret.max_angle,target_angle_degrees),
+        )
