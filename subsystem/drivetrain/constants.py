@@ -342,7 +342,11 @@ DRIVETRAIN_CONSTANTS: dict[str, DrivetrainConstants] = {
             encoder_inverted=True,
         ),
         drivetrain=SwerveDrivetrainConstants(
-            can_bus_name="swerve", pigeon2_id=22
+            can_bus_name="swerve",
+            pigeon2_id=22,
+            pigeon2_configs=configs.Pigeon2Configuration().with_gyro_trim(
+                configs.GyroTrimConfigs().with_gyro_scalar_z(-2.856)
+            ),
         ),
         vision=VisionConstants(
             limelights=[
