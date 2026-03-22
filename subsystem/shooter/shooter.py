@@ -108,6 +108,14 @@ class Shooter(magicbot.StateMachine):
     def setAuto(self, value: bool) -> None:
         self._auto = value
 
+    @magicbot.feedback
+    def get_auto(self) -> bool:
+        return self._auto
+
+    @magicbot.feedback
+    def get_driver_wants_feed(self) -> bool:
+        return self._driver_wants_feed
+
     def _shooterIsReady(self) -> bool:
         """Indicates if shooter components are close enough to their targets."""
         if self.allience_tracker.getInAllienceZone():

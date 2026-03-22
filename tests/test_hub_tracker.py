@@ -92,7 +92,7 @@ def _make_tracker(
         )
     )
     tracker.alliance_fetcher = mocker.Mock()
-    tracker.alliance_fetcher.getAlliance.return_value = None
+    tracker.alliance_fetcher.isRedAlliance.return_value = False
     tracker.drivetrain = mocker.Mock()
     yaw_rate_signal = mocker.Mock()
     yaw_rate_signal.value = yaw_rate_degrees_per_second

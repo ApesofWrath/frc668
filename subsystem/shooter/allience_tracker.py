@@ -35,8 +35,6 @@ class AllienceTracker:
         # control loop based on the current robot pose estimate.
         self._turret_field_pose: geometry.Pose2d = geometry.Pose2d()
 
-        self._alliance = self.alliance_fetcher.getAlliance() 
-
         # Current targets.
         # TODO: Find better defaults.
         self._target_turret_angle_degrees: float = 0.0
@@ -59,7 +57,7 @@ class AllienceTracker:
         in_neutral_zone = (self._turret_field_pose.X() >= BLUE_ALLIENCE_END_X 
                           and self._turret_field_pose.X() <= RED_ALLIENCE_END_X)
         in_opponent_zone = (self._turret_field_pose.X() < BLUE_ALLIENCE_END_X
-                         if self.alliance_fetcher.getAlliance() == wpilib.DriverStation.Alliance.kRed else
+                         if self.alliance_fetcher.isRedAlliance() else
                          self._turret_field_pose.X() > RED_ALLIENCE_END_X)
 
         if self._enabled and (in_neutral_zone or in_opponent_zone):
@@ -82,7 +80,7 @@ class AllienceTracker:
         """Returns the target angle of the turret."""
         alliance_pos = (
             geometry.Translation2d(RED_ALLIENCE_START_X 
-                                   if self.alliance_fetcher.getAlliance() == wpilib.DriverStation.Alliance.kRed else 
+                                   if self.alliance_fetcher.isRedAlliance() else 
                                    BLUE_ALLIENCE_START_X,
                                    (top_half*FIELD_HEIGHT)+((-1 if top_half else 1)*EDGE_OFFSET))
         )
@@ -103,7 +101,7 @@ class AllienceTracker:
     @magicbot.feedback
     def getInAllienceZone(self) -> bool:
         return (self._turret_field_pose.X() < BLUE_ALLIENCE_END_X
-                if self.alliance_fetcher.getAlliance() == wpilib.DriverStation.Alliance.kBlue else
+                if self.alliance_fetcher.isBlueAlliance() else
                 self._turret_field_pose.X() > RED_ALLIENCE_END_X)
 
     def setEnabled(self, enabled):

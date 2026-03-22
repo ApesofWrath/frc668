@@ -16,6 +16,15 @@ class Hopper:
     hopper_left_motor: phoenix6.hardware.TalonFX
     hopper_right_motor: phoenix6.hardware.TalonFX
 
+    def __init__(self):
+        # The target speeds (in rotations per second) to request the hopper
+        # motors to run at.
+        self._left_target_rps: float = 0.0
+        self._right_target_rps: float = 0.0
+        # Control requests for the desired speeds are sent to the motors when
+        # this is True.
+        self._enabled: bool = False
+
     def setup(self) -> None:
         """Set up initial state for the hopper.
 
@@ -74,15 +83,14 @@ class Hopper:
             )
         )
 
-        # The target speed (in rotations per second) to request the hopper
-        # motors to run at.
-        self._target_rps: float = 0.0
-        # The hopper motors are run when this is True.
-        self._enabled: bool = False
+        self._left_target_rps = (
+            self.robot_constants.shooter.hopper.default_left_speed_rps
+        )
+        self._right_target_rps = (
+            self.robot_constants.shooter.hopper.default_right_speed_rps
+        )
 
-        self._request = phoenix6.controls.VelocityVoltage(
-            self._target_rps
-        ).with_slot(0)
+        self._request = phoenix6.controls.VelocityVoltage(0.0).with_slot(0)
 
     def execute(self) -> None:
         """Command the motors to the current speed.
@@ -91,10 +99,10 @@ class Hopper:
         """
         if self._enabled:
             self.hopper_left_motor.set_control(
-                self._request.with_velocity(self._target_rps)
+                self._request.with_velocity(self._left_target_rps)
             )
             self.hopper_right_motor.set_control(
-                self._request.with_velocity(self._target_rps)
+                self._request.with_velocity(self._right_target_rps)
             )
         else:
             self.hopper_left_motor.set_control(self._request.with_velocity(0.0))
@@ -108,7 +116,6 @@ class Hopper:
         This method is called when the robot enters autonomous, teleoperated, or
         test mode.
         """
-        self._target_rps = self.robot_constants.shooter.hopper.default_speed_rps
         self._enabled = False
 
     def on_disable(self) -> None:
@@ -116,16 +123,23 @@ class Hopper:
 
         This method is called when the robot enters disabled mode.
         """
-        self._target_rps = 0.0
         self._enabled = False
 
-    def setTargetRps(self, target_rps: float) -> None:
-        """Set the target speed for both hopper motors.
+    def setLeftTargetRps(self, target_rps: float) -> None:
+        """Set the target speed for the left hopper motor.
 
         Args:
             target_rps: Speed in rotations per second.
         """
-        self._target_rps = target_rps
+        self._left_target_rps = target_rps
+
+    def setRightTargetRps(self, target_rps: float) -> None:
+        """Set the target speed for the right hopper motor.
+
+        Args:
+            target_rps: Speed in rotations per second.
+        """
+        self._right_target_rps = target_rps
 
     def setEnabled(self, value: bool) -> None:
         """Enable or disable the hopper motors.
@@ -136,12 +150,40 @@ class Hopper:
         self._enabled = value
 
     @magicbot.feedback
-    def get_target_rps(self) -> float:
-        return self._target_rps
+    def get_left_target_rps(self) -> phoenix6.units.rotations_per_second:
+        return self._left_target_rps
+
+    @magicbot.feedback
+    def get_right_target_rps(self) -> phoenix6.units.rotations_per_second:
+        return self._right_target_rps
+
+    @magicbot.feedback
+    def get_left_measured_rps(self) -> phoenix6.units.rotations_per_second:
+        return self.hopper_left_motor.get_velocity().value
+
+    @magicbot.feedback
+    def get_right_measured_rps(self) -> phoenix6.units.rotations_per_second:
+        return self.hopper_right_motor.get_velocity().value
 
     @magicbot.feedback
     def get_enabled(self) -> bool:
         return self._enabled
+
+    @magicbot.feedback
+    def get_left_supply_current(self) -> phoenix6.units.ampere:
+        return self.hopper_left_motor.get_supply_current().value
+
+    @magicbot.feedback
+    def get_left_stator_current(self) -> phoenix6.units.ampere:
+        return self.hopper_left_motor.get_stator_current().value
+
+    @magicbot.feedback
+    def get_right_supply_current(self) -> phoenix6.units.ampere:
+        return self.hopper_right_motor.get_supply_current().value
+
+    @magicbot.feedback
+    def get_right_stator_current(self) -> phoenix6.units.ampere:
+        return self.hopper_right_motor.get_stator_current().value
 
 
 class HopperTuner:
@@ -172,8 +214,9 @@ class HopperTuner:
     right_k_i = magicbot.tunable(0.0)
     right_k_d = magicbot.tunable(0.0)
 
-    # The target rotational speed of the hopper.
-    target_rps = magicbot.tunable(0.0)
+    # The target rotational speeds for the hopper motors.
+    left_target_rps = magicbot.tunable(0.0)
+    right_target_rps = magicbot.tunable(0.0)
     # Whether or not the hopper motors should run.
     enabled = magicbot.tunable(False)
 
@@ -216,7 +259,8 @@ class HopperTuner:
         )
 
     def execute(self) -> None:
-        self.hopper.setTargetRps(self.target_rps)
+        self.hopper.setLeftTargetRps(self.left_target_rps)
+        self.hopper.setRightTargetRps(self.right_target_rps)
         self.hopper.setEnabled(self.enabled)
 
         # We only want to reapply the gains if they changed. The TalonFX motor
@@ -291,11 +335,3 @@ class HopperTuner:
                     f"{result.name}: {result.description}"
                 )
             )
-
-    @magicbot.feedback
-    def get_left_measured_rps(self) -> float:
-        return self.hopper_left_motor.get_velocity().value
-
-    @magicbot.feedback
-    def get_right_measured_rps(self) -> float:
-        return self.hopper_right_motor.get_velocity().value

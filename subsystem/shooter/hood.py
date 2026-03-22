@@ -183,7 +183,7 @@ class Hood:
         self.hood_encoder.set_position(0.0)
 
     @magicbot.feedback
-    def get_measured_angle_degrees(self) -> float:
+    def get_measured_angle_degrees(self) -> phoenix6.units.degree:
         return (
             self.hood_encoder.get_position().value
             * self.ROTATIONS_TO_DEGREES
@@ -191,8 +191,16 @@ class Hood:
         )
 
     @magicbot.feedback
-    def get_target_position_deg(self) -> float:
+    def get_target_position_deg(self) -> phoenix6.units.degree:
         return self._target_position_degrees
+
+    @magicbot.feedback
+    def get_supply_current(self) -> phoenix6.units.ampere:
+        return self.hood_motor.get_supply_current().value
+
+    @magicbot.feedback
+    def get_stator_current(self) -> phoenix6.units.ampere:
+        return self.hood_motor.get_stator_current().value
 
 
 class HoodTuner:
@@ -323,13 +331,5 @@ class HoodTuner:
             self.logger.error("Failed to apply new gains to hood motor")
 
     @magicbot.feedback
-    def get_motor_voltage(self) -> phoenix6.units.volt:
-        return self.hood_motor.get_motor_voltage().value
-
-    @magicbot.feedback
-    def get_motor_stator_current(self) -> phoenix6.units.ampere:
-        return self.hood_motor.get_stator_current().value
-
-    @magicbot.feedback
-    def get_encoder_position(self) -> float:
-        return self.hood_encoder.get_position().value
+    def get_absolute_position(self) -> float:
+        return self.hood_encoder.get_absolute_position().value

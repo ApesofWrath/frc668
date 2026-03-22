@@ -1,5 +1,5 @@
 import magicbot
-from phoenix6 import configs, controls, hardware
+from phoenix6 import configs, controls, hardware, units
 
 import constants
 
@@ -94,6 +94,18 @@ class Intake:
     def get_measured_speed(self) -> float:
         value = self.intake_roller_motor.get_velocity().value
         return value if value else 0.0
+
+    @magicbot.feedback
+    def get_active(self) -> bool:
+        return self._active
+
+    @magicbot.feedback
+    def get_roller_supply_current(self) -> units.ampere:
+        return self.intake_roller_motor.get_supply_current().value
+
+    @magicbot.feedback
+    def get_roller_stator_current(self) -> units.ampere:
+        return self.intake_roller_motor.get_stator_current().value
 
 
 class IntakeTuner:
