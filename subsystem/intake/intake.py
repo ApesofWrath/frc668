@@ -1,5 +1,5 @@
 import magicbot
-from phoenix6 import configs, controls, hardware, units
+from phoenix6 import configs, controls, hardware, units, signals 
 
 import constants
 
@@ -11,7 +11,8 @@ class Intake:
     """
 
     robot_constants: constants.RobotConstants
-    intake_roller_motor: hardware.TalonFX
+    intake_roller_motor_one: hardware.TalonFX
+    intake_roller_motor_two: hardware.TalonFX
 
     def setup(self) -> None:
         """Set up initial state for the intake.
@@ -24,12 +25,13 @@ class Intake:
             self.robot_constants.intake.active_roller_speed_rps
         )
 
-        self.intake_roller_motor.configurator.apply(
+        self.intake_roller_motor_one.configurator.apply(
             configs.TalonFXConfiguration()
             .with_motor_output(
                 configs.MotorOutputConfigs().with_inverted(
-                    self.robot_constants.intake.roller_motor_inverted
+                    self.robot_constants.intake.roller_motor_one_inverted
                 )
+                .with_neutral_mode(signals.NeutralModeValue.BRAKE)
             )
             .with_slot0(
                 configs.Slot0Configs()
@@ -43,7 +45,33 @@ class Intake:
             .with_current_limits(
                 configs.CurrentLimitsConfigs()
                 .with_supply_current_limit(
-                    self.robot_constants.intake.roller_motor_supply_current_limit
+                    self.robot_constants.intake.roller_motor_one_supply_current_limit
+                )
+                .with_supply_current_limit_enable(True)
+            )
+        )
+
+        self.intake_roller_motor_two.configurator.apply(
+            configs.TalonFXConfiguration()
+            .with_motor_output(
+                configs.MotorOutputConfigs().with_inverted(
+                    self.robot_constants.intake.roller_motor_two_inverted
+                )
+                .with_neutral_mode(signals.NeutralModeValue.BRAKE)
+            )
+            .with_slot0(
+                configs.Slot0Configs()
+                .with_k_s(self.robot_constants.intake.k_s)
+                .with_k_v(self.robot_constants.intake.k_v)
+                .with_k_a(self.robot_constants.intake.k_a)
+                .with_k_p(self.robot_constants.intake.k_p)
+                .with_k_i(self.robot_constants.intake.k_i)
+                .with_k_d(self.robot_constants.intake.k_d)
+            )
+            .with_current_limits(
+                configs.CurrentLimitsConfigs()
+                .with_supply_current_limit(
+                    self.robot_constants.intake.roller_motor_two_supply_current_limit
                 )
                 .with_supply_current_limit_enable(True)
             )
@@ -61,7 +89,8 @@ class Intake:
         else:
             self._request.with_velocity(0.0)
 
-        self.intake_roller_motor.set_control(self._request)
+        self.intake_roller_motor_one.set_control(self._request)
+        self.intake_roller_motor_two.set_control(self._request)
 
     def on_enable(self) -> None:
         """Reset to a "safe" state when the robot is enabled.
@@ -91,8 +120,13 @@ class Intake:
         self._active = not self._active
 
     @magicbot.feedback
-    def get_measured_speed(self) -> float:
-        value = self.intake_roller_motor.get_velocity().value
+    def get_measured_speed_one(self) -> float:
+        value = self.intake_roller_motor_one.get_velocity().value
+        return value if value else 0.0
+
+    @magicbot.feedback
+    def get_measured_speed_two(self) -> float:
+        value = self.intake_roller_motor_two.get_velocity().value
         return value if value else 0.0
 
     @magicbot.feedback
@@ -100,12 +134,20 @@ class Intake:
         return self._active
 
     @magicbot.feedback
-    def get_roller_supply_current(self) -> units.ampere:
-        return self.intake_roller_motor.get_supply_current().value
+    def get_roller_one_supply_current(self) -> units.ampere:
+        return self.intake_roller_motor_one.get_supply_current().value
 
     @magicbot.feedback
-    def get_roller_stator_current(self) -> units.ampere:
-        return self.intake_roller_motor.get_stator_current().value
+    def get_roller_one_stator_current(self) -> units.ampere:
+        return self.intake_roller_motor_one.get_stator_current().value
+    
+    @magicbot.feedback
+    def get_roller_two_supply_current(self) -> units.ampere:
+        return self.intake_roller_motor_two.get_supply_current().value
+
+    @magicbot.feedback
+    def get_roller_two_stator_current(self) -> units.ampere:
+        return self.intake_roller_motor_two.get_stator_current().value
 
 
 class IntakeTuner:
@@ -116,7 +158,8 @@ class IntakeTuner:
     """
 
     robot_constants: constants.RobotConstants
-    intake_roller_motor: hardware.TalonFX
+    intake_roller_motor_one: hardware.TalonFX
+    intake_roller_motor_two: hardware.TalonFX
     intake: Intake
 
     # Gains for velocity control of the intake.
@@ -191,7 +234,7 @@ class IntakeTuner:
 
     def applyGains(self) -> None:
         """Apply the current gains to the motor."""
-        result = self.intake_roller_motor.configurator.apply(
+        result_one = self.intake_roller_motor_one.configurator.apply(
             configs.config_groups.Slot0Configs()
             .with_k_s(self.k_s)
             .with_k_v(self.k_v)
@@ -200,5 +243,16 @@ class IntakeTuner:
             .with_k_i(self.k_i)
             .with_k_d(self.k_d)
         )
-        if not result.is_ok():
-            self.logger.error("Failed to apply new gains to intake motor")
+        result_two = self.intake_roller_motor_two.configurator.apply(
+            configs.config_groups.Slot0Configs()
+            .with_k_s(self.k_s)
+            .with_k_v(self.k_v)
+            .with_k_a(self.k_a)
+            .with_k_p(self.k_p)
+            .with_k_i(self.k_i)
+            .with_k_d(self.k_d)
+        )
+        if not result_one.is_ok():
+            self.logger.error("Failed to apply new gains to first intake motor")
+        if not result_two.is_ok():
+            self.logger.error("Failed to apply new gains to second intake motor")

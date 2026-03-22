@@ -5,12 +5,18 @@ from phoenix6 import signals, units
 
 @dataclass(frozen=True)
 class IntakeConstants:
-    roller_motor_can_id: int = 0
-    roller_motor_can_bus: str = ""
-    roller_motor_inverted: signals.InvertedValue = (
+    roller_motor_one_can_id: int = 0
+    roller_motor_one_can_bus: str = ""
+    roller_motor_one_inverted: signals.InvertedValue = (
         signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
     )
-    roller_motor_supply_current_limit: units.ampere = 40.0
+    roller_motor_one_supply_current_limit: units.ampere = 40.0
+    roller_motor_two_can_id: int = 0
+    roller_motor_two_can_bus: str = ""
+    roller_motor_two_inverted: signals.InvertedValue = (
+        signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
+    )
+    roller_motor_two_supply_current_limit: units.ampere = 40.0
     deploy_motor_can_id: int = 0
     deploy_motor_can_bus: str = ""
     deploy_motor_inverted: signals.InvertedValue = (
@@ -37,9 +43,9 @@ class IntakeConstants:
 INTAKE_CONSTANTS: dict[str, IntakeConstants] = {
     # Alphabot
     "023AC96C": IntakeConstants(
-        roller_motor_can_id=41,
-        roller_motor_can_bus="Shooter",
-        roller_motor_inverted=signals.InvertedValue.CLOCKWISE_POSITIVE,
+        roller_motor_one_can_id=41, 
+        roller_motor_one_can_bus="Shooter",
+        roller_motor_one_inverted=signals.InvertedValue.CLOCKWISE_POSITIVE,
         # TODO: Tune.
         k_s=0.0,
         k_v=0.0,
@@ -51,9 +57,12 @@ INTAKE_CONSTANTS: dict[str, IntakeConstants] = {
     ),
     # Juno
     "0323CA4B": IntakeConstants(
-        roller_motor_can_id=41,
-        roller_motor_can_bus="rio",
-        roller_motor_inverted=signals.InvertedValue.CLOCKWISE_POSITIVE,
+        roller_motor_one_can_id=41,
+        roller_motor_one_can_bus="rio", 
+        roller_motor_one_inverted=signals.InvertedValue.CLOCKWISE_POSITIVE,
+        roller_motor_two_can_id=0, #TODO: update
+        roller_motor_two_can_bus="rio",
+        roller_motor_two_inverted=signals.InvertedValue.CLOCKWISE_POSITIVE, #TODO: check 
         deploy_motor_can_id=50,
         deploy_motor_can_bus="rio",
         deploy_motor_inverted=signals.InvertedValue.CLOCKWISE_POSITIVE,

@@ -4,6 +4,7 @@ import magicbot
 
 import constants
 from subsystem import shooter, drivetrain
+from phoenix6 import swerve 
 
 
 class Shooter(magicbot.StateMachine):
