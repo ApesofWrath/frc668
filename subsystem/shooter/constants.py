@@ -297,7 +297,7 @@ SHOOTER_CONSTANTS: dict[str, ShooterConstants] = {
             position_k_p=450,
             position_k_d=0.5,
             motion_magic_feed_forward=-1.0,
-            feed_forward_mvt_multiplier=0.0, #TODO: find.
+            feed_forward_mvt_multiplier=0.15, 
         ),
         hood=HoodConstants(
             encoder_can_id=17,

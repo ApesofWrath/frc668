@@ -22,7 +22,7 @@ class DriverController:
 
     DEADBAND: float = math.pow(0.15, 2)
     FAST: float = 1.0
-    SLOW: float = 0.1
+    SLOW: float = 0.2
 
     def __init__(
         self,
@@ -62,7 +62,7 @@ class DriverController:
         The raw inputs from the joystick are filtered and normalized to the
         range of speeds specified in the options.
         """
-        modifier = self.SLOW if self._controller.getLeftBumper() else self.FAST
+        modifier = self.SLOW if (self._controller.getLeftBumper() or self._controller.getRightTriggerAxis()) else self.FAST
         self._command.vx = (
             -self._filterInput(self._controller.getLeftY())
             * self._options.max_linear_speed_meters_per_second
