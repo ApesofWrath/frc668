@@ -123,7 +123,7 @@ class TurretConstants:
     motion_magic_jerk: units.rotations_per_second_cubed = 75.0
     # Feedforward values.
     motion_magic_feed_forward: units.voltage = 0.0
-    feed_forward_mvt: units.voltage = 0.0
+    feed_forward_mvt_multiplier: units.voltage = 0.0
     # Limits for turret motion.
     min_angle: units.degree = -180.0
     max_angle: units.degree = 180.0
@@ -297,7 +297,7 @@ SHOOTER_CONSTANTS: dict[str, ShooterConstants] = {
             position_k_p=450,
             position_k_d=0.5,
             motion_magic_feed_forward=-1.0,
-            feed_forward_mvt=-1.0, #TODO: find.
+            feed_forward_mvt_multiplier=0.0, #TODO: find.
         ),
         hood=HoodConstants(
             encoder_can_id=17,

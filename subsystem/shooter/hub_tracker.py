@@ -112,7 +112,11 @@ class HubTracker:
         self._target_hood_angle_degrees: float = 0.0
         self._target_flywheel_speed_rps: float = 0.0
 
-        self.turret_to_hub: geometry.Translation2d = geometry.Translation2d(0, 0)
+        self.turret_mvt_feed_forward_multiplier: float = self.robot_constants.shooter.turret.feed_forward_mvt_multiplier
+        self.turret_mvt_feed_forward: float = 0.0
+
+        self.current_turret_to_hub: geometry.Translation2d = geometry.Translation2d(0, 0)
+        self.future_turret_to_hub: geometry.Translation2d = geometry.Translation2d(0, 0)
 
         # Raw yaw rate of the robot (and the turret).
         self._yaw_rate_signal: phoenix6.status_signal.StatusSignal[
@@ -137,25 +141,25 @@ class HubTracker:
             self._robot_to_turret_transform
         )
 
+        self.turret_moving_target_angle = self._computeMovingTargetTurretAngleDegrees()
+
         # Set the flywheel and hood targets based on future turret-to-hub
         # distance.
         target_hood_angle_degrees, target_flywheel_speed_rps = ShotTable.get(
             self.get_future_turret_to_hub_distance()
         )
 
-        # self.turret_feed_forward_mvt = self._computeTurretMovementFeedForward(self._computeMovingTargetTurretAngleDegrees, self._computeStationaryTargetTurretAngleDegrees)
+        self.turret_mvt_feed_forward = (self.turret_moving_target_angle - self._computeStationaryTargetTurretAngleDegrees()) * self.turret_mvt_feed_forward_multiplier  
 
         if self._track_position:
-            self._target_turret_angle_degrees = (
-                self._computeMovingTargetTurretAngleDegrees()
-            )
+            self._target_turret_angle_degrees = (self.turret_moving_target_angle)
             self._target_hood_angle_degrees = target_hood_angle_degrees
 
         if self._track_speed:
             self._target_flywheel_speed_rps = target_flywheel_speed_rps
 
         if self._enabled:
-            self.turret.setFeedForwardControl(self._computeMovingTargetTurretAngleDegrees, self._computeStationaryTargetTurretAngleDegrees)
+            self.turret.setFeedForwardControl(self.turret_mvt_feed_forward)
             self.turret.setPosition(self._target_turret_angle_degrees)
             self.hood.setPosition(self._target_hood_angle_degrees)
             self.flywheel.setTargetRps(self._target_flywheel_speed_rps)
@@ -196,15 +200,6 @@ class HubTracker:
     def get_enabled(self) -> bool:
         return self._enabled
 
-    @magicbot.feedback
-    def get_turret_distance_from_hub_meters(self) -> phoenix6.units.meter:
-        """Returns the absolute distance of the turret from the hub."""
-        # Vector from center of turret to center of hub.
-        turret_to_hub = (
-            self._hub_position - self._turret_field_pose.translation()
-        )
-        return turret_to_hub.norm()
-
     def _computeMovingTargetTurretAngleDegrees(
         self,
     ) -> phoenix6.units.degree:
@@ -220,12 +215,12 @@ class HubTracker:
         )
 
         # Vector from center of turret to center of hub.
-        self.turret_to_hub = (
+        self.future_turret_to_hub = (
             self._hub_position - (self._turret_field_pose.translation() + self.get_movement_vector())
         )
         # Heading of the turret_field_pose is same as the robot's heading.
         target_angle_degrees = (
-            self.turret_to_hub.angle() - self._turret_field_pose.rotation()
+            self.future_turret_to_hub.angle() - self._turret_field_pose.rotation()
         ).degrees()
 
         # Predict how much the robot will yaw in the next control loop interval
@@ -255,12 +250,12 @@ class HubTracker:
         )
 
         # Vector from center of turret to center of hub.
-        self.turret_to_hub = (
+        self.current_turret_to_hub = (
             self._hub_position - self._turret_field_pose.translation()
         )
         # Heading of the turret_field_pose is same as the robot's heading.
         target_angle_degrees = (
-            self.turret_to_hub.angle() - self._turret_field_pose.rotation()
+            self.current_turret_to_hub.angle() - self._turret_field_pose.rotation()
         ).degrees()
 
         # Predict how much the robot will yaw in the next control loop interval
@@ -274,29 +269,23 @@ class HubTracker:
                 target_angle_degrees - predictive_lead_angle,
             ),
         )
-    
-    def _computeTurretMovementFeedForward(self, moving_turret_target, stationary_turret_target) -> phoenix6.units.volt:
-        self.feed_forward_movement = (
-            (moving_turret_target - stationary_turret_target)
-            * self.robot_constants.shooter.turret.feed_forward_mvt
-        )
 
     @magicbot.feedback
-    def get_turret_distance_from_hub_meters(self) -> phoenix6.units.meter:
+    def get_turret_current_distance_from_hub_meters(self) -> phoenix6.units.meter:
         """Returns the current absolute distance of the turret from the hub."""
         # Vector from center of turret to center of hub.
-        turret_to_hub = (
+        current_turret_to_hub = (
             self._hub_position - self._turret_field_pose.translation()
         )
-        return turret_to_hub.norm()
+        return current_turret_to_hub.norm()
     
     @magicbot.feedback
     def get_future_turret_to_hub_distance(self) -> phoenix6.units.meter:
-        return self.turret_to_hub.norm()
+        return self.future_turret_to_hub.norm()
 
     @magicbot.feedback
     def get_future_turret_to_hub_angle(self) -> phoenix6.units.degree:
-        return self.turret_to_hub.angle().degrees()
+        return self.future_turret_to_hub.angle().degrees()
 
     @magicbot.feedback
     def get_target_turret_angle_degrees(self) -> phoenix6.units.degree:
@@ -326,3 +315,6 @@ class HubTracker:
         turret_vy = robot_vy + robot_omega * (TURRET_TO_ROBOT_X * math.cos(robot_angle) - TURRET_TO_ROBOT_Y * math.sin(robot_angle))
         
         return (geometry.Translation2d(turret_vx, turret_vy)) * self.robot_constants.shooter.turret.time_of_flight
+
+    def setTurretFeedForwardMultiplier(self, multiplier) -> None:
+        self.turret_mvt_feed_forward_multiplier = multiplier 
