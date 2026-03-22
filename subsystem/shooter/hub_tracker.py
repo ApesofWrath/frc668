@@ -69,6 +69,56 @@ class ShotTable:
         flywheel_speed = f1 + fraction * (f2 - f1)
 
         return hood_angle, flywheel_speed
+    
+class TimeTable:
+    """A lookup table for fuel flight time based on robot pose. 
+    This is a distinct table from the ShotTable because the ShotTable uses future/predicted turret to hub distance, 
+    but we want the flight time to be based off current turret to hub distance."""
+
+    # Each entry contains the following:
+    #  * turret-to-hub distance in meters
+    #  * flight time of fuel in seconds
+    _TABLE: Tuple[Tuple[float, float], ...] = (
+        (1.75, 1.0),
+        (2.25, 1.0),
+        (2.75, 1.0),
+        (3.25, 1.0),
+        (3.75, 1.0),
+        (4.25, 1.0),
+        (4.75, 1.0),
+    )
+    # A tuple of just the distances from _TABLE.
+    _DISTANCES: Tuple[float, ...] = tuple(row[0] for row in _TABLE)
+
+    @classmethod
+    def get(cls, distance_meters: float) -> float:
+        """Get time of flight for a given turret-to-hub distance.
+
+        This interpolates between values for known distances.
+
+        Args:
+            distance_meters:
+                The Euclidian distance in the XY plane in meters from the center
+                of the turret to the center of the hub.
+
+        Returns:
+            A tuple containing the target hood angle in degrees and flywheel
+            speed in rotations per second.
+        """
+        if distance_meters <= cls._TABLE[0][0]:
+            return cls._TABLE[0][1], cls._TABLE[0][2]
+        if distance_meters >= cls._TABLE[-1][0]:
+            return cls._TABLE[-1][1], cls._TABLE[-1][2]
+
+        idx = bisect.bisect_left(cls._DISTANCES, distance_meters) - 1
+
+        d1, t1 = cls._TABLE[idx]
+        d2, t2 = cls._TABLE[idx + 1]
+
+        fraction = (distance_meters - d1) / (d2 - d1)
+        time_of_flight = t1 + fraction * (t2 - t1)
+
+        return time_of_flight
 
 
 class HubTracker:
@@ -111,6 +161,8 @@ class HubTracker:
         self._target_turret_angle_degrees: float = 0.0
         self._target_hood_angle_degrees: float = 0.0
         self._target_flywheel_speed_rps: float = 0.0
+        
+        self.time_of_flight: float = 1.0
 
         self.turret_mvt_feed_forward_multiplier: float = self.robot_constants.shooter.turret.feed_forward_mvt_multiplier
         self.turret_mvt_feed_forward: float = 0.0
@@ -142,6 +194,7 @@ class HubTracker:
         )
 
         self.turret_moving_target_angle = self._computeMovingTargetTurretAngleDegrees()
+        self.turret_stationary_target_angle = self._computeStationaryTargetTurretAngleDegrees()
 
         # Set the flywheel and hood targets based on future turret-to-hub
         # distance.
@@ -149,10 +202,10 @@ class HubTracker:
             self.get_future_turret_to_hub_distance()
         )
 
-        self.turret_mvt_feed_forward = (self.turret_moving_target_angle - self._computeStationaryTargetTurretAngleDegrees()) * self.turret_mvt_feed_forward_multiplier  
+        self.turret_mvt_feed_forward = (self.turret_moving_target_angle - self.turret_stationary_target_angle) * self.turret_mvt_feed_forward_multiplier  
 
         if self._track_position:
-            self._target_turret_angle_degrees = (self.turret_moving_target_angle)
+            self._target_turret_angle_degrees = self.turret_moving_target_angle
             self._target_hood_angle_degrees = target_hood_angle_degrees
 
         if self._track_speed:
@@ -313,8 +366,13 @@ class HubTracker:
 
         turret_vx = robot_vx + robot_omega * (TURRET_TO_ROBOT_Y * math.cos(robot_angle) - TURRET_TO_ROBOT_X * math.sin(robot_angle))
         turret_vy = robot_vy + robot_omega * (TURRET_TO_ROBOT_X * math.cos(robot_angle) - TURRET_TO_ROBOT_Y * math.sin(robot_angle))
-        
-        return (geometry.Translation2d(turret_vx, turret_vy)) * self.robot_constants.shooter.turret.time_of_flight
+
+        for i in range(3):
+            self.time_of_flight = TimeTable.get(self.get_turret_current_distance_from_hub_meters())
+            self.movement_vector = (geometry.Translation2d(turret_vx, turret_vy)) * self.time_of_flight 
+            i+=1
+
+        return self.movement_vector
 
     def setTurretFeedForwardMultiplier(self, multiplier) -> None:
         self.turret_mvt_feed_forward_multiplier = multiplier 
