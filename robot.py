@@ -146,6 +146,8 @@ class MyRobot(magicbot.MagicRobot):
         the selected autonomous routine.
         """
         self.logger.info("Entering autonomous mode")
+        # In case it wasn't started in disabledInit. If it was, this is a no-op.
+        wpilib.DataLogManager.start()
 
     def disabledInit(self) -> None:
         """Initialize disabled mode.
@@ -155,6 +157,8 @@ class MyRobot(magicbot.MagicRobot):
         called.
         """
         self.logger.info("Robot disabled")
+        # This starts the log manager if it wasn't already started.
+        wpilib.DataLogManager.getLog().flush()
         self.vision._pose_seeded = False
         self.vision.imu_four = False
 
@@ -178,6 +182,8 @@ class MyRobot(magicbot.MagicRobot):
         called.
         """
         self.logger.info("Entering teleop mode")
+        # In case it wasn't started in disabledInit. If it was, this is a no-op.
+        wpilib.DataLogManager.start()
 
     def teleopPeriodic(self) -> None:
         """Run during teleoperated mode.
@@ -190,9 +196,9 @@ class MyRobot(magicbot.MagicRobot):
         `use_teleop_in_autonomous=True` in this class' instance.
         """
         # TODO: Handle exceptions so robot code doesn't crash.
-        if self.driver_controller.shouldResetOrientation():
-            alliance = self.alliance_fetcher.getAlliance()
-            if alliance == wpilib.DriverStation.Alliance.kRed:
+        if self.driver_controller.resetOrientation():
+            # TODO: Reset our pose from MT1 vision instead.
+            if self.alliance_fetcher.isRedAlliance():
                 # Robot's front touching the hub wall in the red alliance zone.
                 self.drivetrain.setPose(
                     wpimath.geometry.Pose2d(12.8556, 4.0136, math.pi)
@@ -213,22 +219,23 @@ class MyRobot(magicbot.MagicRobot):
         """Use the main controller joystick inputs to drive the robot base."""
         command = self.driver_controller.getDriveCommand()
         self.drivetrain.setSpeeds(command)
+        self.drivetrain.setBrakeEnabled(self.driver_controller.brake())
 
     def controlShooter(self) -> None:
         """Takes button inputs to control the shooter state machine."""
-        if self.driver_controller.setLeftFieldDefaults():
+        if self.driver_controller.shootFromLeftTrench():
             self.shooter_state_machine.setAuto(False)
             self.shooter_state_machine.setDriverWantsFeed(True)
             self.hub_tracker.setTargetTurretAngleDegrees(4.268)
             self.hub_tracker.setTargetHoodAngleDegrees(4.8)
             self.hub_tracker.setTargetFlywheelSpeedRps(30.8)
-        elif self.driver_controller.setRightFieldDefaults():
+        elif self.driver_controller.shootFromRightTrench():
             self.shooter_state_machine.setAuto(False)
             self.shooter_state_machine.setDriverWantsFeed(True)
             self.hub_tracker.setTargetTurretAngleDegrees(-4.268)
             self.hub_tracker.setTargetHoodAngleDegrees(4.8)
             self.hub_tracker.setTargetFlywheelSpeedRps(30.8)
-        elif self.driver_controller.setCenterFieldDefaults():
+        elif self.driver_controller.shootFromBehindTower():
             self.shooter_state_machine.setAuto(False)
             self.shooter_state_machine.setDriverWantsFeed(True)
             self.hub_tracker.setTargetTurretAngleDegrees(94.85)

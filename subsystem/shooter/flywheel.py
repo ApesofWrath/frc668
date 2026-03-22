@@ -107,16 +107,20 @@ class Flywheel:
         self._target_rps = target_rps
 
     @magicbot.feedback
-    def get_measured_speed_rps(self) -> float:
+    def get_measured_speed_rps(self) -> phoenix6.units.rotations_per_second:
         return self._velocity_signal.value
 
     @magicbot.feedback
-    def get_target_rps(self) -> float:
+    def get_target_rps(self) -> phoenix6.units.rotations_per_second:
         return self._target_rps
 
     @magicbot.feedback
-    def get_measured_rps(self) -> float:
-        return self.flywheel_encoder.get_velocity().value
+    def get_supply_current(self) -> phoenix6.units.ampere:
+        return self.flywheel_motor.get_supply_current().value
+
+    @magicbot.feedback
+    def get_stator_current(self) -> phoenix6.units.ampere:
+        return self.flywheel_motor.get_stator_current().value
 
 
 class FlywheelTuner:
@@ -217,11 +221,3 @@ class FlywheelTuner:
         )
         if not result.is_ok():
             self.logger.error("Failed to apply new gains to flywheel motor")
-
-    @magicbot.feedback
-    def get_motor_voltage(self) -> phoenix6.units.volt:
-        return self.flywheel_motor.get_motor_voltage().value
-
-    @magicbot.feedback
-    def get_motor_stator_current(self) -> phoenix6.units.ampere:
-        return self.flywheel_motor.get_stator_current().value

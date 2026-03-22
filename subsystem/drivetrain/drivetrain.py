@@ -119,6 +119,15 @@ class Drivetrain(commands2.Subsystem):
                 swerve.SwerveModule.DriveRequestType.VELOCITY
             )
         )
+        self._brake_request = (
+            swerve.requests.SwerveDriveBrake().with_drive_request_type(
+                swerve.SwerveModule.DriveRequestType.VELOCITY
+            )
+        )
+        # When set to True, the brake request will be used instead of the drive
+        # request.
+        self._brake_enabled = False
+
         self._operator_perspective_set = False
         self._maybeSetOperatorPerspectiveForward()
 
@@ -130,7 +139,10 @@ class Drivetrain(commands2.Subsystem):
         self._maybeSetOperatorPerspectiveForward()
         if not self._operator_perspective_set:
             self.logger.warning("Driving without operator perspective set")
-        self.swerve_drive.set_control(self._drive_request)
+        if self._brake_enabled:
+            self.swerve_drive.set_control(self._brake_request)
+        else:
+            self.swerve_drive.set_control(self._drive_request)
 
     def setSpeeds(
         self,
@@ -145,15 +157,17 @@ class Drivetrain(commands2.Subsystem):
         """Hard reset the robot's pose estimate."""
         self.swerve_drive.reset_pose(pose)
 
+    def setBrakeEnabled(self, value: bool) -> None:
+        self._brake_enabled = value
+
     def _maybeSetOperatorPerspectiveForward(self) -> None:
         if self._operator_perspective_set:
             return
-        alliance = self.alliance_fetcher.getAlliance()
-        if alliance:
+        if self.alliance_fetcher.hasAlliance():
             self.logger.info(f"Setting operator perspective for {alliance}")
             self.swerve_drive.set_operator_perspective_forward(
                 drivetrain.constants.RED_ALLIANCE_PERSPECTIVE_ROTATION
-                if alliance == wpilib.DriverStation.Alliance.kRed
+                if self.alliance_fetcher.isRedAlliance()
                 else drivetrain.constants.BLUE_ALLIANCE_PERSPECTIVE_ROTATION
             )
             self._operator_perspective_set = True
@@ -165,6 +179,134 @@ class Drivetrain(commands2.Subsystem):
     @magicbot.feedback
     def get_robot_speed(self) -> swerve.ChassisSpeeds:
         return self.swerve_drive.get_state().speeds
+
+    @magicbot.feedback
+    def get_front_left_drive_supply_current(self) -> units.ampere:
+        return (
+            self.swerve_drive.get_module(0)
+            .drive_motor.get_supply_current()
+            .value
+        )
+
+    @magicbot.feedback
+    def get_front_left_drive_stator_current(self) -> units.ampere:
+        return (
+            self.swerve_drive.get_module(0)
+            .drive_motor.get_stator_current()
+            .value
+        )
+
+    @magicbot.feedback
+    def get_front_left_steer_supply_current(self) -> units.ampere:
+        return (
+            self.swerve_drive.get_module(0)
+            .steer_motor.get_supply_current()
+            .value
+        )
+
+    @magicbot.feedback
+    def get_front_left_steer_stator_current(self) -> units.ampere:
+        return (
+            self.swerve_drive.get_module(0)
+            .steer_motor.get_stator_current()
+            .value
+        )
+
+    @magicbot.feedback
+    def get_front_right_drive_supply_current(self) -> units.ampere:
+        return (
+            self.swerve_drive.get_module(1)
+            .drive_motor.get_supply_current()
+            .value
+        )
+
+    @magicbot.feedback
+    def get_front_right_drive_stator_current(self) -> units.ampere:
+        return (
+            self.swerve_drive.get_module(1)
+            .drive_motor.get_stator_current()
+            .value
+        )
+
+    @magicbot.feedback
+    def get_front_right_steer_supply_current(self) -> units.ampere:
+        return (
+            self.swerve_drive.get_module(1)
+            .steer_motor.get_supply_current()
+            .value
+        )
+
+    @magicbot.feedback
+    def get_front_right_steer_stator_current(self) -> units.ampere:
+        return (
+            self.swerve_drive.get_module(1)
+            .steer_motor.get_stator_current()
+            .value
+        )
+
+    @magicbot.feedback
+    def get_back_left_drive_supply_current(self) -> units.ampere:
+        return (
+            self.swerve_drive.get_module(2)
+            .drive_motor.get_supply_current()
+            .value
+        )
+
+    @magicbot.feedback
+    def get_back_left_drive_stator_current(self) -> units.ampere:
+        return (
+            self.swerve_drive.get_module(2)
+            .drive_motor.get_stator_current()
+            .value
+        )
+
+    @magicbot.feedback
+    def get_back_left_steer_supply_current(self) -> units.ampere:
+        return (
+            self.swerve_drive.get_module(2)
+            .steer_motor.get_supply_current()
+            .value
+        )
+
+    @magicbot.feedback
+    def get_back_left_steer_stator_current(self) -> units.ampere:
+        return (
+            self.swerve_drive.get_module(2)
+            .steer_motor.get_stator_current()
+            .value
+        )
+
+    @magicbot.feedback
+    def get_back_right_drive_supply_current(self) -> units.ampere:
+        return (
+            self.swerve_drive.get_module(3)
+            .drive_motor.get_supply_current()
+            .value
+        )
+
+    @magicbot.feedback
+    def get_back_right_drive_stator_current(self) -> units.ampere:
+        return (
+            self.swerve_drive.get_module(3)
+            .drive_motor.get_stator_current()
+            .value
+        )
+
+    @magicbot.feedback
+    def get_back_right_steer_supply_current(self) -> units.ampere:
+        return (
+            self.swerve_drive.get_module(3)
+            .steer_motor.get_supply_current()
+            .value
+        )
+
+    @magicbot.feedback
+    def get_back_right_steer_stator_current(self) -> units.ampere:
+        return (
+            self.swerve_drive.get_module(3)
+            .steer_motor.get_stator_current()
+            .value
+        )
 
 
 class DrivetrainTuner:
