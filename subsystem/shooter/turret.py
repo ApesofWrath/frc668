@@ -16,6 +16,7 @@ class Turret:
     turret_motor: phoenix6.hardware.TalonFX
     turret_encoder: phoenix6.hardware.CANcoder
     drivetrain: drivetrain.Drivetrain
+    hub_tracker: shooter.HubTracker 
 
     def setup(self) -> None:
         """Set up initial state for the turret.
@@ -117,6 +118,9 @@ class Turret:
         self._motion_magic_feed_forward = (
             turret_constants.motion_magic_feed_forward
         )
+        self._feed_forward_movement_multiplier = turret_constants.feed_forward_mvt
+        self.feed_forward_movement = turret_constants.feed_forward_mvt
+
         # Raw yaw rate of the robot (and the turret) from the external IMU.
         self._yaw_rate_signal: phoenix6.status_signal.StatusSignal[
             phoenix6.units.degrees_per_second
@@ -164,17 +168,22 @@ class Turret:
             # This feedforward voltage is added after all the scaled
             # calculations onboard the motor controller, so we need to account
             # for the gear reductions.
-            feed_forward = (
+            feed_forward_omega = (
                 self._motion_magic_feed_forward
                 * self._yaw_rate_signal.value
                 * turret_constants.rotor_to_sensor_ratio
                 * turret_constants.sensor_to_mechanism_ratio
                 * self.DEGREES_TO_ROTATIONS
             )
+            # feed_forward_movement = (
+            #     (self.hub_tracker._computeMovingTargetTurretAngleDegrees - self.hub_tracker._computeStationaryTargetTurretAngleDegrees())
+            #     * self._feed_forward_movement_multiplier
+            # )
             self.turret_motor.set_control(
                 self._request.with_position(
                     self._turret_postion_degrees * self.DEGREES_TO_ROTATIONS
-                ).with_feed_forward(feed_forward)
+                ).with_feed_forward(feed_forward_omega)
+                .with_feed_forward(self.feed_forward_movement)
             )
 
     def on_enable(self) -> None:
@@ -229,6 +238,18 @@ class Turret:
         """
         self._motion_magic_feed_forward = feed_forward
 
+    # def setFeedForwardMovementMultiplier(self, feed_forward: float) -> None:
+    #     self._feed_forward_movement_multiplier = feed_forward
+
+    def setFeedForwardControl(self, moving_turret_target, stationary_turret_target) -> None:
+        self.feed_forward_movement = (
+                (moving_turret_target - stationary_turret_target)
+                * self._feed_forward_movement_multiplier
+            )
+        
+    # def getFeedForwardControl(self) -> phoenix6.units.volt:
+    #     return self.feed_forward_movement
+    
     def isControlTypeVelocity(self) -> bool:
         """Get the type of turret control being used used: position or velocity"""
         return self._is_velocity_controlled
@@ -295,6 +316,8 @@ class TurretTuner:
     # Feedforward for motion magic.
     mm_feed_forward = magicbot.tunable(0.0)
 
+    mvt_feed_forward = magicbot.tunable(0.0)
+
     # The target position of the turret.
     target_position = magicbot.tunable(0.0)
     target_velocity = magicbot.tunable(0.0)
@@ -332,6 +355,7 @@ class TurretTuner:
         self.mm_jerk = turret_constants.motion_magic_jerk
 
         self.mm_feed_forward = turret_constants.motion_magic_feed_forward
+        self.mvt_feed_forward = turret_constants.feed_forward_mvt
 
         self.last_position_k_s = self.position_k_s
         self.last_position_k_v = self.position_k_v
@@ -351,6 +375,8 @@ class TurretTuner:
         self.last_mm_acceleration = self.mm_acceleration
         self.last_mm_jerk = self.mm_jerk
 
+        self.last_mvt_feed_forward = self.mvt_feed_forward
+
         self.last_use_velocity = self.use_velocity
 
         self.logger.info("TurretTuner initialized")
@@ -366,6 +392,7 @@ class TurretTuner:
         self.turret.setMotionMagicFeedForward(self.mm_feed_forward)
         self.hub_tracker.trackPosition(self.auto_track)
         self.hub_tracker.trackSpeed(self.auto_track)
+        #self.turret.setFeedForwardMovementMultiplier(self.mvt_feed_forward)
 
         # We only want to reapply the gains if they changed. The TalonFX motor
         # doesn't like being reconfigured constantly.
@@ -394,6 +421,8 @@ class TurretTuner:
         self.last_mm_acceleration = self.mm_acceleration
         self.last_mm_jerk = self.mm_jerk
 
+        self.last_mvt_feed_forward = self.mvt_feed_forward
+
     def gainsChanged(self) -> bool:
         """Detect if any of the gains changed.
 
@@ -416,6 +445,7 @@ class TurretTuner:
             or self.mm_cruise_velocity != self.last_mm_cruise_velocity
             or self.mm_acceleration != self.last_mm_acceleration
             or self.mm_jerk != self.last_mm_jerk
+            or self.mvt_feed_forward != self.last_mvt_feed_forward
         )
 
     def applyGains(self) -> None:
