@@ -62,10 +62,10 @@ class AllienceTracker:
                          self._turret_field_pose.X() > RED_ALLIENCE_START_X)
 
         if self._enabled and (in_neutral_zone or in_enemy_zone):
-            if(self._turret_field_pose.Y() > FIELD_HEIGHT/2):
-                self._target_turret_angle_degrees = self._computeTargetTurretAngleDegrees(10) #TODO: check that this is the right way (it should be)
+            if(self._turret_field_pose.Y() > FIELD_HEIGHT/2): #TODO flip for both alliances
+                self._target_turret_angle_degrees = self._computeTargetTurretAngleDegrees(-10) #TODO: check that this is the right way (it should be)
             else:
-                self._target_turret_angle_degrees = self._computeTargetTurretAngleDegrees(-10)
+                self._target_turret_angle_degrees = self._computeTargetTurretAngleDegrees(10)
             self.turret.setPosition(self._target_turret_angle_degrees)
             self.hood.setPosition(self._target_hood_angle_degrees)
             if self._track_speed:
@@ -92,7 +92,7 @@ class AllienceTracker:
         )
         target_angle_degrees = (
             turret_to_allience.angle() - self._turret_field_pose.rotation()
-        ).degrees() + offset_degrees
+        ).degrees() + offset_degrees #TODO swap offset to just aim at the corner
 
         return max(
             self.robot_constants.shooter.turret.min_angle,
@@ -103,6 +103,9 @@ class AllienceTracker:
         return (self._turret_field_pose.X() > BLUE_ALLIENCE_START_X
                 if self.alliance_fetcher.getAlliance() == wpilib.DriverStation.Alliance.kBlue else
                 self._turret_field_pose.X() < RED_ALLIENCE_START_X)
+
+    def setEnabled(self, enabled):
+        self._enabled = enabled
 
     def setTrack(self, speed, position):
         self._track_speed = speed

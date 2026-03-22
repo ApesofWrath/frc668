@@ -47,10 +47,7 @@ class Shooter(magicbot.StateMachine):
 
         # Idle the flywheel to save power, but have the turret and hood track
         # position.
-        self.allience_tracker.setTrack(False,self._auto) #TODO: yea do this for the other ones too
-        if self.allience_tracker.getInAllienceZone():
-            self.hub_tracker.trackPosition(self._auto)
-            self.hub_tracker.trackSpeed(False)
+        self._setTracker(self.allience_tracker.getInAllienceZone(),self._auto,False)
         self.flywheel.setTargetRps(
             self.robot_constants.shooter.flywheel.default_speed_rps
         )
@@ -76,10 +73,7 @@ class Shooter(magicbot.StateMachine):
 
         # The driver wants to shoot but the shooter isn't ready or the robot is
         # moving. We want to continue tracking the hub, but don't feed fuel.
-        self.allience_tracker.setTrack(self._auto,self._auto)
-        if self.allience_tracker.getInAllienceZone():
-            self.hub_tracker.trackPosition(self._auto)
-            self.hub_tracker.trackSpeed(self._auto)
+        self._setTracker(self.allience_tracker.getInAllienceZone(),self._auto,self._auto)
 
         self.hopper.setEnabled(False)
         self.indexer.setEnabled(False)
@@ -97,6 +91,8 @@ class Shooter(magicbot.StateMachine):
             self.next_state("targeting")
 
         # Fully track the hub.
+        self._setTracker(self.allience_tracker.getInAllienceZone(),self._auto,self._auto)
+
         self.allience_tracker.setTrack(self._auto,self._auto)
         if self.allience_tracker.getInAllienceZone():
             self.hub_tracker.trackPosition(self._auto)
@@ -174,3 +170,14 @@ class Shooter(magicbot.StateMachine):
             (chassis_speeds.vx**2) + (chassis_speeds.vy**2)
         )
         return robot_speed_mps > speed_threshold_mps
+
+    def _setTracker(self, useHubtracker, trackPosition, trackSpeed):
+        if useHubtracker:
+            self.hub_tracker.setEnabled(True)
+            self.allience_tracker.setEnabled(False)
+            self.hub_tracker.trackPosition(trackPosition)
+            self.hub_tracker.trackSpeed(trackSpeed)
+        else:
+            self.allience_tracker.setEnabled(True)
+            self.hub_tracker.setEnabled(False)
+            self.allience_tracker.setTrack(trackSpeed,trackPosition)
