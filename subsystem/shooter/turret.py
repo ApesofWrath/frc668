@@ -117,7 +117,7 @@ class Turret:
         self._motion_magic_feed_forward = (
             turret_constants.motion_magic_feed_forward
         )
-        self.feed_forward_movement = 0.0  
+        self.feed_forward_movement = 0.0
         # Raw yaw rate of the robot (and the turret) from the external IMU.
         self._yaw_rate_signal: phoenix6.status_signal.StatusSignal[
             phoenix6.units.degrees_per_second
@@ -175,7 +175,9 @@ class Turret:
             self.turret_motor.set_control(
                 self._request.with_position(
                     self._turret_postion_degrees * self.DEGREES_TO_ROTATIONS
-                ).with_feed_forward(feed_forward_omega + self.feed_forward_movement)
+                ).with_feed_forward(
+                    feed_forward_omega + self.feed_forward_movement
+                )
             )
 
     def on_enable(self) -> None:
@@ -230,9 +232,11 @@ class Turret:
         """
         self._motion_magic_feed_forward = feed_forward
 
-    def setFeedForwardControl(self, feed_forward_mvt_value: phoenix6.units.volt) -> None:
-        self.feed_forward_movement = feed_forward_mvt_value 
-    
+    def setFeedForwardControl(
+        self, feed_forward_mvt_value: phoenix6.units.volt
+    ) -> None:
+        self.feed_forward_movement = feed_forward_mvt_value
+
     def isControlTypeVelocity(self) -> bool:
         """Get the type of turret control being used used: position or velocity"""
         return self._is_velocity_controlled
@@ -339,7 +343,7 @@ class TurretTuner:
 
         self.mm_feed_forward = turret_constants.motion_magic_feed_forward
 
-        self.mvt_feed_forward = turret_constants.feed_forward_mvt_multiplier 
+        self.mvt_feed_forward = turret_constants.feed_forward_mvt_multiplier
 
         self.last_position_k_s = self.position_k_s
         self.last_position_k_v = self.position_k_v

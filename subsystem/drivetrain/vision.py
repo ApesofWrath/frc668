@@ -36,7 +36,7 @@ class Vision:
 
     def execute(self) -> None:
         self.setRobotOrientation()
-        #self._updateRobotPose()
+        # self._updateRobotPose()
 
     def setRobotOrientation(self) -> None:
         """Updates each Limelight with the robot's current orientation.

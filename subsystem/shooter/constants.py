@@ -129,7 +129,7 @@ class TurretConstants:
     max_angle: units.degree = 180.0
     supply_current_limit: units.ampere = 40.0
 
-    time_of_flight: units.second = 1.0 #TODO: Find a more accurate average
+    time_of_flight: units.second = 1.0  # TODO: Find a more accurate average
 
 
 @dataclass(frozen=True)
@@ -297,7 +297,7 @@ SHOOTER_CONSTANTS: dict[str, ShooterConstants] = {
             position_k_p=450,
             position_k_d=0.5,
             motion_magic_feed_forward=-1.0,
-            feed_forward_mvt_multiplier=0.15, 
+            feed_forward_mvt_multiplier=0.15,
         ),
         hood=HoodConstants(
             encoder_can_id=17,
