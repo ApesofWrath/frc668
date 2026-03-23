@@ -117,6 +117,8 @@ class Turret:
         self._motion_magic_feed_forward = (
             turret_constants.motion_magic_feed_forward
         )
+        # Feedforward voltage to compensate for changes in target turret angle
+        # due to robot's linear velocity.
         self.feed_forward_movement = 0.0
         # Raw yaw rate of the robot (and the turret) from the external IMU.
         self._yaw_rate_signal: phoenix6.status_signal.StatusSignal[

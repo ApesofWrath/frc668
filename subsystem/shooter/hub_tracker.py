@@ -1,10 +1,10 @@
 import bisect
+import math
 from typing import Tuple
 
 import magicbot
 import phoenix6
 import wpilib
-import math
 from wpimath import geometry, units
 
 import constants
@@ -199,22 +199,17 @@ class HubTracker:
         """If True, the mechanisms will be commanded to the current targets."""
         self._enabled = value
 
-    @magicbot.feedback
-    def get_track_position(self) -> bool:
-        return self._track_position
-
-    @magicbot.feedback
-    def get_track_speed(self) -> bool:
-        return self._track_speed
-
-    @magicbot.feedback
-    def get_enabled(self) -> bool:
-        return self._enabled
+    def setTurretFeedForwardMultiplier(self, multiplier) -> None:
+        self.turret_mvt_feed_forward_multiplier = multiplier
 
     def _computeMovingTargetTurretAngleDegrees(
         self,
     ) -> phoenix6.units.degree:
-        """Returns the target angle of the turret, adjusted for predicted robot yaw."""
+        """Computes turret angle to hit the target while moving.
+
+        Takes into account both linear and angular velocities of the robot, and
+        compensates for them.
+        """
         # Vector from field origin to center of the hub. We set this again here
         # since we may not have known our alliance at startup.
         self._hub_position = (
@@ -227,7 +222,7 @@ class HubTracker:
 
         # Vector from center of turret to center of hub.
         self.future_turret_to_hub = self._hub_position - (
-            self._turret_field_pose.translation() + self.get_movement_vector()
+            self._turret_field_pose.translation() + self._getMovementVector()
         )
         # Heading of the turret_field_pose is same as the robot's heading.
         target_angle_degrees = (
@@ -250,7 +245,11 @@ class HubTracker:
     def _computeStationaryTargetTurretAngleDegrees(
         self,
     ) -> phoenix6.units.degree:
-        """Returns the target angle of the turret, adjusted for predicted robot yaw."""
+        """Computes turret angle to hit the target while stationary.
+
+        Compensates for robot's angular vecloity with a lookahead, but assumes
+        robot's linear velocity is zero.
+        """
         # Vector from field origin to center of the hub. We set this again here
         # since we may not have known our alliance at startup.
         self._hub_position = (
@@ -282,6 +281,50 @@ class HubTracker:
                 target_angle_degrees - predictive_lead_angle,
             ),
         )
+
+    def _getMovementVector(self) -> geometry.Translation2d:
+        """Computes distance vector of robot's movement.
+
+        Uses a fixed time period (average time-of-flight of fuel) and the the
+        robot's current velocity to determine the vector that represents the
+        magnitude and direction of the distance traveled by the robot.
+
+        This is meant to represent the distance the fuel will travel along the
+        direction of the robot's velocity over its time-of-flight.
+        """
+        robot_vx = self.drivetrain.swerve_drive.get_state().speeds.vx
+        robot_vy = self.drivetrain.swerve_drive.get_state().speeds.vy
+        robot_omega = self.drivetrain.swerve_drive.get_state().speeds.omega
+        robot_angle = (
+            self.drivetrain.swerve_drive.get_state().pose.rotation().radians()
+        )
+
+        # The turret inherits some linear velocity from the robot's rate of
+        # rotation, due to being offset from the robot's center of rotation.
+        turret_vx = robot_vx + robot_omega * (
+            TURRET_TO_ROBOT_Y * math.cos(robot_angle)
+            - TURRET_TO_ROBOT_X * math.sin(robot_angle)
+        )
+        turret_vy = robot_vy + robot_omega * (
+            TURRET_TO_ROBOT_X * math.cos(robot_angle)
+            - TURRET_TO_ROBOT_Y * math.sin(robot_angle)
+        )
+
+        return (
+            geometry.Translation2d(turret_vx, turret_vy)
+        ) * self.robot_constants.shooter.turret.time_of_flight
+
+    @magicbot.feedback
+    def get_track_position(self) -> bool:
+        return self._track_position
+
+    @magicbot.feedback
+    def get_track_speed(self) -> bool:
+        return self._track_speed
+
+    @magicbot.feedback
+    def get_enabled(self) -> bool:
+        return self._enabled
 
     @magicbot.feedback
     def get_turret_current_distance_from_hub_meters(
@@ -318,28 +361,3 @@ class HubTracker:
     ) -> phoenix6.units.rotations_per_second:
         """Returns the target rps for the flywheel to track."""
         return self._target_flywheel_speed_rps
-
-    def get_movement_vector(self) -> geometry.Translation2d:
-        """Returns the vector of the predicted movement of the robot in t seconds, where t is the time of flight of the ball, as shot from the current position."""
-        robot_vx = self.drivetrain.swerve_drive.get_state().speeds.vx
-        robot_vy = self.drivetrain.swerve_drive.get_state().speeds.vy
-        robot_omega = self.drivetrain.swerve_drive.get_state().speeds.omega
-        robot_angle = (
-            self.drivetrain.swerve_drive.get_state().pose.rotation().radians()
-        )
-
-        turret_vx = robot_vx + robot_omega * (
-            TURRET_TO_ROBOT_Y * math.cos(robot_angle)
-            - TURRET_TO_ROBOT_X * math.sin(robot_angle)
-        )
-        turret_vy = robot_vy + robot_omega * (
-            TURRET_TO_ROBOT_X * math.cos(robot_angle)
-            - TURRET_TO_ROBOT_Y * math.sin(robot_angle)
-        )
-
-        return (
-            geometry.Translation2d(turret_vx, turret_vy)
-        ) * self.robot_constants.shooter.turret.time_of_flight
-
-    def setTurretFeedForwardMultiplier(self, multiplier) -> None:
-        self.turret_mvt_feed_forward_multiplier = multiplier
