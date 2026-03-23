@@ -118,16 +118,21 @@ class MyRobot(magicbot.MagicRobot):
         if wpilib.DriverStation.isEnabled():
             # Deploy the intake.
             self.intake_deployer.deploy()
-            # Use external IMU assist when enabled.
-            for ll in self.vision._limelights:
-                limelight.LimelightHelpers.set_imu_mode(ll, 4)
+            # Just use the Limelight's internal IMUs when we're enabled. Ideally
+            # we want to provide an assist from the external IMU, but testing
+            # shows that our network traffic is causing latencies large enough
+            # that the Limelights lag by a noticeable amount when using external
+            # IMU for corrections.
+            #
+            # This is probably because of all the data we are publishing on NT.
+            self.vision.setImuMode(2)
         else:
             # Hard reset each lime light's yaw to the external IMU when disabled.
-            for ll in self.vision._limelights:
-                limelight.LimelightHelpers.set_imu_mode(ll, 1)
-                # We call this here because the Vision component's execute
-                # method does not get called when disabled.
-                self.vision.setRobotOrientation()
+            self.vision.setImuMode(1)
+            # We call this here because the Vision component's execute method
+            # does not get called when disabled.
+            self.vision.setRobotOrientation()
+            self.drivetrain._maybeSetOperatorPerspectiveForward()
 
         if not self._tuning_mode:
             self.shooter_state_machine.engage()
@@ -158,8 +163,6 @@ class MyRobot(magicbot.MagicRobot):
         self.logger.info("Robot disabled")
         # This starts the log manager if it wasn't already started.
         wpilib.DataLogManager.getLog().flush()
-        self.vision._pose_seeded = False
-        self.vision.imu_four = False
 
     def disabledPeriodic(self) -> None:
         """Run during disabled mode.
@@ -168,10 +171,7 @@ class MyRobot(magicbot.MagicRobot):
         disabled mode. This code executes before the `execute` method of all
         components are called.
         """
-        for ll in self.vision._limelights:
-            limelight.LimelightHelpers.set_imu_mode(ll, 1)
-            self.vision.setRobotOrientation()
-        self.drivetrain._maybeSetOperatorPerspectiveForward()
+        pass
 
     def teleopInit(self) -> None:
         """Initialize teleoperated mode.
@@ -209,7 +209,6 @@ class MyRobot(magicbot.MagicRobot):
                     wpimath.geometry.Pose2d(3.6854, 4.0136, 0)
                 )
                 self.logger.info(f"Reset pose for blue alliance")
-            self.vision._pose_seeded = False
         self.driveWithJoysicks()
         self.controlShooter()
         self.controlIntake()
