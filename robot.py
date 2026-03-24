@@ -7,7 +7,7 @@ import wpimath
 from phoenix6 import swerve, hardware
 
 import constants
-from common import alliance, joystick
+from common import alliance, datalog, joystick
 from subsystem import drivetrain, shooter, intake
 from subsystem.drivetrain import limelight
 
@@ -112,6 +112,8 @@ class MyRobot(magicbot.MagicRobot):
             self.robot_constants.intake.deploy_encoder_can_bus,
         )
 
+        self.data_logger = datalog.DataLogger()
+
         self._tuning_mode = False
 
     def robotPeriodic(self) -> None:
@@ -125,7 +127,7 @@ class MyRobot(magicbot.MagicRobot):
             # IMU for corrections.
             #
             # This is probably because of all the data we are publishing on NT.
-            self.vision.setImuMode(2)
+            self.vision.setImuMode(4)
         else:
             # Hard reset each lime light's yaw to the external IMU when disabled.
             self.vision.setImuMode(1)
@@ -150,8 +152,6 @@ class MyRobot(magicbot.MagicRobot):
         the selected autonomous routine.
         """
         self.logger.info("Entering autonomous mode")
-        # In case it wasn't started in disabledInit. If it was, this is a no-op.
-        wpilib.DataLogManager.start()
 
     def disabledInit(self) -> None:
         """Initialize disabled mode.
@@ -162,7 +162,7 @@ class MyRobot(magicbot.MagicRobot):
         """
         self.logger.info("Robot disabled")
         # This starts the log manager if it wasn't already started.
-        wpilib.DataLogManager.getLog().flush()
+        self.data_logger.flush()
 
     def disabledPeriodic(self) -> None:
         """Run during disabled mode.
@@ -181,8 +181,6 @@ class MyRobot(magicbot.MagicRobot):
         called.
         """
         self.logger.info("Entering teleop mode")
-        # In case it wasn't started in disabledInit. If it was, this is a no-op.
-        wpilib.DataLogManager.start()
 
     def teleopPeriodic(self) -> None:
         """Run during teleoperated mode.

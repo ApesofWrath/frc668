@@ -9,13 +9,14 @@ from commands2 import sysid as commands2_sysid
 from phoenix6 import hardware, swerve, units, configs, SignalLogger
 
 import constants
-from common import alliance, joystick
+from common import alliance, datalog, joystick
 from subsystem import drivetrain
 
 
 class Drivetrain(commands2.Subsystem):
     robot_constants: constants.RobotConstants
     alliance_fetcher: alliance.AllianceFetcher
+    data_logger: datalog.DataLogger
 
     def setup(self) -> None:
         constants = self.robot_constants.drivetrain
@@ -144,6 +145,8 @@ class Drivetrain(commands2.Subsystem):
         else:
             self.swerve_drive.set_control(self._drive_request)
 
+        self._logData()
+
     def setSpeeds(
         self,
         command: joystick.DriveCommand,
@@ -176,158 +179,216 @@ class Drivetrain(commands2.Subsystem):
     def get_robot_pose(self) -> wpimath.geometry.Pose2d:
         return self.swerve_drive.get_state().pose
 
-    @magicbot.feedback
-    def get_robot_speed(self) -> swerve.ChassisSpeeds:
+    def robotSpeeds(self) -> wpimath.kinematics.ChassisSpeeds:
         return self.swerve_drive.get_state().speeds
 
-    @magicbot.feedback
-    def get_raw_yaw_degrees(self) -> units.degree:
+    def rawYawDegrees(self) -> units.degree:
         return wpimath.inputModulus(
             self.swerve_drive.pigeon2.get_yaw().value, -180.0, 180.0
         )
 
-    @magicbot.feedback
-    def get_raw_pitch_degrees(self) -> units.degree:
+    def rawPitchDegrees(self) -> units.degree:
         return wpimath.inputModulus(
             self.swerve_drive.pigeon2.get_pitch().value, -180.0, 180.0
         )
 
-    @magicbot.feedback
-    def get_raw_roll_degrees(self) -> units.degree:
+    def rawRollDegrees(self) -> units.degree:
         return wpimath.inputModulus(
             self.swerve_drive.pigeon2.get_roll().value, -180.0, 180.0
         )
 
-    @magicbot.feedback
-    def get_estimated_yaw_degrees(self) -> units.degree:
+    def estimatedYawDegrees(self) -> units.degree:
         return self.swerve_drive.get_state().pose.rotation().degrees()
 
-    @magicbot.feedback
-    def get_front_left_drive_supply_current(self) -> units.ampere:
+    def frontLeftDriveSupplyCurrent(self) -> units.ampere:
         return (
             self.swerve_drive.get_module(0)
             .drive_motor.get_supply_current()
             .value
         )
 
-    @magicbot.feedback
-    def get_front_left_drive_stator_current(self) -> units.ampere:
+    def frontLeftDriveStatorCurrent(self) -> units.ampere:
         return (
             self.swerve_drive.get_module(0)
             .drive_motor.get_stator_current()
             .value
         )
 
-    @magicbot.feedback
-    def get_front_left_steer_supply_current(self) -> units.ampere:
+    def frontLeftSteerSupplyCurrent(self) -> units.ampere:
         return (
             self.swerve_drive.get_module(0)
             .steer_motor.get_supply_current()
             .value
         )
 
-    @magicbot.feedback
-    def get_front_left_steer_stator_current(self) -> units.ampere:
+    def frontLeftSteerStatorCurrent(self) -> units.ampere:
         return (
             self.swerve_drive.get_module(0)
             .steer_motor.get_stator_current()
             .value
         )
 
-    @magicbot.feedback
-    def get_front_right_drive_supply_current(self) -> units.ampere:
+    def frontRightDriveSupplyCurrent(self) -> units.ampere:
         return (
             self.swerve_drive.get_module(1)
             .drive_motor.get_supply_current()
             .value
         )
 
-    @magicbot.feedback
-    def get_front_right_drive_stator_current(self) -> units.ampere:
+    def frontRightDriveStatorCurrent(self) -> units.ampere:
         return (
             self.swerve_drive.get_module(1)
             .drive_motor.get_stator_current()
             .value
         )
 
-    @magicbot.feedback
-    def get_front_right_steer_supply_current(self) -> units.ampere:
+    def frontRightSteerSupplyCurrent(self) -> units.ampere:
         return (
             self.swerve_drive.get_module(1)
             .steer_motor.get_supply_current()
             .value
         )
 
-    @magicbot.feedback
-    def get_front_right_steer_stator_current(self) -> units.ampere:
+    def frontRightSteerStatorCurrent(self) -> units.ampere:
         return (
             self.swerve_drive.get_module(1)
             .steer_motor.get_stator_current()
             .value
         )
 
-    @magicbot.feedback
-    def get_back_left_drive_supply_current(self) -> units.ampere:
+    def backLeftDriveSupplyCurrent(self) -> units.ampere:
         return (
             self.swerve_drive.get_module(2)
             .drive_motor.get_supply_current()
             .value
         )
 
-    @magicbot.feedback
-    def get_back_left_drive_stator_current(self) -> units.ampere:
+    def backLeftDriveStatorCurrent(self) -> units.ampere:
         return (
             self.swerve_drive.get_module(2)
             .drive_motor.get_stator_current()
             .value
         )
 
-    @magicbot.feedback
-    def get_back_left_steer_supply_current(self) -> units.ampere:
+    def backLeftSteerSupplyCurrent(self) -> units.ampere:
         return (
             self.swerve_drive.get_module(2)
             .steer_motor.get_supply_current()
             .value
         )
 
-    @magicbot.feedback
-    def get_back_left_steer_stator_current(self) -> units.ampere:
+    def backLeftSteerStatorCurrent(self) -> units.ampere:
         return (
             self.swerve_drive.get_module(2)
             .steer_motor.get_stator_current()
             .value
         )
 
-    @magicbot.feedback
-    def get_back_right_drive_supply_current(self) -> units.ampere:
+    def backRightDriveSupplyCurrent(self) -> units.ampere:
         return (
             self.swerve_drive.get_module(3)
             .drive_motor.get_supply_current()
             .value
         )
 
-    @magicbot.feedback
-    def get_back_right_drive_stator_current(self) -> units.ampere:
+    def backRightDriveStatorCurrent(self) -> units.ampere:
         return (
             self.swerve_drive.get_module(3)
             .drive_motor.get_stator_current()
             .value
         )
 
-    @magicbot.feedback
-    def get_back_right_steer_supply_current(self) -> units.ampere:
+    def backRightSteerSupplyCurrent(self) -> units.ampere:
         return (
             self.swerve_drive.get_module(3)
             .steer_motor.get_supply_current()
             .value
         )
 
-    @magicbot.feedback
-    def get_back_right_steer_stator_current(self) -> units.ampere:
+    def backRightSteerStatorCurrent(self) -> units.ampere:
         return (
             self.swerve_drive.get_module(3)
             .steer_motor.get_stator_current()
             .value
+        )
+
+    def _logData(self) -> None:
+        self.data_logger.logDouble(
+            "/components/drivetrain/estimated_yaw_degrees",
+            self.estimatedYawDegrees(),
+        )
+        self.data_logger.logDouble(
+            "/components/drivetrain/raw_yaw_degrees", self.rawYawDegrees()
+        )
+        self.data_logger.logDouble(
+            "/components/drivetrain/raw_pitch_degrees", self.rawPitchDegrees()
+        )
+        self.data_logger.logDouble(
+            "/components/drivetrain/raw_roll_degrees", self.rawRollDegrees()
+        )
+        self.data_logger.logDouble(
+            "/components/drivetrain/front_left_drive_supply_current",
+            self.frontLeftDriveSupplyCurrent(),
+        )
+        self.data_logger.logDouble(
+            "/components/drivetrain/front_left_drive_stator_current",
+            self.frontLeftDriveStatorCurrent(),
+        )
+        self.data_logger.logDouble(
+            "/components/drivetrain/front_left_steer_supply_current",
+            self.frontLeftSteerSupplyCurrent(),
+        )
+        self.data_logger.logDouble(
+            "/components/drivetrain/front_left_steer_stator_current",
+            self.frontLeftSteerStatorCurrent(),
+        )
+        self.data_logger.logDouble(
+            "/components/drivetrain/front_right_drive_supply_current",
+            self.frontRightDriveSupplyCurrent(),
+        )
+        self.data_logger.logDouble(
+            "/components/drivetrain/front_right_drive_stator_current",
+            self.frontRightDriveStatorCurrent(),
+        )
+        self.data_logger.logDouble(
+            "/components/drivetrain/front_right_steer_supply_current",
+            self.frontRightSteerSupplyCurrent(),
+        )
+        self.data_logger.logDouble(
+            "/components/drivetrain/front_right_steer_stator_current",
+            self.frontRightSteerStatorCurrent(),
+        )
+        self.data_logger.logDouble(
+            "/components/drivetrain/back_left_drive_supply_current",
+            self.backLeftDriveSupplyCurrent(),
+        )
+        self.data_logger.logDouble(
+            "/components/drivetrain/back_left_drive_stator_current",
+            self.backLeftDriveStatorCurrent(),
+        )
+        self.data_logger.logDouble(
+            "/components/drivetrain/back_left_steer_supply_current",
+            self.backLeftSteerSupplyCurrent(),
+        )
+        self.data_logger.logDouble(
+            "/components/drivetrain/back_left_steer_stator_current",
+            self.backLeftSteerStatorCurrent(),
+        )
+        self.data_logger.logDouble(
+            "/components/drivetrain/back_right_drive_supply_current",
+            self.backRightDriveSupplyCurrent(),
+        )
+        self.data_logger.logDouble(
+            "/components/drivetrain/back_right_drive_stator_current",
+            self.backRightDriveStatorCurrent(),
+        )
+        self.data_logger.logDouble(
+            "/components/drivetrain/back_right_steer_supply_current",
+            self.backRightSteerSupplyCurrent(),
+        )
+        self.data_logger.logDouble(
+            "/components/drivetrain/back_right_steer_stator_current",
+            self.backRightSteerStatorCurrent(),
         )
 
 
