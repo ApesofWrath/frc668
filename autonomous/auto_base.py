@@ -1,5 +1,6 @@
 import choreo
 import magicbot
+import wpilib 
 from wpimath import geometry
 
 from common import alliance
