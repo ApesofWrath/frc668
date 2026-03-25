@@ -292,8 +292,12 @@ class HubTracker:
         This is meant to represent the distance the fuel will travel along the
         direction of the robot's velocity over its time-of-flight.
         """
-        robot_vx = self.drivetrain.swerve_drive.get_state().speeds.vx
-        robot_vy = self.drivetrain.swerve_drive.get_state().speeds.vy
+        if self.alliance_fetcher.isRedAlliance():
+            sign_multiplier = -1
+        else: 
+            sign_multiplier = 1
+        robot_vx = sign_multiplier * self.drivetrain.swerve_drive.get_state().speeds.vx
+        robot_vy = sign_multiplier * self.drivetrain.swerve_drive.get_state().speeds.vy
         robot_omega = self.drivetrain.swerve_drive.get_state().speeds.omega
         robot_angle = (
             self.drivetrain.swerve_drive.get_state().pose.rotation().radians()
