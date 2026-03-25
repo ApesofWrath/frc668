@@ -103,5 +103,13 @@ class IntakeDeployer(magicbot.StateMachine):
         self.done()
 
     @magicbot.feedback
-    def get_encoder_rotation(self) -> float:
+    def get_encoder_position_rotations(self) -> phoenix6.units.rotation:
         return self.intake_deploy_encoder.get_position().value
+
+    @magicbot.feedback
+    def get_deploy_supply_current(self) -> phoenix6.units.ampere:
+        return self.intake_deploy_motor.get_supply_current().value
+
+    @magicbot.feedback
+    def get_deploy_stator_current(self) -> phoenix6.units.ampere:
+        return self.intake_deploy_motor.get_stator_current().value
