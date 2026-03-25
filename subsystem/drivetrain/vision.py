@@ -7,6 +7,7 @@ import wpimath
 from phoenix6 import utils
 
 import constants
+from common import datalog
 from subsystem import drivetrain
 from subsystem.drivetrain import limelight
 
@@ -16,6 +17,7 @@ RADIANS_TO_DEGREES = 180.0 / math.pi
 class Vision:
     robot_constants: constants.RobotConstants
     drivetrain: drivetrain.Drivetrain
+    data_logger: datalog.DataLogger
 
     def setup(self) -> None:
         """
@@ -43,25 +45,14 @@ class Vision:
                 ll, "imuassistalpha_set", 0.001
             )
 
-        # Publishers for information about rejected pose estimates.
-        self._rejected_pose_publisher = nt.getStructArrayTopic(
-            "/components/vision/rejected_pose_estimates",
-            wpimath.geometry.Pose2d,
-        ).publish()
-        self._rejected_limelights_publisher = nt.getStringArrayTopic(
-            "/components/vision/rejected_limelights"
-        ).publish()
-        self._rejected_reasons_publisher = nt.getStringArrayTopic(
-            "/components/vision/rejected_reasons"
-        ).publish()
-
-        # Publishers for information about accepted pose estimates.
+        # Publishers for accepted and rejected pose estimates.
         self._accepted_pose_publisher = nt.getStructArrayTopic(
             "/components/vision/accepted_pose_estimates",
             wpimath.geometry.Pose2d,
         ).publish()
-        self._accepted_limelights_publisher = nt.getStringArrayTopic(
-            "/components/vision/accepted_limelights"
+        self._rejected_pose_publisher = nt.getStructArrayTopic(
+            "/components/vision/rejected_pose_estimates",
+            wpimath.geometry.Pose2d,
         ).publish()
 
     def execute(self) -> None:
@@ -86,7 +77,7 @@ class Vision:
         for ll in self._limelights:
             limelight.LimelightHelpers.set_robot_orientation(
                 ll,
-                self.drivetrain.get_estimated_yaw_degrees(),
+                self.drivetrain.estimatedYawDegrees(),
                 0.0,
                 0.0,
                 0.0,
@@ -160,82 +151,20 @@ class Vision:
             )
 
         self._accepted_pose_publisher.set(accepted_poses)
-        self._accepted_limelights_publisher.set(accepted_limelights)
+        self.data_logger.logStringArray(
+            "/components/vision/accepted_limelights", accepted_limelights
+        )
         self._rejected_pose_publisher.set(rejected_poses)
-        self._rejected_limelights_publisher.set(rejected_limelights)
-        self._rejected_reasons_publisher.set(rejected_reasons)
+        self.data_logger.logStringArray(
+            "/components/vision/rejected_limelights", rejected_limelights
+        )
+        self.data_logger.logStringArray(
+            "/components/vision/rejected_reasons", rejected_reasons
+        )
 
     def setStdDevs(self, xy_std_dev, theta_std_dev) -> None:
         self._xy_std_dev = xy_std_dev
         self._theta_std_dev = theta_std_dev
-
-    @magicbot.feedback
-    def get_limelight_fl_pose(self) -> wpimath.geometry.Pose2d:
-        return limelight.LimelightHelpers.get_botpose_2d_wpiblue("limelight-fl")
-
-    @magicbot.feedback
-    def get_limelight_fl_avg_dist(self):
-        return limelight.LimelightHelpers.get_botpose_estimate_wpiblue_megatag2(
-            "limelight-fl"
-        ).avg_tag_dist
-
-    @magicbot.feedback
-    def get_limelight_fl_tag_count(self):
-        return limelight.LimelightHelpers.get_botpose_estimate_wpiblue_megatag2(
-            "limelight-fl"
-        ).tag_count
-
-    @magicbot.feedback
-    def get_limelight_fr_pose(self) -> wpimath.geometry.Pose2d:
-        return limelight.LimelightHelpers.get_botpose_2d_wpiblue("limelight-fr")
-
-    @magicbot.feedback
-    def get_limelight_fr_avg_dist(self):
-        return limelight.LimelightHelpers.get_botpose_estimate_wpiblue_megatag2(
-            "limelight-fr"
-        ).avg_tag_dist
-
-    @magicbot.feedback
-    def get_limelight_fr_tag_count(self):
-        return limelight.LimelightHelpers.get_botpose_estimate_wpiblue_megatag2(
-            "limelight-fr"
-        ).tag_count
-
-    @magicbot.feedback
-    def get_limelight_upfl_pose(self) -> wpimath.geometry.Pose2d:
-        return limelight.LimelightHelpers.get_botpose_2d_wpiblue(
-            "limelight-upfl"
-        )
-
-    @magicbot.feedback
-    def get_limelight_upfl_avg_dist(self):
-        return limelight.LimelightHelpers.get_botpose_estimate_wpiblue_megatag2(
-            "limelight-upfl"
-        ).avg_tag_dist
-
-    @magicbot.feedback
-    def get_limelight_upfl_tag_count(self):
-        return limelight.LimelightHelpers.get_botpose_estimate_wpiblue_megatag2(
-            "limelight-upfl"
-        ).tag_count
-
-    @magicbot.feedback
-    def get_limelight_upfr_pose(self) -> wpimath.geometry.Pose2d:
-        return limelight.LimelightHelpers.get_botpose_2d_wpiblue(
-            "limelight-upfr"
-        )
-
-    @magicbot.feedback
-    def get_limelight_upfr_avg_dist(self):
-        return limelight.LimelightHelpers.get_botpose_estimate_wpiblue_megatag2(
-            "limelight-upfr"
-        ).avg_tag_dist
-
-    @magicbot.feedback
-    def get_limelight_upfr_tag_count(self):
-        return limelight.LimelightHelpers.get_botpose_estimate_wpiblue_megatag2(
-            "limelight-upfr"
-        ).tag_count
 
 
 class VisionTuner:

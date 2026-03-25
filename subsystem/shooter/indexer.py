@@ -2,6 +2,7 @@ import magicbot
 import phoenix6
 
 import constants
+from common import datalog
 from subsystem import shooter
 
 
@@ -14,6 +15,7 @@ class Indexer:
     robot_constants: constants.RobotConstants
     indexer_back_motor: phoenix6.hardware.TalonFX
     indexer_front_motor: phoenix6.hardware.TalonFX
+    data_logger: datalog.DataLogger
 
     def setup(self) -> None:
         """Set up initial state for the indexer.
@@ -105,6 +107,8 @@ class Indexer:
                 self._request.with_velocity(0.0)
             )
 
+        self._logData()
+
     def on_enable(self) -> None:
         """Reset to a "safe" state when the robot is enabled.
 
@@ -140,37 +144,55 @@ class Indexer:
         """
         self._enabled = value
 
-    @magicbot.feedback
-    def get_target_rps(self) -> phoenix6.units.rotations_per_second:
-        return self._target_rps
-
-    @magicbot.feedback
-    def get_back_measured_rps(self) -> phoenix6.units.rotations_per_second:
+    def backMeasuredSpeedRps(self) -> phoenix6.units.rotations_per_second:
         return self.indexer_back_motor.get_velocity().value
 
-    @magicbot.feedback
-    def get_front_measured_rps(self) -> phoenix6.units.rotations_per_second:
+    def frontMeasuredSpeedRps(self) -> phoenix6.units.rotations_per_second:
         return self.indexer_front_motor.get_velocity().value
 
-    @magicbot.feedback
-    def get_enabled(self) -> bool:
-        return self._enabled
-
-    @magicbot.feedback
-    def get_back_supply_current(self) -> phoenix6.units.ampere:
+    def backSupplyCurrent(self) -> phoenix6.units.ampere:
         return self.indexer_back_motor.get_supply_current().value
 
-    @magicbot.feedback
-    def get_back_stator_current(self) -> phoenix6.units.ampere:
+    def backStatorCurrent(self) -> phoenix6.units.ampere:
         return self.indexer_back_motor.get_stator_current().value
 
-    @magicbot.feedback
-    def get_front_supply_current(self) -> phoenix6.units.ampere:
+    def frontSupplyCurrent(self) -> phoenix6.units.ampere:
         return self.indexer_front_motor.get_supply_current().value
 
-    @magicbot.feedback
-    def get_front_stator_current(self) -> phoenix6.units.ampere:
+    def frontStatorCurrent(self) -> phoenix6.units.ampere:
         return self.indexer_front_motor.get_stator_current().value
+
+    def _logData(self):
+        self.data_logger.logBoolean(
+            "/components/indexer/enabled", self._enabled, on_change=True
+        )
+        self.data_logger.logDouble(
+            "/components/indexer/target_speed_rps",
+            self._target_rps,
+            on_change=True,
+        )
+        self.data_logger.logDouble(
+            "/components/indexer/back_measured_speed_rps",
+            self.backMeasuredSpeedRps(),
+        )
+        self.data_logger.logDouble(
+            "/components/indexer/front_measured_speed_rps",
+            self.frontMeasuredSpeedRps(),
+        )
+        self.data_logger.logDouble(
+            "/components/indexer/back_supply_current", self.backSupplyCurrent()
+        )
+        self.data_logger.logDouble(
+            "/components/indexer/back_stator_current", self.backStatorCurrent()
+        )
+        self.data_logger.logDouble(
+            "/components/indexer/front_supply_current",
+            self.frontSupplyCurrent(),
+        )
+        self.data_logger.logDouble(
+            "/components/indexer/front_stator_current",
+            self.frontStatorCurrent(),
+        )
 
 
 class IndexerTuner:
