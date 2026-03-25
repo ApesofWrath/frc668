@@ -74,7 +74,7 @@ class Vision:
                 f"IMU mode must be an integer in the range [0, 4], got: {value}."
             )
             return
-        for ll in self.vision._limelights:
+        for ll in self._limelights:
             limelight.LimelightHelpers.set_imu_mode(ll, value)
 
     def setRobotOrientation(self) -> None:
