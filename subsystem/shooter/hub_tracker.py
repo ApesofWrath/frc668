@@ -8,7 +8,7 @@ import wpilib
 from wpimath import geometry, units
 
 import constants
-from common import alliance
+from common import alliance, datalog
 from subsystem import drivetrain, shooter
 
 INCHES_TO_METERS = 0.0254
@@ -85,6 +85,7 @@ class HubTracker:
     flywheel: shooter.Flywheel
     hood: shooter.Hood
     turret: shooter.Turret
+    data_logger: datalog.DataLogger
 
     def setup(self) -> None:
         # Transform from robot frame to turret frame.
@@ -140,9 +141,7 @@ class HubTracker:
         self._yaw_rate_signal.refresh()
 
         # Pose of the robot relative to field origin.
-        robot_pose: geometry.Pose2d = (
-            self.drivetrain.swerve_drive.get_state().pose
-        )
+        robot_pose: geometry.Pose2d = self.drivetrain.get_robot_pose()
         self._turret_field_pose: geometry.Pose2d = robot_pose.transformBy(
             self._robot_to_turret_transform
         )
@@ -154,7 +153,7 @@ class HubTracker:
         # Set the flywheel and hood targets based on future turret-to-hub
         # distance.
         target_hood_angle_degrees, target_flywheel_speed_rps = ShotTable.get(
-            self.get_future_turret_to_hub_distance()
+            self.futureTurretDistanceFromHubMeters()
         )
 
         self.turret_mvt_feed_forward = (
@@ -174,6 +173,8 @@ class HubTracker:
             self.turret.setPosition(self._target_turret_angle_degrees)
             self.hood.setPosition(self._target_hood_angle_degrees)
             self.flywheel.setTargetRps(self._target_flywheel_speed_rps)
+
+        self._logData()
 
     def trackPosition(self, value: bool) -> None:
         """If True, the turret and hood angles will be re-calculated each loop."""
@@ -294,10 +295,14 @@ class HubTracker:
         """
         if self.alliance_fetcher.isRedAlliance():
             sign_multiplier = -1
-        else: 
+        else:
             sign_multiplier = 1
-        robot_vx = sign_multiplier * self.drivetrain.swerve_drive.get_state().speeds.vx
-        robot_vy = sign_multiplier * self.drivetrain.swerve_drive.get_state().speeds.vy
+        robot_vx = (
+            sign_multiplier * self.drivetrain.swerve_drive.get_state().speeds.vx
+        )
+        robot_vy = (
+            sign_multiplier * self.drivetrain.swerve_drive.get_state().speeds.vy
+        )
         robot_omega = self.drivetrain.swerve_drive.get_state().speeds.omega
         robot_angle = (
             self.drivetrain.swerve_drive.get_state().pose.rotation().radians()
@@ -318,22 +323,7 @@ class HubTracker:
             geometry.Translation2d(turret_vx, turret_vy)
         ) * self.robot_constants.shooter.turret.time_of_flight
 
-    @magicbot.feedback
-    def get_track_position(self) -> bool:
-        return self._track_position
-
-    @magicbot.feedback
-    def get_track_speed(self) -> bool:
-        return self._track_speed
-
-    @magicbot.feedback
-    def get_enabled(self) -> bool:
-        return self._enabled
-
-    @magicbot.feedback
-    def get_turret_current_distance_from_hub_meters(
-        self,
-    ) -> phoenix6.units.meter:
+    def currentTurretDistanceFromHubMeters(self) -> phoenix6.units.meter:
         """Returns the current absolute distance of the turret from the hub."""
         # Vector from center of turret to center of hub.
         current_turret_to_hub = (
@@ -341,27 +331,47 @@ class HubTracker:
         )
         return current_turret_to_hub.norm()
 
-    @magicbot.feedback
-    def get_future_turret_to_hub_distance(self) -> phoenix6.units.meter:
+    def futureTurretDistanceFromHubMeters(self) -> phoenix6.units.meter:
         return self.future_turret_to_hub.norm()
 
-    @magicbot.feedback
-    def get_future_turret_to_hub_angle(self) -> phoenix6.units.degree:
+    def futureTurretAngleToHub(self) -> phoenix6.units.degree:
         return self.future_turret_to_hub.angle().degrees()
 
-    @magicbot.feedback
-    def get_target_turret_angle_degrees(self) -> phoenix6.units.degree:
-        """Returns the target angle for the turret to track."""
-        return self._target_turret_angle_degrees
-
-    @magicbot.feedback
-    def get_target_hood_angle_degrees(self) -> phoenix6.units.degree:
-        """Returns the target angle for the hood to track."""
-        return self._target_hood_angle_degrees
-
-    @magicbot.feedback
-    def get_target_flywheel_speed_rps(
-        self,
-    ) -> phoenix6.units.rotations_per_second:
-        """Returns the target rps for the flywheel to track."""
-        return self._target_flywheel_speed_rps
+    def _logData(self) -> None:
+        self.data_logger.logBoolean(
+            "/components/hub_tracker/enabled", self._enabled, on_change=True
+        )
+        self.data_logger.logBoolean(
+            "/components/hub_tracker/track_position",
+            self._track_position,
+            on_change=True,
+        )
+        self.data_logger.logBoolean(
+            "/components/hub_tracker/track_speed",
+            self._track_speed,
+            on_change=True,
+        )
+        self.data_logger.logDouble(
+            "/components/hub_tracker/current_turret_distance_from_hub_meters",
+            self.currentTurretDistanceFromHubMeters(),
+        )
+        self.data_logger.logDouble(
+            "/components/hub_tracker/future_turret_distance_from_hub_meters",
+            self.futureTurretDistanceFromHubMeters(),
+        )
+        self.data_logger.logDouble(
+            "/components/hub_tracker/future_turret_to_hub_angle",
+            self.futureTurretAngleToHub(),
+        )
+        self.data_logger.logDouble(
+            "/components/hub_tracker/target_turret_angle_degrees",
+            self._target_turret_angle_degrees,
+        )
+        self.data_logger.logDouble(
+            "/components/hub_tracker/target_hood_angle_degrees",
+            self._target_hood_angle_degrees,
+        )
+        self.data_logger.logDouble(
+            "/components/hub_tracker/target_flywheel_speed_rps",
+            self._target_flywheel_speed_rps,
+        )
