@@ -18,7 +18,7 @@ RED_ALLIENCE_END_X = 11.5
 FIELD_HEIGHT = 8.05
 EDGE_OFFSET = 0.75
 
-SHOOT_BACK_HOOD_ANGLE_DEG = 40
+SHOOT_BACK_HOOD_ANGLE_DEG = 9 #TODO: check this is correct
 SHOOT_BACK_FLYWHEEL_RPS = 20 #TODO: find what this
 
 class AllienceTracker:
@@ -61,10 +61,7 @@ class AllienceTracker:
                          self._turret_field_pose.X() > RED_ALLIENCE_END_X)
 
         if self._enabled and (in_neutral_zone or in_opponent_zone):
-            if(self._turret_field_pose.Y() > FIELD_HEIGHT/2): #TODO flip for both alliances
-                self._target_turret_angle_degrees = self._computeTargetTurretAngleDegrees(-10) #TODO: check that this is the right way (it should be)
-            else:
-                self._target_turret_angle_degrees = self._computeTargetTurretAngleDegrees(10)
+            self._target_turret_angle_degrees = self._computeTargetTurretAngleDegrees(self._turret_field_pose.Y() > FIELD_HEIGHT/2)
             self.turret.setPosition(self._target_turret_angle_degrees)
             self.hood.setPosition(self._target_hood_angle_degrees)
             if self._track_speed:
