@@ -190,7 +190,7 @@ SHOOTER_CONSTANTS: dict[str, ShooterConstants] = {
             right_k_s=0.2,
             right_k_v=0.123,
             right_k_p=0.5,
-            gear_reduction=1.0
+            gear_reduction=1.0,
         ),
         indexer=IndexerConstants(
             back_motor_can_id=18,
@@ -261,7 +261,7 @@ SHOOTER_CONSTANTS: dict[str, ShooterConstants] = {
             right_k_s=0.1,
             right_k_v=0.21,
             right_k_p=0.5,
-            gear_reduction=1.67
+            gear_reduction=1.67,
         ),
         indexer=IndexerConstants(
             back_motor_can_id=19,
