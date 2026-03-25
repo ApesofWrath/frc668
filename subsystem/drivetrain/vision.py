@@ -84,10 +84,6 @@ class Vision:
         robot's latest yaw estimate periodically.
         """
         for ll in self._limelights:
-            orientation: float = (
-            orientation = self.drivetrain.swerve_drive.get_state().pose.rotation().degrees()
-        )
-            pitch_roll = self.drivetrain.swerve_drive.get_rotation3d()
             limelight.LimelightHelpers.set_robot_orientation(
                 ll,
                 self.drivetrain.get_estimated_yaw_degrees(),
@@ -97,6 +93,7 @@ class Vision:
                 0.0,
                 0.0,
             )
+
     def _updateRobotPose(self) -> None:
         """Updates our robot pose estimate with the latest vision measurements."""
         rejected_poses: list[wpimath.geometry.Pose2d] = []
