@@ -145,13 +145,13 @@ class VisionConstants:
 
 @dataclass(frozen=True)
 class TrajectoryFollowingConstants:
-    x_kp: float = 0.0
+    x_kp: float = 1.0
     x_ki: float = 0.0
     x_kd: float = 0.0
-    y_kp: float = 0.0
+    y_kp: float = 1.0
     y_ki: float = 0.0
     y_kd: float = 0.0
-    heading_kp: float = 0.0
+    heading_kp: float = 5.0
     heading_ki: float = 0.0
     heading_kd: float = 0.0
 

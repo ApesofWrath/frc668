@@ -5,6 +5,8 @@ import typing
 import commands2
 import magicbot
 import wpilib
+import wpimath 
+import choreo 
 from commands2 import sysid as commands2_sysid
 from phoenix6 import hardware, swerve, units, configs, SignalLogger
 from wpimath import controller, geometry, kinematics

@@ -61,6 +61,7 @@ class AutoBase(magicbot.AutonomousStateMachine):
     def on_enable(self) -> None:
         # The intake can remain active for the entire duration of auto.
         self.intake.setActive(True)
+        super().on_enable()
 
     @magicbot.state(first=True)
     def deploying_intake(self, state_tm) -> None:
