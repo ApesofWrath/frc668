@@ -162,16 +162,40 @@ class Hopper:
         self._enabled = value
 
     @magicbot.feedback
-    def get_left_target_rps(self) -> float:
+    def get_left_target_rps(self) -> phoenix6.units.rotations_per_second:
         return self._left_target_rps
 
     @magicbot.feedback
-    def get_right_target_rps(self) -> float:
+    def get_right_target_rps(self) -> phoenix6.units.rotations_per_second:
         return self._right_target_rps
+
+    @magicbot.feedback
+    def get_left_measured_rps(self) -> phoenix6.units.rotations_per_second:
+        return self.hopper_left_motor.get_velocity().value
+
+    @magicbot.feedback
+    def get_right_measured_rps(self) -> phoenix6.units.rotations_per_second:
+        return self.hopper_right_motor.get_velocity().value
 
     @magicbot.feedback
     def get_enabled(self) -> bool:
         return self._enabled
+
+    @magicbot.feedback
+    def get_left_supply_current(self) -> phoenix6.units.ampere:
+        return self.hopper_left_motor.get_supply_current().value
+
+    @magicbot.feedback
+    def get_left_stator_current(self) -> phoenix6.units.ampere:
+        return self.hopper_left_motor.get_stator_current().value
+
+    @magicbot.feedback
+    def get_right_supply_current(self) -> phoenix6.units.ampere:
+        return self.hopper_right_motor.get_supply_current().value
+
+    @magicbot.feedback
+    def get_right_stator_current(self) -> phoenix6.units.ampere:
+        return self.hopper_right_motor.get_stator_current().value
 
 
 class HopperTuner:
@@ -323,11 +347,3 @@ class HopperTuner:
                     f"{result.name}: {result.description}"
                 )
             )
-
-    @magicbot.feedback
-    def get_left_measured_rps(self) -> float:
-        return self.hopper_left_motor.get_velocity().value
-
-    @magicbot.feedback
-    def get_right_measured_rps(self) -> float:
-        return self.hopper_right_motor.get_velocity().value
