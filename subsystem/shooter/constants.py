@@ -27,9 +27,10 @@ class HopperConstants:
     right_k_p: float = 0.0
     right_k_i: float = 0.0
     right_k_d: float = 0.0
-    default_left_speed_rps: units.rotations_per_second = 30.0
-    default_right_speed_rps: units.rotations_per_second = 30.0
+    default_left_speed_rps: units.rotations_per_second = 50.0
+    default_right_speed_rps: units.rotations_per_second = 50.0
     supply_current_limit: units.ampere = 40.0
+    gear_reduction: float = 1.0
 
 
 @dataclass(frozen=True)
@@ -56,7 +57,7 @@ class IndexerConstants:
     front_k_p: float = 0.0
     front_k_i: float = 0.0
     front_k_d: float = 0.0
-    default_speed_rps: units.rotations_per_second = 20.0
+    default_speed_rps: units.rotations_per_second = 50.0
     supply_current_limit: units.ampere = 40.0
 
 
@@ -186,6 +187,7 @@ SHOOTER_CONSTANTS: dict[str, ShooterConstants] = {
             right_k_s=0.2,
             right_k_v=0.123,
             right_k_p=0.5,
+            gear_reduction=1.0
         ),
         indexer=IndexerConstants(
             back_motor_can_id=18,
@@ -256,6 +258,7 @@ SHOOTER_CONSTANTS: dict[str, ShooterConstants] = {
             right_k_s=0.1,
             right_k_v=0.15,
             right_k_p=0.5,
+            gear_reduction=1.67
         ),
         indexer=IndexerConstants(
             back_motor_can_id=19,
