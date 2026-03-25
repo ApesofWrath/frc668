@@ -345,22 +345,3 @@ class DrivetrainTuner:
     ) -> None:
         self._scheduler.cancelAll()
         self._scheduler.schedule(self._sysid_steer.dynamic(direction))
-
-    @magicbot.feedback
-    def get_pigeon_yaw(self) -> units.degree:
-        return wpimath.inputModulus(self.drivetrain.swerve_drive.pigeon2.get_yaw().value, -180.0, 180.0)
-
-    @magicbot.feedback
-    def get_pigeon_rotation2d(self) -> units.degree:
-         return wpimath.inputModulus(self.drivetrain.swerve_drive.pigeon2.getRotation2d().degrees(), -180.0, 180.0)
-    
-    @magicbot.feedback
-    def get_drivetrain_yaw(self):
-        return self.drivetrain.swerve_drive.get_state().pose.rotation().degrees()
-
-    @magicbot.feedback
-    def get_pitch(self):
-        return self.drivetrain.swerve_drive.pigeon2.get_pitch().value
-    
-
-     

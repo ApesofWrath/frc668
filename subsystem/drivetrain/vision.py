@@ -8,10 +8,6 @@ import constants
 from subsystem import drivetrain
 from subsystem.drivetrain import limelight
 
-from ntcore import NetworkTableInstance
-
-import wpilib
-
 RADIANS_TO_DEGREES = 180.0 / math.pi
 
 
@@ -36,10 +32,6 @@ class Vision:
 
     def execute(self) -> None:
         self.setRobotOrientation()
-        # if self.drivetrain.swerve_drive.pigeon2.get_pitch().value > 0.0:
-        #     self.drivetrain.swerve_drive.set_state_std_devs(math.inf, math.inf, math.inf)
-        # else:
-        #     self.drivetrain.swerve_drive.set_state_std_devs(0.0, 0.0, 0.0)
         self._updateRobotPose()
 
     def setRobotOrientation(self) -> None:
@@ -49,15 +41,17 @@ class Vision:
         robot's latest yaw estimate periodically.
         """
         for ll in self._limelights:
-            yaw = wpimath.inputModulus(self.drivetrain.swerve_drive.pigeon2.get_yaw().value, -180.0, 180.0)
-            pitch = self.drivetrain.swerve_drive.pigeon2.get_pitch().value
+            orientation: float = (
+            orientation = self.drivetrain.swerve_drive.get_state().pose.rotation().degrees()
+        )
+            pitch_roll = self.drivetrain.swerve_drive.get_rotation3d()
             limelight.LimelightHelpers.set_robot_orientation(
                 ll,
-                yaw,
+                orientation,
                 0.0,
-                pitch,
+                pitch_roll.Y() * RADIANS_TO_DEGREES,
                 0.0,
-                0.0,
+                pitch_roll.X() * RADIANS_TO_DEGREES,
                 0.0,
             )
     def _updateRobotPose(self) -> None:
@@ -168,39 +162,10 @@ class Vision:
         return limelight.LimelightHelpers.get_botpose_2d_wpiblue(
             "limelight-fl"
         )
-    
-
+        
     @feedback
-    def get_limelight_upfr_avg_dist(self):
-        return limelight.LimelightHelpers.get_botpose_estimate_wpiblue_megatag2("limelight-upfr").avg_tag_dist
-    
-    @feedback
-    def get_limelight_upfr_tag_count(self):
-        return limelight.LimelightHelpers.get_botpose_estimate_wpiblue_megatag2("limelight-upfr").tag_count
-    
-    @feedback
-    def get_limelight_upfl_avg_dist(self):
-        return limelight.LimelightHelpers.get_botpose_estimate_wpiblue_megatag2("limelight-upfl").avg_tag_dist
-    
-    @feedback
-    def get_limelight_upfl_tag_count(self):
-        return limelight.LimelightHelpers.get_botpose_estimate_wpiblue_megatag2("limelight-upfl").tag_count
-    
-    @feedback
-    def get_limelight_fr_avg_dist(self):
-        return limelight.LimelightHelpers.get_botpose_estimate_wpiblue_megatag2("limelight-fr").avg_tag_dist
-    
-    @feedback
-    def get_limelight_fr_tag_count(self):
-        return limelight.LimelightHelpers.get_botpose_estimate_wpiblue_megatag2("limelight-fr").tag_count
-    
-    @feedback
-    def get_limelight_fl_avg_dist(self):
-        return limelight.LimelightHelpers.get_botpose_estimate_wpiblue_megatag2("limelight-fl").avg_tag_dist
-    
-    @feedback
-    def get_limelight_fl_tag_count(self):
-        return limelight.LimelightHelpers.get_botpose_estimate_wpiblue_megatag2("limelight-fl").tag_count
+    def get_theta_std_deviation(self) -> float:
+        return self.theta_std_devs
 
 
 class VisionTuner:
@@ -217,19 +182,11 @@ class VisionTuner:
 
         self.theta_std_devs = 0.0
         self.last_theta_std_devs = self.theta_std_devs
-        self._limelights: list[str] = (
-            self.robot_constants.drivetrain.vision.limelights
-        )
-        self.nt = NetworkTableInstance.getDefault()
 
 
     def execute(self) -> None:
         if not self.valuesChanged():
             return
-        if wpilib.DriverStation.isDisabled():
-            self.throttleLimelights(True)
-        else:
-            self.throttleLimelights(False)
 
         self.applyValues()
 
@@ -244,20 +201,3 @@ class VisionTuner:
 
     def applyValues(self) -> None:
         self.vision.set_std_devs(self.xy_std_devs, self.theta_std_devs)
-
-    def throttleLimelights(self, on: bool) -> None:
-        if on:
-            for ll in self._limelights:
-                limelight.LimelightHelpers.set_LED_to_force_off(ll)
-                self.nt.getTable(ll).getEntry("throttle_set").setInteger(150)
-        else:
-            for ll in self._limelights:
-                limelight.LimelightHelpers.set_LED_to_pipeline_control(ll)
-                self.nt.getTable(ll).getEntry("throttle_set").setInteger(0)
-                
-
-
-                
-
-
-    
