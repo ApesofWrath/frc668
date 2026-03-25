@@ -1,12 +1,15 @@
 import logging
+import math
 import typing
 
 import commands2
+import choreo
 import magicbot
 import wpilib
 import wpimath
 from commands2 import sysid as commands2_sysid
 from phoenix6 import hardware, swerve, units, configs, SignalLogger
+from wpimath import controller, geometry, kinematics
 
 import constants
 from common import alliance, datalog, joystick
@@ -115,19 +118,45 @@ class Drivetrain(commands2.Subsystem):
             ],
         )
 
+        self._x_controller = controller.PIDController(
+            constants.trajectory_following.x_kp, 0.0, 0.0
+        )
+        self._y_controller = controller.PIDController(
+            constants.trajectory_following.y_kp, 0.0, 0.0
+        )
+        self._heading_controller = controller.PIDController(
+            constants.trajectory_following.heading_kp, 0.0, 0.0
+        )
+        # Wrap -180 -> 180 correctly
+        self._heading_controller.enableContinuousInput(-math.pi, math.pi)
+
         self._drive_request = (
             swerve.requests.FieldCentric().with_drive_request_type(
                 swerve.SwerveModule.DriveRequestType.VELOCITY
             )
         )
+
+        # When set to True, the brake request will be used instead of the drive
+        # request.
+        self._brake_enabled = False
         self._brake_request = (
             swerve.requests.SwerveDriveBrake().with_drive_request_type(
                 swerve.SwerveModule.DriveRequestType.VELOCITY
             )
         )
-        # When set to True, the brake request will be used instead of the drive
-        # request.
-        self._brake_enabled = False
+
+        # When set to True, the auto request will be used instead of the brake
+        # or drive requests.
+        self._auto_enabled = False
+        self._auto_request = (
+            swerve.requests.ApplyFieldSpeeds()
+            .with_forward_perspective(
+                swerve.requests.ForwardPerspectiveValue.BLUE_ALLIANCE
+            )
+            .with_drive_request_type(
+                swerve.SwerveModule.DriveRequestType.VELOCITY
+            )
+        )
 
         self._operator_perspective_set = False
         self._maybeSetOperatorPerspectiveForward()
@@ -140,7 +169,10 @@ class Drivetrain(commands2.Subsystem):
         self._maybeSetOperatorPerspectiveForward()
         if not self._operator_perspective_set:
             self.logger.warning("Driving without operator perspective set")
-        if self._brake_enabled:
+
+        if self._auto_enabled:
+            self.swerve_drive.set_control(self._auto_request)
+        elif self._brake_enabled:
             self.swerve_drive.set_control(self._brake_request)
         else:
             self.swerve_drive.set_control(self._drive_request)
@@ -156,12 +188,45 @@ class Drivetrain(commands2.Subsystem):
             command.vy
         ).with_rotational_rate(command.omega)
 
-    def setPose(self, pose: wpimath.geometry.Pose2d) -> None:
+    def followTrajectorySample(self, sample: choreo.SwerveSample) -> None:
+        """Follow a Choreo trajectory sample.
+
+        Add corrections to the sample's velocities to stay on track. Use field
+        centric control requests, but always relative to blue alliance origin,
+        so that we don't have to negate the speeds.
+
+        Args:
+            sample:
+                The Choreo trajectory sample to follow.
+        """
+        pose = self.swerve_drive.get_state().pose
+        self._auto_request.with_speeds(
+            kinematics.ChassisSpeeds(
+                sample.vx + self._x_controller.calculate(pose.X(), sample.x),
+                sample.vy + self._y_controller.calculate(pose.Y(), sample.y),
+                sample.omega
+                + self._heading_controller.calculate(
+                    pose.rotation().radians(), sample.heading
+                ),
+            )
+        )
+
+    def stop(self) -> None:
+        """Stop the drivetrain."""
+        self._auto_request.with_speeds(kinematics.ChassisSpeeds(0, 0, 0))
+        self._drive_request.with_velocity_x(0).with_velocity_y(
+            0
+        ).with_rotational_rate(0)
+
+    def setPose(self, pose: geometry.Pose2d) -> None:
         """Hard reset the robot's pose estimate."""
         self.swerve_drive.reset_pose(pose)
 
     def setBrakeEnabled(self, value: bool) -> None:
         self._brake_enabled = value
+
+    def setAutoEnabled(self, value: bool) -> None:
+        self._auto_enabled = value
 
     def _maybeSetOperatorPerspectiveForward(self) -> None:
         if self._operator_perspective_set:
@@ -176,10 +241,10 @@ class Drivetrain(commands2.Subsystem):
             self._operator_perspective_set = True
 
     @magicbot.feedback
-    def get_robot_pose(self) -> wpimath.geometry.Pose2d:
+    def get_robot_pose(self) -> geometry.Pose2d:
         return self.swerve_drive.get_state().pose
 
-    def robotSpeeds(self) -> wpimath.kinematics.ChassisSpeeds:
+    def robotSpeeds(self) -> kinematics.ChassisSpeeds:
         return self.swerve_drive.get_state().speeds
 
     def rawYawDegrees(self) -> units.degree:
@@ -406,6 +471,17 @@ class DrivetrainTuner:
 
     reverse = magicbot.tunable(False)
 
+    # PID gains for trajectory following.
+    trajectory_x_kp = magicbot.tunable(0.0)
+    trajectory_x_ki = magicbot.tunable(0.0)
+    trajectory_x_kd = magicbot.tunable(0.0)
+    trajectory_y_kp = magicbot.tunable(0.0)
+    trajectory_y_ki = magicbot.tunable(0.0)
+    trajectory_y_kd = magicbot.tunable(0.0)
+    trajectory_heading_kp = magicbot.tunable(0.0)
+    trajectory_heading_ki = magicbot.tunable(0.0)
+    trajectory_heading_kd = magicbot.tunable(0.0)
+
     def setup(self) -> None:
         self._last_tq = self.translation_quasistatic
         self._last_td = self.translation_dynamic
@@ -472,6 +548,18 @@ class DrivetrainTuner:
         SignalLogger.stop()
 
     def execute(self) -> None:
+        self.drivetrain._x_controller.setPID(
+            self.trajectory_x_kp, self.trajectory_x_ki, self.trajectory_x_kd
+        )
+        self.drivetrain._y_controller.setPID(
+            self.trajectory_y_kp, self.trajectory_y_ki, self.trajectory_y_kd
+        )
+        self.drivetrain._heading_controller.setPID(
+            self.trajectory_heading_kp,
+            self.trajectory_heading_ki,
+            self.trajectory_heading_kd,
+        )
+
         if (
             sum(
                 [

@@ -76,6 +76,9 @@ class IntakeDeployer(magicbot.StateMachine):
 
         self._logData()
 
+    def hasDeployed(self) -> bool:
+        return self._deployed
+
     @magicbot.state(first=True)
     def deploying(self, state_tm) -> None:
         # Based on testing on the robot, deploying the intake corresponds to
