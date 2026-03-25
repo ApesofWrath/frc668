@@ -3,10 +3,10 @@ import math
 import typing
 
 import commands2
+import choreo
 import magicbot
 import wpilib
-import wpimath 
-import choreo 
+import wpimath
 from commands2 import sysid as commands2_sysid
 from phoenix6 import hardware, swerve, units, configs, SignalLogger
 from wpimath import controller, geometry, kinematics
@@ -244,7 +244,7 @@ class Drivetrain(commands2.Subsystem):
     def get_robot_pose(self) -> geometry.Pose2d:
         return self.swerve_drive.get_state().pose
 
-    def robotSpeeds(self) -> wpimath.kinematics.ChassisSpeeds:
+    def robotSpeeds(self) -> kinematics.ChassisSpeeds:
         return self.swerve_drive.get_state().speeds
 
     def rawYawDegrees(self) -> units.degree:

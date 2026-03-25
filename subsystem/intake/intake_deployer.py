@@ -75,7 +75,7 @@ class IntakeDeployer(magicbot.StateMachine):
             self.engage()
 
         self._logData()
-        
+
     def hasDeployed(self) -> bool:
         return self._deployed
 

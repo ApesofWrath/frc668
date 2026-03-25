@@ -6,7 +6,6 @@ from wpimath import kinematics
 import constants
 from common import datalog
 from subsystem import shooter, drivetrain
-from phoenix6 import swerve 
 
 
 class Shooter(magicbot.StateMachine):

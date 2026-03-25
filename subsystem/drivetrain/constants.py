@@ -167,7 +167,9 @@ class DrivetrainConstants:
     drivetrain: SwerveDrivetrainConstants = SwerveDrivetrainConstants()
     drive_options: DriveOptions = DriveOptions()
     vision: VisionConstants = VisionConstants(limelights=[])
-    trajectory_following: TrajectoryFollowingConstants = TrajectoryFollowingConstants()
+    trajectory_following: TrajectoryFollowingConstants = (
+        TrajectoryFollowingConstants()
+    )
 
 
 # Constants per robot serial number.

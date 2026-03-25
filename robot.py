@@ -145,7 +145,7 @@ class MyRobot(magicbot.MagicRobot):
             self.hub_tracker.trackPosition(True)
             self.hub_tracker.trackSpeed(True)
             self.hub_tracker.setEnabled(False)
-        
+
         super().robotPeriodic()
 
     def autonomousInit(self) -> None:
