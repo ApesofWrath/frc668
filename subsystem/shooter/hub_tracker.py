@@ -203,6 +203,15 @@ class HubTracker:
     def setTurretFeedForwardMultiplier(self, multiplier) -> None:
         self.turret_mvt_feed_forward_multiplier = multiplier
 
+    def targetTurretAngleDegrees(self) -> float:
+        return self._target_turret_angle_degrees
+
+    def targetHoodAngleDegrees(self) -> float:
+        return self._target_hood_angle_degrees
+
+    def targetFlywheelSpeedRps(self) -> float:
+        return self._target_flywheel_speed_rps
+
     def _computeMovingTargetTurretAngleDegrees(
         self,
     ) -> phoenix6.units.degree:

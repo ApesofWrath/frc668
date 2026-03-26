@@ -124,16 +124,16 @@ class Shooter(magicbot.StateMachine):
     ) -> bool:
         """Indicates if shooter is within provided tolerances."""
         turret_error = abs(
-            self.hub_tracker.get_target_turret_angle_degrees()
-            - self.turret.get_measured_angle_degrees()
+            self.hub_tracker.targetTurretAngleDegrees()
+            - self.turret.measuredAngleDegrees()
         )
         hood_error = abs(
-            self.hub_tracker.get_target_hood_angle_degrees()
-            - self.hood.get_measured_angle_degrees()
+            self.hub_tracker.targetHoodAngleDegrees()
+            - self.hood.measuredAngleDegrees()
         )
         flywheel_error = abs(
-            self.hub_tracker.get_target_flywheel_speed_rps()
-            - self.flywheel.get_measured_speed_rps()
+            self.hub_tracker.targetFlywheelSpeedRps()
+            - self.flywheel.measuredSpeedRps()
         )
         return (
             (turret_error <= turret_tolerance_degrees)
