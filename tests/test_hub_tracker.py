@@ -88,6 +88,8 @@ def _make_tracker(
             turret=types.SimpleNamespace(
                 min_angle=min_angle,
                 max_angle=max_angle,
+                feed_forward_mvt_multiplier=1.0,
+                time_of_flight=0.0,
             )
         )
     )
@@ -99,12 +101,17 @@ def _make_tracker(
     tracker.drivetrain.swerve_drive.pigeon2.get_angular_velocity_z_world.return_value = (
         yaw_rate_signal
     )
+    tracker.drivetrain.get_robot_pose.return_value = robot_pose
     tracker.drivetrain.swerve_drive.get_state.return_value = (
-        types.SimpleNamespace(pose=robot_pose)
+        types.SimpleNamespace(
+            pose=robot_pose,
+            speeds=types.SimpleNamespace(vx=0.0, vy=0.0, omega=0.0),
+        )
     )
     tracker.flywheel = mocker.Mock()
     tracker.hood = mocker.Mock()
     tracker.turret = mocker.Mock()
+    tracker.data_logger = mocker.Mock()
     tracker.setup()
     return tracker
 
@@ -412,7 +419,7 @@ def test_execute_updates_compensation_across_control_loops(mocker) -> None:
     assert second_commanded_angle == pytest.approx(11.0)
 
 
-def test_get_turret_distance_from_hub_meters(mocker) -> None:
+def test_current_turret_distance_from_hub_meters(mocker) -> None:
     """Distance feedback returns Euclidean distance from turret to hub."""
     tracker = _make_tracker(mocker, geometry.Pose2d())
     tracker._hub_position = geometry.Translation2d(4.0, 6.0)
@@ -421,10 +428,10 @@ def test_get_turret_distance_from_hub_meters(mocker) -> None:
         geometry.Rotation2d(),
     )
 
-    assert tracker.get_turret_distance_from_hub_meters() == pytest.approx(5.0)
+    assert tracker.currentTurretDistanceFromHubMeters() == pytest.approx(5.0)
 
 
-def test_compute_target_turret_angle_degrees_is_relative_to_heading(
+def test_compute_stationary_target_turret_angle_degrees_is_relative_to_heading(
     mocker,
 ) -> None:
     """Computed target angle is relative to current turret heading."""
@@ -437,12 +444,14 @@ def test_compute_target_turret_angle_degrees_is_relative_to_heading(
         geometry.Rotation2d.fromDegrees(90.0),
     )
 
-    assert tracker._computeTargetTurretAngleDegrees() == pytest.approx(-90.0)
+    assert tracker._computeStationaryTargetTurretAngleDegrees() == pytest.approx(
+        -90.0
+    )
 
 
-def test_get_target_turret_angle_degrees_returns_cached_value(mocker) -> None:
-    """Target turret getter returns the cached target command value."""
+def test_set_target_turret_angle_degrees_updates_cached_value(mocker) -> None:
+    """Setter updates cached turret target command value."""
     tracker = _make_tracker(mocker, geometry.Pose2d())
-    tracker._target_turret_angle_degrees = 12.34
+    tracker.setTargetTurretAngleDegrees(12.34)
 
-    assert tracker.get_target_turret_angle_degrees() == pytest.approx(12.34)
+    assert tracker._target_turret_angle_degrees == pytest.approx(12.34)

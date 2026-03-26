@@ -50,6 +50,7 @@ def intake(mock_constants, mock_motor):
     component = Intake()
     component.robot_constants = mock_constants
     component.intake_roller_motor = mock_motor
+    component.data_logger = mock.MagicMock()
     component.setup()
     return component
 
@@ -152,15 +153,15 @@ class TestIntake:
         request = mock_motor.set_control.call_args[0][0]
         assert request.velocity == pytest.approx(67.0)
 
-    def test_get_measured_speed(self, intake, mock_motor):
+    def test_measured_speed_rps(self, intake, mock_motor):
         """Feedback method should return the raw velocity or 0.0 when falsy."""
         # Normal case
         mock_motor.get_velocity.return_value.value = 123.4
-        assert intake.get_measured_speed() == 123.4
+        assert intake.measuredSpeedRps() == 123.4
 
         # Falsy value handling (per original implementation)
         mock_motor.get_velocity.return_value.value = None
-        assert intake.get_measured_speed() == 0.0
+        assert intake.measuredSpeedRps() == 0.0
 
         mock_motor.get_velocity.return_value.value = 0
-        assert intake.get_measured_speed() == 0.0
+        assert intake.measuredSpeedRps() == 0.0
