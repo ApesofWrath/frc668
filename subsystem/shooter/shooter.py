@@ -1,8 +1,10 @@
 import math
 
 import magicbot
+from wpimath import kinematics
 
 import constants
+from common import datalog
 from subsystem import shooter, drivetrain
 
 
@@ -34,6 +36,7 @@ class Shooter(magicbot.StateMachine):
     hub_tracker: shooter.HubTracker
     allience_tracker: shooter.AllienceTracker
     robot_constants: constants.RobotConstants
+    data_logger: datalog.DataLogger
 
     def setup(self) -> None:
         self._driver_wants_feed = False
@@ -68,7 +71,7 @@ class Shooter(magicbot.StateMachine):
             self.next_state("idling")
 
         # Then, check if we are ready to shoot.
-        if self._shooterIsReady() and not self._robotIsMoving():
+        if self._shooterIsReady():
             self.next_state_now("shooting")
 
         # The driver wants to shoot but the shooter isn't ready or the robot is
@@ -87,7 +90,7 @@ class Shooter(magicbot.StateMachine):
         if not self._driver_wants_feed:
             self.next_state("idling")
 
-        if not self._shooterIsReady() or self._robotIsMoving():
+        if not self._shooterIsReady():
             self.next_state("targeting")
 
         # Fully track the hub.
@@ -107,14 +110,6 @@ class Shooter(magicbot.StateMachine):
 
     def setAuto(self, value: bool) -> None:
         self._auto = value
-
-    @magicbot.feedback
-    def get_auto(self) -> bool:
-        return self._auto
-
-    @magicbot.feedback
-    def get_driver_wants_feed(self) -> bool:
-        return self._driver_wants_feed
 
     def _shooterIsReady(self) -> bool:
         """Indicates if shooter components are close enough to their targets."""
@@ -139,32 +134,18 @@ class Shooter(magicbot.StateMachine):
         hubtracker: bool = True #True if hubtracker, false if alliencetracker
     ) -> bool:
         """Indicates if shooter is within provided tolerances."""
-        if hubtracker:
-            turret_error = abs(
-                self.hub_tracker.get_target_turret_angle_degrees()
-                - self.turret.get_measured_angle_degrees()
-            )
-            hood_error = abs(
-                self.hub_tracker.get_target_hood_angle_degrees()
-                - self.hood.get_measured_angle_degrees()
-            )
-            flywheel_error = abs(
-                self.hub_tracker.get_target_flywheel_speed_rps()
-                - self.flywheel.get_measured_speed_rps()
-            )
-        else:
-            turret_error = abs(
-                self.allience_tracker.get_target_turret_angle_degrees()
-                - self.turret.get_measured_angle_degrees()
-            )
-            hood_error = abs(
-                self.allience_tracker.get_target_hood_angle_degrees()
-                - self.hood.get_measured_angle_degrees()
-            )
-            flywheel_error = abs(
-                self.allience_tracker.get_target_flywheel_speed_rps()
-                - self.flywheel.get_measured_speed_rps()
-            )
+        turret_error = abs(
+            self.hub_tracker.targetTurretAngleDegrees()
+            - self.turret.measuredAngleDegrees()
+        )
+        hood_error = abs(
+            self.hub_tracker.targetHoodAngleDegrees()
+            - self.hood.measuredAngleDegrees()
+        )
+        flywheel_error = abs(
+            self.hub_tracker.targetFlywheelSpeedRps()
+            - self.flywheel.measuredSpeedRps()
+        )
         return (
             (turret_error <= turret_tolerance_degrees)
             and (hood_error <= hood_tolerance_degrees)
@@ -173,19 +154,18 @@ class Shooter(magicbot.StateMachine):
 
     def _robotIsMoving(self, speed_threshold_mps: float = 0.1) -> bool:
         """Indicates if the robot's linear speed is over the threshold."""
-        chassis_speeds: swerve.ChassisSpeeds = self.drivetrain.get_robot_speed()
+        chassis_speeds: kinematics.ChassisSpeeds = self.drivetrain.robotSpeeds()
         robot_speed_mps = math.sqrt(
             (chassis_speeds.vx**2) + (chassis_speeds.vy**2)
         )
         return robot_speed_mps > speed_threshold_mps
 
-    def _setTracker(self, useHubtracker, trackPosition, trackSpeed):
-        if useHubtracker:
-            self.hub_tracker.setEnabled(True)
-            self.allience_tracker.setEnabled(False)
-            self.hub_tracker.trackPosition(trackPosition)
-            self.hub_tracker.trackSpeed(trackSpeed)
-        else:
-            self.allience_tracker.setEnabled(True)
-            self.hub_tracker.setEnabled(False)
-            self.allience_tracker.setTrack(trackSpeed,trackPosition)
+    def _logData(self) -> None:
+        self.data_logger.logBoolean(
+            "/components/shooter/auto", self._auto, on_change=True
+        )
+        self.data_logger.logBoolean(
+            "/components/shooter/driver_wants_feed",
+            self._driver_wants_feed,
+            on_change=True,
+        )
