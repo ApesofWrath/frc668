@@ -1,4 +1,5 @@
 import magicbot
+import wpilib
 from phoenix6 import configs, controls, hardware, units
 
 import constants
@@ -96,6 +97,9 @@ class Intake:
 
         self._request = controls.VelocityVoltage(0.0).with_slot(0)
 
+        self._log_timer = wpilib.Timer()
+        self._log_timer.start()
+
     def execute(self) -> None:
         """Command the motors to the requested speed.
 
@@ -138,30 +142,6 @@ class Intake:
         """Toggle the intake roller between active and inactive."""
         self._active = not self._active
 
-    def topMeasuredSpeedRps(self) -> float:
-        """Returns the measured speed of the top motor in rotations per second."""
-        return self.intake_roller_top_motor.get_velocity().value or 0.0
-
-    def bottomMeasuredSpeedRps(self) -> float:
-        """Returns the measured speed of the bottom motor in rotations per second."""
-        return self.intake_roller_bottom_motor.get_velocity().value or 0.0
-
-    def rollerTopSupplyCurrent(self) -> units.ampere:
-        """Returns the measured supply current to the top roller motor."""
-        return self.intake_roller_top_motor.get_supply_current().value or 0.0
-
-    def rollerBottomSupplyCurrent(self) -> units.ampere:
-        """Returns the measured supply current to the bottom roller motor."""
-        return self.intake_roller_bottom_motor.get_supply_current().value or 0.0
-
-    def rollerTopStatorCurrent(self) -> units.ampere:
-        """Returns the measured stator current in the top roller motor."""
-        return self.intake_roller_top_motor.get_stator_current().value or 0.0
-
-    def rollerBottomStatorCurrent(self) -> units.ampere:
-        """Returns the measured stator current in the bottom roller motor."""
-        return self.intake_roller_bottom_motor.get_stator_current().value or 0.0
-
     def _logData(self) -> None:
         """Writes useful data to the log."""
         self.data_logger.logBoolean(
@@ -172,30 +152,31 @@ class Intake:
             self._active_roller_speed_rps,
             on_change=True,
         )
-        self.data_logger.logDouble(
-            "/components/intake/top_measured_speed_rps",
-            self.topMeasuredSpeedRps(),
+
+        datalog.logPrimaryMotorData(
+            self.data_logger,
+            "/components/intake/roller_top_motor",
+            self.intake_roller_top_motor,
+            velocity=True,
         )
-        self.data_logger.logDouble(
-            "/components/intake/top_supply_current",
-            self.rollerTopSupplyCurrent(),
+        datalog.logPrimaryMotorData(
+            self.data_logger,
+            "/components/intake/roller_bottom_motor",
+            self.intake_roller_bottom_motor,
+            velocity=True,
         )
-        self.data_logger.logDouble(
-            "/components/intake/top_stator_current",
-            self.rollerTopStatorCurrent(),
-        )
-        self.data_logger.logDouble(
-            "/components/intake/bottom_measured_speed_rps",
-            self.bottomMeasuredSpeedRps(),
-        )
-        self.data_logger.logDouble(
-            "/components/intake/bottom_supply_current",
-            self.rollerBottomSupplyCurrent(),
-        )
-        self.data_logger.logDouble(
-            "/components/intake/bottom_stator_current",
-            self.rollerBottomStatorCurrent(),
-        )
+        # Log the rest of the data at a slower frequency.
+        if self._log_timer.advanceIfElapsed(1.0):
+            datalog.logSecondaryMotorData(
+                self.data_logger,
+                "/components/intake/roller_top_motor",
+                self.intake_roller_top_motor,
+            )
+            datalog.logSecondaryMotorData(
+                self.data_logger,
+                "/components/intake/roller_bottom_motor",
+                self.intake_roller_bottom_motor,
+            )
 
 
 class IntakeTuner:
@@ -309,8 +290,8 @@ class IntakeTuner:
 
     @magicbot.feedback
     def get_top_measured_speed_rps(self) -> float:
-        return self.intake.topMeasuredSpeedRps()
+        return self.intake_roller_top_motor.get_velocity().value
 
     @magicbot.feedback
     def get_bottom_measured_speed_rps(self) -> float:
-        return self.intake.bottomMeasuredSpeedRps()
+        return self.intake_roller_bottom_motor.get_velocity().value

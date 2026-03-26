@@ -1,5 +1,6 @@
 import magicbot
 import phoenix6
+import wpilib
 
 import constants
 from common import datalog
@@ -87,6 +88,9 @@ class Indexer:
             self._target_rps
         ).with_slot(0)
 
+        self._log_timer = wpilib.Timer()
+        self._log_timer.start()
+
     def execute(self) -> None:
         """Command the motors to the current speed if enabled.
 
@@ -144,55 +148,38 @@ class Indexer:
         """
         self._enabled = value
 
-    def backMeasuredSpeedRps(self) -> phoenix6.units.rotations_per_second:
-        return self.indexer_back_motor.get_velocity().value
-
-    def frontMeasuredSpeedRps(self) -> phoenix6.units.rotations_per_second:
-        return self.indexer_front_motor.get_velocity().value
-
-    def backSupplyCurrent(self) -> phoenix6.units.ampere:
-        return self.indexer_back_motor.get_supply_current().value
-
-    def backStatorCurrent(self) -> phoenix6.units.ampere:
-        return self.indexer_back_motor.get_stator_current().value
-
-    def frontSupplyCurrent(self) -> phoenix6.units.ampere:
-        return self.indexer_front_motor.get_supply_current().value
-
-    def frontStatorCurrent(self) -> phoenix6.units.ampere:
-        return self.indexer_front_motor.get_stator_current().value
-
     def _logData(self):
         self.data_logger.logBoolean(
             "/components/indexer/enabled", self._enabled, on_change=True
         )
         self.data_logger.logDouble(
-            "/components/indexer/target_speed_rps",
+            "/components/indexer/target_velocity_rotations_per_second",
             self._target_rps,
             on_change=True,
         )
-        self.data_logger.logDouble(
-            "/components/indexer/back_measured_speed_rps",
-            self.backMeasuredSpeedRps(),
+        datalog.logPrimaryMotorData(
+            self.data_logger,
+            "/components/indexer/back_motor",
+            self.indexer_back_motor,
+            velocity=True,
         )
-        self.data_logger.logDouble(
-            "/components/indexer/front_measured_speed_rps",
-            self.frontMeasuredSpeedRps(),
+        datalog.logPrimaryMotorData(
+            self.data_logger,
+            "/components/indexer/front_motor",
+            self.indexer_front_motor,
+            velocity=True,
         )
-        self.data_logger.logDouble(
-            "/components/indexer/back_supply_current", self.backSupplyCurrent()
-        )
-        self.data_logger.logDouble(
-            "/components/indexer/back_stator_current", self.backStatorCurrent()
-        )
-        self.data_logger.logDouble(
-            "/components/indexer/front_supply_current",
-            self.frontSupplyCurrent(),
-        )
-        self.data_logger.logDouble(
-            "/components/indexer/front_stator_current",
-            self.frontStatorCurrent(),
-        )
+        if self._log_timer.advanceIfElapsed(1.0):
+            datalog.logSecondaryMotorData(
+                self.data_logger,
+                "/components/indexer/back_motor",
+                self.indexer_back_motor,
+            )
+            datalog.logSecondaryMotorData(
+                self.data_logger,
+                "/components/indexer/front_motor",
+                self.indexer_front_motor,
+            )
 
 
 class IndexerTuner:
