@@ -1,4 +1,5 @@
 import magicbot
+import wpilib
 from phoenix6 import configs, controls, hardware, units
 
 import constants
@@ -53,6 +54,9 @@ class Intake:
 
         self._request = controls.VelocityVoltage(0.0).with_slot(0)
 
+        self._log_timer = wpilib.Timer()
+        self._log_timer.start()
+
     def execute(self) -> None:
         """Command the motors to the requested speed.
 
@@ -94,22 +98,6 @@ class Intake:
         """Toggle the intake roller between active and inactive."""
         self._active = not self._active
 
-    def measuredSpeedRps(self) -> float:
-        """Returns the measured speed of the roller in rotations per second.
-
-        Note that this is measured from the motor, as there is no external
-        encoder for the intake roller.
-        """
-        return self.intake_roller_motor.get_velocity().value or 0.0
-
-    def rollerSupplyCurrent(self) -> units.ampere:
-        """Returns the measured supply current to the roller motor."""
-        return self.intake_roller_motor.get_supply_current().value or 0.0
-
-    def rollerStatorCurrent(self) -> units.ampere:
-        """Returns the measured stator current in the roller motor."""
-        return self.intake_roller_motor.get_stator_current().value or 0.0
-
     def _logData(self) -> None:
         """Writes useful data to the log."""
         self.data_logger.logBoolean(
@@ -120,15 +108,20 @@ class Intake:
             self._active_roller_speed_rps,
             on_change=True,
         )
-        self.data_logger.logDouble(
-            "/components/intake/measured_speed_rps", self.measuredSpeedRps()
+
+        datalog.logPrimaryMotorData(
+            self.data_logger,
+            "/components/intake/roller_motor",
+            self.intake_roller_motor,
+            velocity=True,
         )
-        self.data_logger.logDouble(
-            "/components/intake/supply_current", self.rollerSupplyCurrent()
-        )
-        self.data_logger.logDouble(
-            "/components/intake/stator_current", self.rollerStatorCurrent()
-        )
+        # Log the rest of the data at a slower frequency.
+        if self._log_timer.advanceIfElapsed(1.0):
+            datalog.logSecondaryMotorData(
+                self.data_logger,
+                "/components/intake/roller_motor",
+                self.intake_roller_motor,
+            )
 
 
 class IntakeTuner:

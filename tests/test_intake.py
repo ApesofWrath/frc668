@@ -152,16 +152,3 @@ class TestIntake:
         mock_motor.set_control.assert_called_once()
         request = mock_motor.set_control.call_args[0][0]
         assert request.velocity == pytest.approx(67.0)
-
-    def test_measured_speed_rps(self, intake, mock_motor):
-        """Feedback method should return the raw velocity or 0.0 when falsy."""
-        # Normal case
-        mock_motor.get_velocity.return_value.value = 123.4
-        assert intake.measuredSpeedRps() == 123.4
-
-        # Falsy value handling (per original implementation)
-        mock_motor.get_velocity.return_value.value = None
-        assert intake.measuredSpeedRps() == 0.0
-
-        mock_motor.get_velocity.return_value.value = 0
-        assert intake.measuredSpeedRps() == 0.0

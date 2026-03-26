@@ -1,5 +1,6 @@
 import magicbot
 import phoenix6
+import wpilib
 
 import constants
 from common import datalog
@@ -78,6 +79,9 @@ class Flywheel:
             self._target_rps
         ).with_slot(0)
 
+        self._log_timer = wpilib.Timer()
+        self._log_timer.start()
+
     def execute(self) -> None:
         """Command the motors to the current speed.
 
@@ -111,29 +115,31 @@ class Flywheel:
         self._target_rps = target_rps
 
     def measuredSpeedRps(self) -> phoenix6.units.rotations_per_second:
+        """Flywheel speed measured by the external encoder, in rotations per second."""
         return self._velocity_signal.value
-
-    def supplyCurrent(self) -> phoenix6.units.ampere:
-        return self.flywheel_motor.get_supply_current().value
-
-    def statorCurrent(self) -> phoenix6.units.ampere:
-        return self.flywheel_motor.get_stator_current().value
 
     def _logData(self) -> None:
         self.data_logger.logDouble(
-            "/components/flywheel/target_speed_rps",
+            "/components/flywheel/target_velocity_rotations_per_second",
             self._target_rps,
             on_change=True,
         )
         self.data_logger.logDouble(
-            "/components/flywheel/measured_speed_rps", self.measuredSpeedRps()
+            "/components/flywheel/encoder/velocity_rotations_per_second",
+            self.measuredSpeedRps(),
         )
-        self.data_logger.logDouble(
-            "/components/flywheel/supply_current", self.supplyCurrent()
+        datalog.logPrimaryMotorData(
+            self.data_logger,
+            "/components/flywheel/motor",
+            self.flywheel_motor,
+            velocity=True,
         )
-        self.data_logger.logDouble(
-            "/components/flywheel/stator_current", self.statorCurrent()
-        )
+        if self._log_timer.advanceIfElapsed(1.0):
+            datalog.logSecondaryMotorData(
+                self.data_logger,
+                "/components/flywheel/motor",
+                self.flywheel_motor,
+            )
 
 
 class FlywheelTuner:

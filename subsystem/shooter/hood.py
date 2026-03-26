@@ -114,6 +114,9 @@ class Hood:
             self._target_position_degrees * self.DEGREES_TO_ROTATIONS
         ).with_slot(0)
 
+        self._log_timer = wpilib.Timer()
+        self._log_timer.start()
+
     def execute(self) -> None:
         """Command the motors to the current speed.
 
@@ -173,7 +176,9 @@ class Hood:
         """Set the type of hood control to be used: position or speed
 
         Args:
-            use_speed: The type of controller that should be used. True for manual speed control, False for position control.
+            use_speed:
+                The type of controller that should be used. True for manual
+                speed control, False for position control.
         """
         self._is_speed_controlled = use_speed
 
@@ -187,6 +192,7 @@ class Hood:
         self.hood_encoder.set_position(0.0)
 
     def measuredAngleDegrees(self) -> phoenix6.units.degree:
+        """The angle of the hood measured by the external encoder, in degrees."""
         return (
             self.hood_encoder.get_position().value
             * self.ROTATIONS_TO_DEGREES
@@ -201,20 +207,26 @@ class Hood:
 
     def _logData(self) -> None:
         self.data_logger.logDouble(
-            "/components/hood/target_angle_degrees",
+            "/components/hood/target_position_degrees",
             self._target_position_degrees,
             on_change=True,
         )
         self.data_logger.logDouble(
-            "/components/hood/measured_angle_degrees",
+            "/components/hood/measured_position_degrees",
             self.measuredAngleDegrees(),
         )
-        self.data_logger.logDouble(
-            "/components/hood/supply_current", self.supplyCurrent()
+        datalog.logPrimaryMotorData(
+            self.data_logger,
+            "/components/hood/motor",
+            self.hood_motor,
+            position=True,
         )
-        self.data_logger.logDouble(
-            "/components/hood/stator_current", self.statorCurrent()
-        )
+        if self._log_timer.advanceIfElapsed(1.0):
+            datalog.logSecondaryMotorData(
+                self.data_logger,
+                "/components/hood/motor",
+                self.hood_motor,
+            )
 
 
 class HoodTuner:
