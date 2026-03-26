@@ -65,6 +65,7 @@ def deployer(
     d.intake_deploy_motor = mock_deploy_motor
     d.intake_deploy_encoder = mock_deploy_encoder
     d.intake = mock_intake
+    d.data_logger = mock.MagicMock()
     d.logger = logging.getLogger("IntakeDeployer")
     magic_tunable.setup_tunables(d, "intake_deployer")
     d.setup()
@@ -216,4 +217,4 @@ class TestGetEncoderRotation:
     def test_returns_encoder_position(self, deployer, mock_deploy_encoder):
         """Feedback method returns the raw encoder position value."""
         mock_deploy_encoder.get_position.return_value.value = 0.42
-        assert deployer.get_encoder_position_rotations() == pytest.approx(0.42)
+        assert deployer.encoderPositionRotations() == pytest.approx(0.42)

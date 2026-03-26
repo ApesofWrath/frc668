@@ -1,8 +1,8 @@
 import pytest
 from unittest import mock
 
-from phoenix6 import swerve
 from magicbot import magic_tunable
+from wpimath import kinematics
 
 from subsystem import shooter
 
@@ -75,10 +75,10 @@ def mock_drivetrain():
     """Mock for drivetrain.Drivetrain."""
     drivetrain = mock.MagicMock()
     # Mock chassis speeds for stationary robot
-    chassis_speeds = mock.MagicMock(spec=swerve.ChassisSpeeds)
+    chassis_speeds = mock.MagicMock(spec=kinematics.ChassisSpeeds)
     chassis_speeds.vx = 0.0
     chassis_speeds.vy = 0.0
-    drivetrain.get_robot_speed.return_value = chassis_speeds
+    drivetrain.robotSpeeds.return_value = chassis_speeds
     return drivetrain
 
 
@@ -235,8 +235,8 @@ class TestShooter:
         )
 
         # Robot is stationary
-        mock_drivetrain.get_robot_speed.return_value.vx = 0.0
-        mock_drivetrain.get_robot_speed.return_value.vy = 0.0
+        mock_drivetrain.robotSpeeds.return_value.vx = 0.0
+        mock_drivetrain.robotSpeeds.return_value.vy = 0.0
 
         # First execute: idling -> targeting (scheduled)
         shooter_sm.setDriverWantsFeed(True)
@@ -290,8 +290,8 @@ class TestShooter:
         mock_flywheel.get_measured_speed_rps.return_value = 20.0
 
         # Robot is moving
-        mock_drivetrain.get_robot_speed.return_value.vx = 1.0
-        mock_drivetrain.get_robot_speed.return_value.vy = 0.0
+        mock_drivetrain.robotSpeeds.return_value.vx = 1.0
+        mock_drivetrain.robotSpeeds.return_value.vy = 0.0
 
         shooter_sm.setDriverWantsFeed(True)
         shooter_sm.engage()
@@ -351,8 +351,8 @@ class TestShooter:
         mock_hood.get_measured_angle_degrees.return_value = 0.0
         mock_hub_tracker.get_target_flywheel_speed_rps.return_value = 20.0
         mock_flywheel.get_measured_speed_rps.return_value = 20.0
-        mock_drivetrain.get_robot_speed.return_value.vx = 0.0
-        mock_drivetrain.get_robot_speed.return_value.vy = 0.0
+        mock_drivetrain.robotSpeeds.return_value.vx = 0.0
+        mock_drivetrain.robotSpeeds.return_value.vy = 0.0
 
         # First execute: idling -> targeting
         shooter_sm.setDriverWantsFeed(True)
@@ -393,8 +393,8 @@ class TestShooter:
         mock_hood.get_measured_angle_degrees.return_value = 0.0
         mock_hub_tracker.get_target_flywheel_speed_rps.return_value = 20.0
         mock_flywheel.get_measured_speed_rps.return_value = 20.0
-        mock_drivetrain.get_robot_speed.return_value.vx = 0.0
-        mock_drivetrain.get_robot_speed.return_value.vy = 0.0
+        mock_drivetrain.robotSpeeds.return_value.vx = 0.0
+        mock_drivetrain.robotSpeeds.return_value.vy = 0.0
 
         # First execute: idling -> targeting
         shooter_sm.setDriverWantsFeed(True)
@@ -414,7 +414,7 @@ class TestShooter:
 
         assert shooter_sm.current_state == "targeting"
 
-    def test_shooting_to_targeting_when_robot_starts_moving(
+    def test_shooting_stays_shooting_when_robot_starts_moving(
         self,
         shooter_sm,
         mock_hub_tracker,
@@ -423,7 +423,7 @@ class TestShooter:
         mock_flywheel,
         mock_drivetrain,
     ):
-        """When robot starts moving during shooting, should go back to targeting."""
+        """When robot starts moving during shooting, should continue shooting."""
         # Set up to get to shooting state
         mock_hub_tracker.get_target_turret_angle_degrees.return_value = 0.0
         mock_turret.get_measured_angle_degrees.return_value = 0.0
@@ -431,8 +431,8 @@ class TestShooter:
         mock_hood.get_measured_angle_degrees.return_value = 0.0
         mock_hub_tracker.get_target_flywheel_speed_rps.return_value = 20.0
         mock_flywheel.get_measured_speed_rps.return_value = 20.0
-        mock_drivetrain.get_robot_speed.return_value.vx = 0.0
-        mock_drivetrain.get_robot_speed.return_value.vy = 0.0
+        mock_drivetrain.robotSpeeds.return_value.vx = 0.0
+        mock_drivetrain.robotSpeeds.return_value.vy = 0.0
 
         # First execute: idling -> targeting
         shooter_sm.setDriverWantsFeed(True)
@@ -446,11 +446,11 @@ class TestShooter:
         assert shooter_sm.current_state == "shooting"
 
         # Robot starts moving - need engage() each loop
-        mock_drivetrain.get_robot_speed.return_value.vx = 0.5
+        mock_drivetrain.robotSpeeds.return_value.vx = 0.5
         shooter_sm.engage()
         shooter_sm.execute()
 
-        assert shooter_sm.current_state == "targeting"
+        assert shooter_sm.current_state == "shooting"
 
     # -------------------------------------------------------------------------
     # Shooting state behavior tests
@@ -475,8 +475,8 @@ class TestShooter:
         mock_hood.get_measured_angle_degrees.return_value = 0.0
         mock_hub_tracker.get_target_flywheel_speed_rps.return_value = 20.0
         mock_flywheel.get_measured_speed_rps.return_value = 20.0
-        mock_drivetrain.get_robot_speed.return_value.vx = 0.0
-        mock_drivetrain.get_robot_speed.return_value.vy = 0.0
+        mock_drivetrain.robotSpeeds.return_value.vx = 0.0
+        mock_drivetrain.robotSpeeds.return_value.vy = 0.0
 
         # First execute: idling -> targeting
         shooter_sm.setDriverWantsFeed(True)
@@ -515,8 +515,8 @@ class TestShooter:
         mock_hood.get_measured_angle_degrees.return_value = 0.0
         mock_hub_tracker.get_target_flywheel_speed_rps.return_value = 20.0
         mock_flywheel.get_measured_speed_rps.return_value = 20.0
-        mock_drivetrain.get_robot_speed.return_value.vx = 0.0
-        mock_drivetrain.get_robot_speed.return_value.vy = 0.0
+        mock_drivetrain.robotSpeeds.return_value.vx = 0.0
+        mock_drivetrain.robotSpeeds.return_value.vy = 0.0
 
         # First execute: idling -> targeting
         shooter_sm.setDriverWantsFeed(True)
@@ -714,8 +714,8 @@ class TestShooter:
         self, shooter_sm, mock_drivetrain
     ):
         """Robot is not moving when both vx and vy are zero."""
-        mock_drivetrain.get_robot_speed.return_value.vx = 0.0
-        mock_drivetrain.get_robot_speed.return_value.vy = 0.0
+        mock_drivetrain.robotSpeeds.return_value.vx = 0.0
+        mock_drivetrain.robotSpeeds.return_value.vy = 0.0
 
         assert shooter_sm._robotIsMoving() is False
 
@@ -723,8 +723,8 @@ class TestShooter:
         self, shooter_sm, mock_drivetrain
     ):
         """Robot is moving when vx exceeds the threshold."""
-        mock_drivetrain.get_robot_speed.return_value.vx = 0.15
-        mock_drivetrain.get_robot_speed.return_value.vy = 0.0
+        mock_drivetrain.robotSpeeds.return_value.vx = 0.15
+        mock_drivetrain.robotSpeeds.return_value.vy = 0.0
 
         assert shooter_sm._robotIsMoving() is True
 
@@ -732,8 +732,8 @@ class TestShooter:
         self, shooter_sm, mock_drivetrain
     ):
         """Robot is moving when vy exceeds the threshold."""
-        mock_drivetrain.get_robot_speed.return_value.vx = 0.0
-        mock_drivetrain.get_robot_speed.return_value.vy = 0.15
+        mock_drivetrain.robotSpeeds.return_value.vx = 0.0
+        mock_drivetrain.robotSpeeds.return_value.vy = 0.15
 
         assert shooter_sm._robotIsMoving() is True
 
@@ -742,8 +742,8 @@ class TestShooter:
     ):
         """Robot is moving when combined velocity exceeds threshold."""
         # sqrt(0.08^2 + 0.08^2) ≈ 0.113 > 0.1
-        mock_drivetrain.get_robot_speed.return_value.vx = 0.08
-        mock_drivetrain.get_robot_speed.return_value.vy = 0.08
+        mock_drivetrain.robotSpeeds.return_value.vx = 0.08
+        mock_drivetrain.robotSpeeds.return_value.vy = 0.08
 
         assert shooter_sm._robotIsMoving() is True
 
@@ -751,8 +751,8 @@ class TestShooter:
         self, shooter_sm, mock_drivetrain
     ):
         """Robot is not moving when exactly at threshold (using >)."""
-        mock_drivetrain.get_robot_speed.return_value.vx = 0.1
-        mock_drivetrain.get_robot_speed.return_value.vy = 0.0
+        mock_drivetrain.robotSpeeds.return_value.vx = 0.1
+        mock_drivetrain.robotSpeeds.return_value.vy = 0.0
 
         # speed = 0.1, threshold is 0.1, using > so should be False
         assert shooter_sm._robotIsMoving() is False
@@ -761,8 +761,8 @@ class TestShooter:
         self, shooter_sm, mock_drivetrain
     ):
         """Robot moving calculation uses squared values so negative velocity still works."""
-        mock_drivetrain.get_robot_speed.return_value.vx = -0.15
-        mock_drivetrain.get_robot_speed.return_value.vy = 0.0
+        mock_drivetrain.robotSpeeds.return_value.vx = -0.15
+        mock_drivetrain.robotSpeeds.return_value.vy = 0.0
 
         assert shooter_sm._robotIsMoving() is True
 
@@ -770,8 +770,8 @@ class TestShooter:
         self, shooter_sm, mock_drivetrain
     ):
         """Custom threshold can be passed to _robotIsMoving."""
-        mock_drivetrain.get_robot_speed.return_value.vx = 0.2
-        mock_drivetrain.get_robot_speed.return_value.vy = 0.0
+        mock_drivetrain.robotSpeeds.return_value.vx = 0.2
+        mock_drivetrain.robotSpeeds.return_value.vy = 0.0
 
         assert shooter_sm._robotIsMoving(speed_threshold_mps=0.3) is False
         assert shooter_sm._robotIsMoving(speed_threshold_mps=0.1) is True
@@ -789,7 +789,7 @@ class TestShooter:
         mock_flywheel,
         mock_drivetrain,
     ):
-        """Test a full cycle: idling -> targeting -> shooting -> targeting -> idling."""
+        """Test a full cycle: idling -> targeting -> shooting -> idling."""
         # State machine starts empty, need engage+execute to enter first state
         shooter_sm.engage()
         shooter_sm.execute()
@@ -812,18 +812,18 @@ class TestShooter:
         mock_hood.get_measured_angle_degrees.return_value = 0.0
         mock_hub_tracker.get_target_flywheel_speed_rps.return_value = 20.0
         mock_flywheel.get_measured_speed_rps.return_value = 20.0
-        mock_drivetrain.get_robot_speed.return_value.vx = 0.0
-        mock_drivetrain.get_robot_speed.return_value.vy = 0.0
+        mock_drivetrain.robotSpeeds.return_value.vx = 0.0
+        mock_drivetrain.robotSpeeds.return_value.vy = 0.0
 
         shooter_sm.engage()
         shooter_sm.execute()
         assert shooter_sm.current_state == "shooting"
 
-        # Robot starts moving - should go to targeting
-        mock_drivetrain.get_robot_speed.return_value.vx = 0.5
+        # Robot starts moving - should continue shooting
+        mock_drivetrain.robotSpeeds.return_value.vx = 0.5
         shooter_sm.engage()
         shooter_sm.execute()
-        assert shooter_sm.current_state == "targeting"
+        assert shooter_sm.current_state == "shooting"
 
         # Driver releases feed button - should go to idling
         shooter_sm.setDriverWantsFeed(False)
