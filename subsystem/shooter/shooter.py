@@ -34,7 +34,6 @@ class Shooter(magicbot.StateMachine):
     indexer: shooter.Indexer
     drivetrain: drivetrain.Drivetrain
     hub_tracker: shooter.HubTracker
-    allience_tracker: shooter.AllienceTracker
     robot_constants: constants.RobotConstants
     data_logger: datalog.DataLogger
 
@@ -50,8 +49,9 @@ class Shooter(magicbot.StateMachine):
 
         # Idle the flywheel to save power, but have the turret and hood track
         # position.
-        self._setTracker(self.allience_tracker.getInAllienceZone(),self._auto,False)
-        self.flywheel.setTargetRps(
+        self.hub_tracker.trackPosition(self._auto)
+        self.hub_tracker.trackSpeed(False)
+        self.hub_tracker.setTargetFlywheelSpeedRps(
             self.robot_constants.shooter.flywheel.default_speed_rps
         )
 
@@ -76,7 +76,8 @@ class Shooter(magicbot.StateMachine):
 
         # The driver wants to shoot but the shooter isn't ready or the robot is
         # moving. We want to continue tracking the hub, but don't feed fuel.
-        self._setTracker(self.allience_tracker.getInAllienceZone(),self._auto,self._auto)
+        self.hub_tracker.trackPosition(self._auto)
+        self.hub_tracker.trackSpeed(self._auto)
 
         self.hopper.setEnabled(False)
         self.indexer.setEnabled(False)
@@ -94,12 +95,8 @@ class Shooter(magicbot.StateMachine):
             self.next_state("targeting")
 
         # Fully track the hub.
-        self._setTracker(self.allience_tracker.getInAllienceZone(),self._auto,self._auto)
-
-        self.allience_tracker.setTrack(self._auto,self._auto)
-        if self.allience_tracker.getInAllienceZone():
-            self.hub_tracker.trackPosition(self._auto)
-            self.hub_tracker.trackSpeed(self._auto)
+        self.hub_tracker.trackPosition(self._auto)
+        self.hub_tracker.trackSpeed(self._auto)
 
         # Feed fuel.
         self.hopper.setEnabled(True)
@@ -113,25 +110,17 @@ class Shooter(magicbot.StateMachine):
 
     def _shooterIsReady(self) -> bool:
         """Indicates if shooter components are close enough to their targets."""
-        if self.allience_tracker.getInAllienceZone():
-            return self._getShooterIsWithin(
-                turret_tolerance_degrees=3.0,
-                hood_tolerance_degrees=1.5,
-                flywheel_tolerance_rotations_per_second=3.0,
-            )
-        else:
-            return self._getShooterIsWithin(
-                turret_tolerance_degrees=10,
-                hood_tolerance_degrees=5,
-                flywheel_tolerance_rotations_per_second=15 #it doesn't need to be accurate, it needs to be continuous
-            )
+        return self._getShooterIsWithin(
+            turret_tolerance_degrees=3.0,
+            hood_tolerance_degrees=1.5,
+            flywheel_tolerance_rotations_per_second=3.0,
+        )
 
     def _getShooterIsWithin(
         self,
         turret_tolerance_degrees: float,
         hood_tolerance_degrees: float,
         flywheel_tolerance_rotations_per_second: float,
-        hubtracker: bool = True #True if hubtracker, false if alliencetracker
     ) -> bool:
         """Indicates if shooter is within provided tolerances."""
         turret_error = abs(
