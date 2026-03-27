@@ -6,6 +6,8 @@ from dataclasses import dataclass
 import wpilib
 import wpimath
 
+from common import datalog
+
 
 @dataclass
 class DriveCommand:
@@ -119,6 +121,13 @@ class DriverController:
         """
         return self._controller.getYButton()
 
+    def setRumble(self, rumble_value: float) -> None:
+        """Set both rumble motors in the controller to the provided value."""
+        rumble_value = max(0.0, min(1.0, rumble_value))
+        self._controller.setRumble(
+            wpilib.interfaces.GenericHID.RumbleType.kBothRumble, rumble_value
+        )
+
     def _filterInput(self, input: float, apply_deadband: bool = True) -> float:
         """Filter the joystick input with a squared scaling and deadband.
 
@@ -140,3 +149,35 @@ class DriverController:
             return wpimath.applyDeadband(squared_input, self.DEADBAND)
         else:
             return squared_input
+
+
+class DriverControllerRumble:
+    """Commands the rumble for the driver controller.
+
+    Rumbles for 5 seconds preceding each phase change in teleop.
+    """
+
+    driver_controller: DriverController
+    data_logger: datalog.DataLogger
+
+    PHASE_CHANGES = [130.0, 105.0, 80.0, 55.0, 30.0, 0.0]
+
+    def execute(self) -> None:
+        match_time = wpilib.DriverStation.getMatchTime()
+        rumble_value = 0.0
+
+        if wpilib.DriverStation.isTeleop() and match_time > 0:
+            for change_time in self.PHASE_CHANGES:
+                # If we're in the 5 second window before a phase change.
+                if change_time < match_time <= change_time + 5.0:
+                    rumble_value = 0.5
+                    break
+
+        self.driver_controller.setRumble(rumble_value)
+
+        self.data_logger.logDouble(
+            "/components/common/match_time", match_time, on_change=True
+        )
+        self.data_logger.logDouble(
+            "/components/driver_controller/rumble", rumble_value, on_change=True
+        )
