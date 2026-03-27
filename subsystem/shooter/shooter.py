@@ -110,10 +110,11 @@ class Shooter(magicbot.StateMachine):
 
     def _shooterIsReady(self) -> bool:
         """Indicates if shooter components are close enough to their targets."""
+        # These values were roughly tuned during drive testing.
         return self._getShooterIsWithin(
-            turret_tolerance_degrees=3.0,
-            hood_tolerance_degrees=1.5,
-            flywheel_tolerance_rotations_per_second=3.0,
+            turret_tolerance_degrees=6.0,
+            hood_tolerance_degrees=3.0,
+            flywheel_tolerance_rotations_per_second=5.0,
         )
 
     def _getShooterIsWithin(

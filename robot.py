@@ -121,14 +121,13 @@ class MyRobot(magicbot.MagicRobot):
         if wpilib.DriverStation.isEnabled():
             # Deploy the intake.
             self.intake_deployer.deploy()
-            # Just use the Limelight's internal IMUs when we're enabled. Ideally
-            # we want to provide an assist from the external IMU, but testing
-            # shows that our network traffic is causing latencies large enough
-            # that the Limelights lag by a noticeable amount when using external
-            # IMU for corrections.
+            # Always use external IMU to seed heading for the Limelights. This
+            # will make localization worse when rotating fast, but it converges
+            # much faster after rotation slows/stops.
             #
-            # This is probably because of all the data we are publishing on NT.
-            self.vision.setImuMode(4)
+            # We were seeing very slow convergence on IMU mode 4.
+            # TODO: Try playing with the alpha values.
+            self.vision.setImuMode(1)
         else:
             # Hard reset each lime light's yaw to the external IMU when disabled.
             self.vision.setImuMode(1)
