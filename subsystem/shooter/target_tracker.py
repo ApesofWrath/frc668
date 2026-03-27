@@ -28,13 +28,12 @@ class ShotTable:
     #  * hood angle in degrees
     #  * flywheel speed in rotations per second
     _TABLE: Tuple[Tuple[float, float, float], ...] = (
-        (1.75, 0.5, 26.0),
-        (2.25, 3.0, 29.0),
-        (2.75, 4.0, 30.0),
-        (3.25, 5.0, 31.0),
-        (3.75, 6.5, 33.0),
+        (2.25, 2.0, 27.5),
+        (2.75, 3.5, 29.0),
+        (3.25, 5.0, 30.5),
+        (3.75, 6.5, 32.5),
         (4.25, 7.0, 34.0),
-        (4.75, 7.5, 35.0),
+        (4.75, 7.5, 36.0),
     )
     # A tuple of just the distances from _TABLE.
     _DISTANCES: Tuple[float, ...] = tuple(row[0] for row in _TABLE)

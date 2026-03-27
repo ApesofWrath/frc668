@@ -12,36 +12,35 @@ class TestShotTable:
     def test_clamps_below_minimum(self):
         """Values at or below the first table entry returns the first row."""
         hood, flywheel = target_tracker.ShotTable.get(0.0)
-        assert hood == 0.5
-        assert flywheel == 26.0
+        assert hood == 2.0
+        assert flywheel == 27.5
 
         hood, flywheel = target_tracker.ShotTable.get(1.0)
-        assert hood == 0.5
-        assert flywheel == 26.0
+        assert hood == 2.0
+        assert flywheel == 27.5
 
     def test_clamps_above_maximum(self):
         """Values at or above the last table entry returns the last row."""
         hood, flywheel = target_tracker.ShotTable.get(10.0)
         assert hood == 7.5
-        assert flywheel == 35.0
+        assert flywheel == 36.0
 
         hood, flywheel = target_tracker.ShotTable.get(5.0)
         assert hood == 7.5
-        assert flywheel == 35.0
+        assert flywheel == 36.0
 
     def test_exact_table_points(self):
         """Every exact distance that exists in the table returns the exact stored values (no interpolation)."""
-        assert target_tracker.ShotTable.get(1.75) == (0.5, 26.0)
-        assert target_tracker.ShotTable.get(2.25) == (3.0, 29.0)
-        assert target_tracker.ShotTable.get(2.75) == (4.0, 30.0)
-        assert target_tracker.ShotTable.get(3.25) == (5.0, 31.0)
-        assert target_tracker.ShotTable.get(3.75) == (6.5, 33.0)
+        assert target_tracker.ShotTable.get(2.25) == (2.0, 27.5)
+        assert target_tracker.ShotTable.get(2.75) == (3.5, 29.0)
+        assert target_tracker.ShotTable.get(3.25) == (5.0, 30.5)
+        assert target_tracker.ShotTable.get(3.75) == (6.5, 32.5)
         assert target_tracker.ShotTable.get(4.25) == (7.0, 34.0)
-        assert target_tracker.ShotTable.get(4.75) == (7.5, 35.0)
+        assert target_tracker.ShotTable.get(4.75) == (7.5, 36.0)
 
     @pytest.mark.parametrize(
         "distance, expected_hood, expected_flywheel",
-        [(2.5, 3.5, 29.5), (3.5, 5.75, 32.0)],
+        [(2.5, 2.75, 28.25), (3.5, 5.75, 31.5)],
     )
     def test_linear_interpolation(
         self, distance, expected_hood, expected_flywheel
@@ -54,14 +53,14 @@ class TestShotTable:
     def test_interpolation_near_edges(self):
         """Interpolation works exactly right next to the first and last intervals (no off-by-one bugs)."""
         # Just inside the first interval
-        hood, flywheel = target_tracker.ShotTable.get(1.76)
-        assert hood == pytest.approx(0.55, abs=1e-9)
-        assert flywheel == pytest.approx(26.06, abs=1e-9)
+        hood, flywheel = target_tracker.ShotTable.get(2.26)
+        assert hood == pytest.approx(2.03, abs=1e-9)
+        assert flywheel == pytest.approx(27.53, abs=1e-9)
 
         # Just inside the last interval
         hood, flywheel = target_tracker.ShotTable.get(4.74)
         assert hood == pytest.approx(7.49, abs=1e-9)
-        assert flywheel == pytest.approx(34.98, abs=1e-9)
+        assert flywheel == pytest.approx(35.96, abs=1e-9)
 
     def test_table_and_distances_are_equal_length(self):
         """_TABLE and _DISTANCES are of equal length.
