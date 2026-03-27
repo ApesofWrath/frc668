@@ -59,6 +59,38 @@ class Vision:
             wpimath.geometry.Pose2d,
         ).publish()
 
+
+    # def _get_tids_for_ll(self, ll: str) -> list[int]:
+    #     tag_ids = []
+    #     pose_estimate = limelight.LimelightHelpers.get_botpose_estimate_wpiblue_megatag2(ll)
+    #     if pose_estimate and pose_estimate.tag_count > 0:
+    #         for apriltag in pose_estimate.raw_fiducials:
+    #             if apriltag.id not in tag_ids:
+    #                 tag_ids.append(apriltag.id)
+    #     return tag_ids
+
+
+            # def check_for_one_bad_tag_case(self, ll):
+    #     bad_blue_tags = self.robot_constants.drivetrain.vision.bad_blue_tags
+    #     bad_red_tags = self.robot_constants.drivetrain.vision.bad_red_tags
+    #     alliance = wpilib.DriverStation.getAlliance()
+    #     is_red = alliance == wpilib.DriverStation.Alliance.kRed
+    #     is_blue = alliance == wpilib.DriverStation.Alliance.kBlue
+    #     tag_ids = self._get_tids_for_ll(ll)     
+    #     if is_red:
+    #         if len(tag_ids) == 1:
+    #             for apriltag in tag_ids:
+    #                 if apriltag in bad_red_tags:
+    #                     return False
+                    
+    #     if is_blue:
+    #         if len(tag_ids) == 1:
+    #             for apriltag in tag_ids:
+    #                 if apriltag in bad_blue_tags:
+    #                     return False
+        
+    #     return True
+
     def execute(self) -> None:
         self.setRobotOrientation()
         # if self.drivetrain.swerve_drive.pigeon2.get_pitch().value > 0.0:
@@ -146,6 +178,13 @@ class Vision:
                 )
                 continue
 
+
+            # if self.check_for_one_bad_tag_case(ll):
+                # rejected_poses.append(pose)
+                # rejected_limelights.append(ll)
+                # rejected_reasons.append("Seeing only one bad tag")     
+                # continue
+
             accepted_poses.append(pose)
             accepted_limelights.append(ll)
 
@@ -173,6 +212,27 @@ class Vision:
     def setStdDevs(self, xy_std_dev, theta_std_dev) -> None:
         self._xy_std_dev = xy_std_dev
         self._theta_std_dev = theta_std_dev
+
+
+    @magicbot.feedback
+    def _get_tids_for_limelight_upfr(self, ll: str) -> list[int]:
+        tag_ids = []
+        pose_estimate = limelight.LimelightHelpers.get_botpose_estimate_wpiblue_megatag2("upfr")
+        if pose_estimate and pose_estimate.tag_count > 0:
+            for apriltag in pose_estimate.raw_fiducials:
+                if apriltag.id not in tag_ids:
+                    tag_ids.append(apriltag.id)
+        return tag_ids
+    
+    @magicbot.feedback
+    def _get_tids_for_limelight_upfl(self, ll: str) -> list[int]:
+        tag_ids = []
+        pose_estimate = limelight.LimelightHelpers.get_botpose_estimate_wpiblue_megatag2("upfl")
+        if pose_estimate and pose_estimate.tag_count > 0:
+            for apriltag in pose_estimate.raw_fiducials:
+                if apriltag.id not in tag_ids:
+                    tag_ids.append(apriltag.id)
+        return tag_ids
 
 
 class VisionTuner:

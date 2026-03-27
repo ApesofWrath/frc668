@@ -127,6 +127,8 @@ class DriveOptions:
 @dataclass(frozen=True)
 class VisionConstants:
     limelights: list[str]
+    red_tags: list[int]
+    blue_tags: list[int]
     # Limits in field coordinates. Vision estimates beyond these thresholds will
     # be discarded.
     pose_x_min: float = -0.2
@@ -371,7 +373,19 @@ DRIVETRAIN_CONSTANTS: dict[str, DrivetrainConstants] = {
                 "limelight-fr",
                 "limelight-upfl",
                 "limelight-upfr",
-            ]
+            ],
+            bad_red_tags=[
+                7,
+                12,
+                15,
+                16,
+            ],
+            bad_blue_tags=[
+                23,
+                28,
+                31,
+                32,
+            ],
         ),
         trajectory_following=TrajectoryFollowingConstants(
             x_kp=1.0,
