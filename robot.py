@@ -35,6 +35,7 @@ class MyRobot(magicbot.MagicRobot):
     intake: intake.Intake
     turret: shooter.Turret
     vision: drivetrain.Vision
+    rumble: joystick.DriverControllerRumble
 
     def createObjects(self) -> None:
         """Create and initialize robot objects."""
@@ -166,10 +167,9 @@ class MyRobot(magicbot.MagicRobot):
         """
         self.logger.info("Robot disabled")
         self.drivetrain.setAutoEnabled(False)
-        self.vision._pose_seeded = False
-        self.vision.imu_four = False
         # This starts the log manager if it wasn't already started.
         self.data_logger.flush()
+        self.driver_controller.setRumble(0.0)
 
     def disabledPeriodic(self) -> None:
         """Run during disabled mode.
@@ -184,11 +184,6 @@ class MyRobot(magicbot.MagicRobot):
             auto_mode = self._automodes.chooser.getSelected()
             if auto_mode is not None:
                 self.drivetrain.setPose(auto_mode.getInitialPose())
-
-        for ll in self.vision._limelights:
-            limelight.LimelightHelpers.set_imu_mode(ll, 1)
-            self.vision.setRobotOrientation()
-        self.drivetrain._maybeSetOperatorPerspectiveForward()
 
     def teleopInit(self) -> None:
         """Initialize teleoperated mode.
