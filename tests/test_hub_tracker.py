@@ -12,36 +12,35 @@ class TestShotTable:
     def test_clamps_below_minimum(self):
         """Values at or below the first table entry returns the first row."""
         hood, flywheel = hub_tracker.ShotTable.get(0.0)
-        assert hood == 0.5
-        assert flywheel == 26.0
+        assert hood == 2.0
+        assert flywheel == 27.5
 
         hood, flywheel = hub_tracker.ShotTable.get(1.0)
-        assert hood == 0.5
-        assert flywheel == 26.0
+        assert hood == 2.0
+        assert flywheel == 27.5
 
     def test_clamps_above_maximum(self):
         """Values at or above the last table entry returns the last row."""
         hood, flywheel = hub_tracker.ShotTable.get(10.0)
         assert hood == 7.5
-        assert flywheel == 35.0
+        assert flywheel == 36.0
 
         hood, flywheel = hub_tracker.ShotTable.get(5.0)
         assert hood == 7.5
-        assert flywheel == 35.0
+        assert flywheel == 36.0
 
     def test_exact_table_points(self):
         """Every exact distance that exists in the table returns the exact stored values (no interpolation)."""
-        assert hub_tracker.ShotTable.get(1.75) == (0.5, 26.0)
-        assert hub_tracker.ShotTable.get(2.25) == (3.0, 29.0)
-        assert hub_tracker.ShotTable.get(2.75) == (4.0, 30.0)
-        assert hub_tracker.ShotTable.get(3.25) == (5.0, 31.0)
-        assert hub_tracker.ShotTable.get(3.75) == (6.5, 33.0)
+        assert hub_tracker.ShotTable.get(2.25) == (2.0, 27.5)
+        assert hub_tracker.ShotTable.get(2.75) == (3.5, 29.0)
+        assert hub_tracker.ShotTable.get(3.25) == (5.0, 30.5)
+        assert hub_tracker.ShotTable.get(3.75) == (6.5, 32.5)
         assert hub_tracker.ShotTable.get(4.25) == (7.0, 34.0)
-        assert hub_tracker.ShotTable.get(4.75) == (7.5, 35.0)
+        assert hub_tracker.ShotTable.get(4.75) == (7.5, 36.0)
 
     @pytest.mark.parametrize(
         "distance, expected_hood, expected_flywheel",
-        [(2.5, 3.5, 29.5), (3.5, 5.75, 32.0)],
+        [(2.5, 2.75, 28.25), (3.5, 5.75, 31.5)],
     )
     def test_linear_interpolation(
         self, distance, expected_hood, expected_flywheel
@@ -54,14 +53,14 @@ class TestShotTable:
     def test_interpolation_near_edges(self):
         """Interpolation works exactly right next to the first and last intervals (no off-by-one bugs)."""
         # Just inside the first interval
-        hood, flywheel = hub_tracker.ShotTable.get(1.76)
-        assert hood == pytest.approx(0.55, abs=1e-9)
-        assert flywheel == pytest.approx(26.06, abs=1e-9)
+        hood, flywheel = hub_tracker.ShotTable.get(2.26)
+        assert hood == pytest.approx(2.03, abs=1e-9)
+        assert flywheel == pytest.approx(27.53, abs=1e-9)
 
         # Just inside the last interval
         hood, flywheel = hub_tracker.ShotTable.get(4.74)
         assert hood == pytest.approx(7.49, abs=1e-9)
-        assert flywheel == pytest.approx(34.98, abs=1e-9)
+        assert flywheel == pytest.approx(35.96, abs=1e-9)
 
     def test_table_and_distances_are_equal_length(self):
         """_TABLE and _DISTANCES are of equal length.
@@ -88,6 +87,8 @@ def _make_tracker(
             turret=types.SimpleNamespace(
                 min_angle=min_angle,
                 max_angle=max_angle,
+                feed_forward_mvt_multiplier=1.0,
+                time_of_flight=0.0,
             )
         )
     )
@@ -99,12 +100,17 @@ def _make_tracker(
     tracker.drivetrain.swerve_drive.pigeon2.get_angular_velocity_z_world.return_value = (
         yaw_rate_signal
     )
+    tracker.drivetrain.get_robot_pose.return_value = robot_pose
     tracker.drivetrain.swerve_drive.get_state.return_value = (
-        types.SimpleNamespace(pose=robot_pose)
+        types.SimpleNamespace(
+            pose=robot_pose,
+            speeds=types.SimpleNamespace(vx=0.0, vy=0.0, omega=0.0),
+        )
     )
     tracker.flywheel = mocker.Mock()
     tracker.hood = mocker.Mock()
     tracker.turret = mocker.Mock()
+    tracker.data_logger = mocker.Mock()
     tracker.setup()
     return tracker
 
@@ -412,7 +418,7 @@ def test_execute_updates_compensation_across_control_loops(mocker) -> None:
     assert second_commanded_angle == pytest.approx(11.0)
 
 
-def test_get_turret_distance_from_hub_meters(mocker) -> None:
+def test_current_turret_distance_from_hub_meters(mocker) -> None:
     """Distance feedback returns Euclidean distance from turret to hub."""
     tracker = _make_tracker(mocker, geometry.Pose2d())
     tracker._hub_position = geometry.Translation2d(4.0, 6.0)
@@ -421,10 +427,10 @@ def test_get_turret_distance_from_hub_meters(mocker) -> None:
         geometry.Rotation2d(),
     )
 
-    assert tracker.get_turret_distance_from_hub_meters() == pytest.approx(5.0)
+    assert tracker.currentTurretDistanceFromHubMeters() == pytest.approx(5.0)
 
 
-def test_compute_target_turret_angle_degrees_is_relative_to_heading(
+def test_compute_stationary_target_turret_angle_degrees_is_relative_to_heading(
     mocker,
 ) -> None:
     """Computed target angle is relative to current turret heading."""
@@ -437,12 +443,14 @@ def test_compute_target_turret_angle_degrees_is_relative_to_heading(
         geometry.Rotation2d.fromDegrees(90.0),
     )
 
-    assert tracker._computeTargetTurretAngleDegrees() == pytest.approx(-90.0)
+    assert tracker._computeStationaryTargetTurretAngleDegrees() == pytest.approx(
+        -90.0
+    )
 
 
-def test_get_target_turret_angle_degrees_returns_cached_value(mocker) -> None:
-    """Target turret getter returns the cached target command value."""
+def test_set_target_turret_angle_degrees_updates_cached_value(mocker) -> None:
+    """Setter updates cached turret target command value."""
     tracker = _make_tracker(mocker, geometry.Pose2d())
-    tracker._target_turret_angle_degrees = 12.34
+    tracker.setTargetTurretAngleDegrees(12.34)
 
-    assert tracker.get_target_turret_angle_degrees() == pytest.approx(12.34)
+    assert tracker._target_turret_angle_degrees == pytest.approx(12.34)

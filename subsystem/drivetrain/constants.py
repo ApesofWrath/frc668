@@ -1,3 +1,4 @@
+import math
 import typing
 from dataclasses import dataclass
 
@@ -135,11 +136,24 @@ class VisionConstants:
     # Average tag distance limit. Vision estimates whose average tag distance
     # exceeds this will be discarded.
     average_tag_distance_threshold: float = 2.75
-    xy_std_dev: float = 0.1
-    theta_std_dev: float = 0.01
+    xy_std_dev: float = 0.5
+    theta_std_dev: float = math.inf
     # Vision estimates that differ by more than this from the current robot pose
     # estimate will be discarded.
     max_diff_from_robot_pose: float = 0.5
+
+
+@dataclass(frozen=True)
+class TrajectoryFollowingConstants:
+    x_kp: float = 0.0
+    x_ki: float = 0.0
+    x_kd: float = 0.0
+    y_kp: float = 0.0
+    y_ki: float = 0.0
+    y_kd: float = 0.0
+    heading_kp: float = 0.0
+    heading_ki: float = 0.0
+    heading_kd: float = 0.0
 
 
 # Collection of all drivetrain-related constants for the robot.
@@ -153,6 +167,9 @@ class DrivetrainConstants:
     drivetrain: SwerveDrivetrainConstants = SwerveDrivetrainConstants()
     drive_options: DriveOptions = DriveOptions()
     vision: VisionConstants = VisionConstants(limelights=[])
+    trajectory_following: TrajectoryFollowingConstants = (
+        TrajectoryFollowingConstants()
+    )
 
 
 # Constants per robot serial number.
@@ -355,6 +372,11 @@ DRIVETRAIN_CONSTANTS: dict[str, DrivetrainConstants] = {
                 "limelight-upfl",
                 "limelight-upfr",
             ]
+        ),
+        trajectory_following=TrajectoryFollowingConstants(
+            x_kp=1.0,
+            y_kp=1.0,
+            heading_kp=5.0,
         ),
     ),
 }

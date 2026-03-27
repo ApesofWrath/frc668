@@ -2,6 +2,7 @@ import magicbot
 import phoenix6
 
 import constants
+from common import datalog
 from subsystem import drivetrain, shooter
 
 
@@ -16,6 +17,7 @@ class Turret:
     turret_motor: phoenix6.hardware.TalonFX
     turret_encoder: phoenix6.hardware.CANcoder
     drivetrain: drivetrain.Drivetrain
+    data_logger: datalog.DataLogger
 
     def setup(self) -> None:
         """Set up initial state for the turret.
@@ -25,7 +27,7 @@ class Turret:
         """
         # Target position for the turret, in degrees. Counter clockwise is
         # positive.
-        self._turret_postion_degrees = 0.0
+        self._turret_position_degrees = 0.0
 
         # Target rotation speed for the turret, in degrees per second. Counter
         # clockwise is positive.
@@ -110,14 +112,16 @@ class Turret:
 
         # Initial Motion Magic request (position expressed in rotations)
         self._request = phoenix6.controls.MotionMagicVoltage(
-            self._turret_postion_degrees * self.DEGREES_TO_ROTATIONS
+            self._turret_position_degrees * self.DEGREES_TO_ROTATIONS
         ).with_slot(0)
         # Feedforward constant for computing the feedforward voltage to use with
         # the control request each loop, to compensate for robot's yaw rate.
         self._motion_magic_feed_forward = (
             turret_constants.motion_magic_feed_forward
         )
-        self.feed_forward_movement = 0.0  
+        # Feedforward voltage to compensate for changes in target turret angle
+        # due to robot's linear velocity.
+        self.feed_forward_movement = 0.0
         # Raw yaw rate of the robot (and the turret) from the external IMU.
         self._yaw_rate_signal: phoenix6.status_signal.StatusSignal[
             phoenix6.units.degrees_per_second
@@ -174,9 +178,13 @@ class Turret:
             )
             self.turret_motor.set_control(
                 self._request.with_position(
-                    self._turret_postion_degrees * self.DEGREES_TO_ROTATIONS
-                ).with_feed_forward(feed_forward_omega + self.feed_forward_movement)
+                    self._turret_position_degrees * self.DEGREES_TO_ROTATIONS
+                ).with_feed_forward(
+                    feed_forward_omega + self.feed_forward_movement
+                )
             )
+
+        self._logData()
 
     def on_enable(self) -> None:
         """Reset to a "safe" state when the robot is enabled.
@@ -184,7 +192,7 @@ class Turret:
         This method is called when the robot enters autonomous, teleoperated, or
         test mode.
         """
-        self._turret_postion_degrees = 0.0
+        self._turret_position_degrees = 0.0
         self._turret_velocity_degrees_per_second = 0.0
 
     def on_disable(self) -> None:
@@ -192,7 +200,7 @@ class Turret:
 
         This method is called when the robot enters disabled mode.
         """
-        self._turret_postion_degrees = 0.0
+        self._turret_position_degrees = 0.0
         self._turret_velocity_degrees_per_second = 0.0
 
     def setPosition(self, pos_degrees: float) -> None:
@@ -202,7 +210,7 @@ class Turret:
             pos_degrees: The target position for the turret to move to, in
                 degrees.
         """
-        self._turret_postion_degrees = pos_degrees
+        self._turret_position_degrees = pos_degrees
 
     def setVelocity(self, vel_degrees_per_second) -> None:
         """Set the target speed of the turret.
@@ -230,9 +238,11 @@ class Turret:
         """
         self._motion_magic_feed_forward = feed_forward
 
-    def setFeedForwardControl(self, feed_forward_mvt_value: phoenix6.units.volt) -> None:
-        self.feed_forward_movement = feed_forward_mvt_value 
-    
+    def setFeedForwardControl(
+        self, feed_forward_mvt_value: phoenix6.units.volt
+    ) -> None:
+        self.feed_forward_movement = feed_forward_mvt_value
+
     def isControlTypeVelocity(self) -> bool:
         """Get the type of turret control being used used: position or velocity"""
         return self._is_velocity_controlled
@@ -241,25 +251,35 @@ class Turret:
         """Zeroes the encoder at its current position."""
         self.turret_encoder.set_position(0.0)
 
-    @magicbot.feedback
-    def get_measured_angle_degrees(self) -> phoenix6.units.degree:
+    def measuredAngleDegrees(self) -> phoenix6.units.degree:
         return (
             self._encoder_position_signal.value
             * self.ROTATIONS_TO_DEGREES
             / self.robot_constants.shooter.turret.sensor_to_mechanism_ratio
         )
 
-    @magicbot.feedback
-    def get_target_angle_degrees(self) -> phoenix6.units.degree:
-        return self._turret_postion_degrees
-
-    @magicbot.feedback
-    def get_supply_current(self) -> phoenix6.units.ampere:
+    def supplyCurrent(self) -> phoenix6.units.ampere:
         return self.turret_motor.get_supply_current().value
 
-    @magicbot.feedback
-    def get_stator_current(self) -> phoenix6.units.ampere:
+    def statorCurrent(self) -> phoenix6.units.ampere:
         return self.turret_motor.get_stator_current().value
+
+    def _logData(self) -> None:
+        self.data_logger.logDouble(
+            "/components/turret/target_angle_degrees",
+            self._turret_position_degrees,
+            on_change=True,
+        )
+        self.data_logger.logDouble(
+            "/components/turret/measured_angle_degrees",
+            self.measuredAngleDegrees(),
+        )
+        self.data_logger.logDouble(
+            "/components/turret/supply_current", self.supplyCurrent()
+        )
+        self.data_logger.logDouble(
+            "/components/turret/stator_current", self.statorCurrent()
+        )
 
 
 class TurretTuner:
@@ -339,7 +359,7 @@ class TurretTuner:
 
         self.mm_feed_forward = turret_constants.motion_magic_feed_forward
 
-        self.mvt_feed_forward = turret_constants.feed_forward_mvt_multiplier 
+        self.mvt_feed_forward = turret_constants.feed_forward_mvt_multiplier
 
         self.last_position_k_s = self.position_k_s
         self.last_position_k_v = self.position_k_v

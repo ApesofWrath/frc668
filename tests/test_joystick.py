@@ -153,6 +153,7 @@ class TestGetDriveCommand:
         mock_controller.getLeftX.return_value = 0.0
         mock_controller.getRightX.return_value = 0.0
         mock_controller.getLeftBumper.return_value = False
+        mock_controller.getRightTriggerAxis.return_value = 0.0
 
         mock_options = mocker.Mock()
         mock_options.max_linear_speed_meters_per_second = 6.0
@@ -166,7 +167,7 @@ class TestGetDriveCommand:
         assert command.omega == 0.0
 
     def test_slow_mode_reduces_speed(self, mocker):
-        """Left bumper activates slow mode (0.1 modifier)."""
+        """Left bumper activates slow mode (0.2 modifier)."""
         mock_controller = mocker.Mock()
         mock_controller.getLeftY.return_value = -1.0
         mock_controller.getLeftX.return_value = 0.0
@@ -180,8 +181,8 @@ class TestGetDriveCommand:
         driver = joystick.DriverController(mock_controller, mock_options)
         command = driver.getDriveCommand()
 
-        # Slow mode = 0.1 modifier, so max vx should be 0.6
-        assert command.vx == pytest.approx(0.6, rel=0.01)
+        # Slow mode = 0.2 modifier, so max vx should be 1.2
+        assert command.vx == pytest.approx(1.2, rel=0.01)
 
     def test_full_strafe_input_returns_max_vy(self, mocker):
         """Full strafe input returns maximum vy."""
@@ -190,6 +191,7 @@ class TestGetDriveCommand:
         mock_controller.getLeftX.return_value = -1.0  # Left is negative X
         mock_controller.getRightX.return_value = 0.0
         mock_controller.getLeftBumper.return_value = False
+        mock_controller.getRightTriggerAxis.return_value = 0.0
 
         mock_options = mocker.Mock()
         mock_options.max_linear_speed_meters_per_second = 6.0
@@ -209,6 +211,7 @@ class TestGetDriveCommand:
         mock_controller.getLeftX.return_value = 0.0
         mock_controller.getRightX.return_value = -1.0  # CCW rotation
         mock_controller.getLeftBumper.return_value = False
+        mock_controller.getRightTriggerAxis.return_value = 0.0
 
         mock_options = mocker.Mock()
         mock_options.max_linear_speed_meters_per_second = 6.0

@@ -27,9 +27,10 @@ class HopperConstants:
     right_k_p: float = 0.0
     right_k_i: float = 0.0
     right_k_d: float = 0.0
-    default_left_speed_rps: units.rotations_per_second = 30.0
-    default_right_speed_rps: units.rotations_per_second = 30.0
+    default_left_speed_rps: units.rotations_per_second = 50.0
+    default_right_speed_rps: units.rotations_per_second = 50.0
     supply_current_limit: units.ampere = 40.0
+    gear_reduction: float = 1.0
 
 
 @dataclass(frozen=True)
@@ -56,7 +57,7 @@ class IndexerConstants:
     front_k_p: float = 0.0
     front_k_i: float = 0.0
     front_k_d: float = 0.0
-    default_speed_rps: units.rotations_per_second = 20.0
+    default_speed_rps: units.rotations_per_second = 50.0
     supply_current_limit: units.ampere = 40.0
 
 
@@ -128,6 +129,8 @@ class TurretConstants:
     min_angle: units.degree = -180.0
     max_angle: units.degree = 180.0
     supply_current_limit: units.ampere = 40.0
+    # TODO: Find a more accurate average
+    time_of_flight: units.second = 1.0
 
     time_of_flight: units.second = 1.0 #TODO: Find a more accurate average
 
@@ -189,6 +192,7 @@ SHOOTER_CONSTANTS: dict[str, ShooterConstants] = {
             right_k_s=0.2,
             right_k_v=0.123,
             right_k_p=0.5,
+            gear_reduction=1.0,
         ),
         indexer=IndexerConstants(
             back_motor_can_id=18,
@@ -251,14 +255,15 @@ SHOOTER_CONSTANTS: dict[str, ShooterConstants] = {
             left_motor_can_bus="rio",
             left_motor_inverted=signals.InvertedValue.CLOCKWISE_POSITIVE,
             left_k_s=0.1,
-            left_k_v=0.16,
+            left_k_v=0.18,
             left_k_p=0.5,
             right_motor_can_id=59,
             right_motor_can_bus="rio",
             right_motor_inverted=signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE,
             right_k_s=0.1,
-            right_k_v=0.15,
+            right_k_v=0.21,
             right_k_p=0.5,
+            gear_reduction=1.67,
         ),
         indexer=IndexerConstants(
             back_motor_can_id=19,
@@ -297,7 +302,7 @@ SHOOTER_CONSTANTS: dict[str, ShooterConstants] = {
             position_k_p=450,
             position_k_d=0.5,
             motion_magic_feed_forward=-1.0,
-            feed_forward_mvt_multiplier=0.0, #TODO: find.
+            feed_forward_mvt_multiplier=0.15,
         ),
         hood=HoodConstants(
             encoder_can_id=17,

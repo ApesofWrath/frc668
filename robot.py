@@ -7,7 +7,7 @@ import wpimath
 from phoenix6 import swerve, hardware
 
 import constants
-from common import alliance, joystick
+from common import alliance, datalog, joystick
 from subsystem import drivetrain, shooter, intake
 from subsystem.drivetrain import limelight
 
@@ -112,22 +112,30 @@ class MyRobot(magicbot.MagicRobot):
             self.robot_constants.intake.deploy_encoder_can_bus,
         )
 
+        self.data_logger = datalog.DataLogger()
+
         self._tuning_mode = False
+        self._auto_done = False
 
     def robotPeriodic(self) -> None:
         if wpilib.DriverStation.isEnabled():
             # Deploy the intake.
             self.intake_deployer.deploy()
-            # Use external IMU assist when enabled.
-            for ll in self.vision._limelights:
-                limelight.LimelightHelpers.set_imu_mode(ll, 4)
+            # Just use the Limelight's internal IMUs when we're enabled. Ideally
+            # we want to provide an assist from the external IMU, but testing
+            # shows that our network traffic is causing latencies large enough
+            # that the Limelights lag by a noticeable amount when using external
+            # IMU for corrections.
+            #
+            # This is probably because of all the data we are publishing on NT.
+            self.vision.setImuMode(4)
         else:
             # Hard reset each lime light's yaw to the external IMU when disabled.
-            for ll in self.vision._limelights:
-                limelight.LimelightHelpers.set_imu_mode(ll, 1)
-                # We call this here because the Vision component's execute
-                # method does not get called when disabled.
-                self.vision.setRobotOrientation()
+            self.vision.setImuMode(1)
+            # We call this here because the Vision component's execute method
+            # does not get called when disabled.
+            self.vision.setRobotOrientation()
+            self.drivetrain._maybeSetOperatorPerspectiveForward()
 
         if not self._tuning_mode:
             self.shooter_state_machine.engage()
@@ -138,6 +146,8 @@ class MyRobot(magicbot.MagicRobot):
             self.hub_tracker.trackSpeed(True)
             self.hub_tracker.setEnabled(False)
 
+        super().robotPeriodic()
+
     def autonomousInit(self) -> None:
         """Initialize autonomous mode.
 
@@ -145,8 +155,8 @@ class MyRobot(magicbot.MagicRobot):
         the selected autonomous routine.
         """
         self.logger.info("Entering autonomous mode")
-        # In case it wasn't started in disabledInit. If it was, this is a no-op.
-        wpilib.DataLogManager.start()
+        self.drivetrain.setAutoEnabled(True)
+        self._auto_done = True
 
     def disabledInit(self) -> None:
         """Initialize disabled mode.
@@ -156,10 +166,11 @@ class MyRobot(magicbot.MagicRobot):
         called.
         """
         self.logger.info("Robot disabled")
-        # This starts the log manager if it wasn't already started.
-        wpilib.DataLogManager.getLog().flush()
+        self.drivetrain.setAutoEnabled(False)
         self.vision._pose_seeded = False
         self.vision.imu_four = False
+        # This starts the log manager if it wasn't already started.
+        self.data_logger.flush()
 
     def disabledPeriodic(self) -> None:
         """Run during disabled mode.
@@ -168,6 +179,13 @@ class MyRobot(magicbot.MagicRobot):
         disabled mode. This code executes before the `execute` method of all
         components are called.
         """
+        # Seed our pose estimator with the initial pose of the selected auto
+        # mode, if we haven't run our auto yet.
+        if not self._auto_done and self._automodes is not None:
+            auto_mode = self._automodes.chooser.getSelected()
+            if auto_mode is not None:
+                self.drivetrain.setPose(auto_mode.getInitialPose())
+
         for ll in self.vision._limelights:
             limelight.LimelightHelpers.set_imu_mode(ll, 1)
             self.vision.setRobotOrientation()
@@ -181,8 +199,6 @@ class MyRobot(magicbot.MagicRobot):
         called.
         """
         self.logger.info("Entering teleop mode")
-        # In case it wasn't started in disabledInit. If it was, this is a no-op.
-        wpilib.DataLogManager.start()
 
     def teleopPeriodic(self) -> None:
         """Run during teleoperated mode.
@@ -209,7 +225,6 @@ class MyRobot(magicbot.MagicRobot):
                     wpimath.geometry.Pose2d(3.6854, 4.0136, 0)
                 )
                 self.logger.info(f"Reset pose for blue alliance")
-            self.vision._pose_seeded = False
         self.driveWithJoysicks()
         self.controlShooter()
         self.controlIntake()
