@@ -376,7 +376,7 @@ DRIVETRAIN_CONSTANTS: dict[str, DrivetrainConstants] = {
         trajectory_following=TrajectoryFollowingConstants(
             x_kp=1.0,
             y_kp=1.0,
-            heading_kp=5.0,
+            heading_kp=2.5,
         ),
     ),
 }
