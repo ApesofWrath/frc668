@@ -487,3 +487,7 @@ class TurretTuner:
     @magicbot.feedback
     def get_measured_dps(self) -> float:
         return self.turret_motor.get_velocity().value * 360
+    
+    @magicbot.feedback
+    def get_turret_to_hub_meters(selF) -> float:
+        return selF.hub_tracker.currentTurretDistanceFromHubMeters()
