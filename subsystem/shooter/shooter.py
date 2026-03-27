@@ -33,7 +33,7 @@ class Shooter(magicbot.StateMachine):
     hopper: shooter.Hopper
     indexer: shooter.Indexer
     drivetrain: drivetrain.Drivetrain
-    hub_tracker: shooter.HubTracker
+    target_tracker: shooter.TargetTracker
     robot_constants: constants.RobotConstants
     data_logger: datalog.DataLogger
 
@@ -49,9 +49,9 @@ class Shooter(magicbot.StateMachine):
 
         # Idle the flywheel to save power, but have the turret and hood track
         # position.
-        self.hub_tracker.trackPosition(self._auto)
-        self.hub_tracker.trackSpeed(False)
-        self.hub_tracker.setTargetFlywheelSpeedRps(
+        self.target_tracker.trackPosition(self._auto)
+        self.target_tracker.trackSpeed(False)
+        self.target_tracker.setTargetFlywheelSpeedRps(
             self.robot_constants.shooter.flywheel.default_speed_rps
         )
 
@@ -63,7 +63,7 @@ class Shooter(magicbot.StateMachine):
     def targeting(self):
         """Attempting to get to target state.
 
-        This means the hub and turret must be close to their target angles, the
+        This means the hood and turret must be close to their target angles, the
         flywheel must be close to its target speed, and the robot is stationary.
         """
         # First, check if the driver wants to shoot. If not, idle to save power.
@@ -75,9 +75,9 @@ class Shooter(magicbot.StateMachine):
             self.next_state_now("shooting")
 
         # The driver wants to shoot but the shooter isn't ready or the robot is
-        # moving. We want to continue tracking the hub, but don't feed fuel.
-        self.hub_tracker.trackPosition(self._auto)
-        self.hub_tracker.trackSpeed(self._auto)
+        # moving. We want to continue tracking the target, but don't feed fuel.
+        self.target_tracker.trackPosition(self._auto)
+        self.target_tracker.trackSpeed(self._auto)
 
         self.hopper.setEnabled(False)
         self.indexer.setEnabled(False)
@@ -86,7 +86,7 @@ class Shooter(magicbot.StateMachine):
     def shooting(self):
         """Actively shooting.
 
-        Continue tracking the hub, and feed fuel.
+        Continue tracking the target, and feed fuel.
         """
         if not self._driver_wants_feed:
             self.next_state("idling")
@@ -94,9 +94,9 @@ class Shooter(magicbot.StateMachine):
         if not self._shooterIsReady():
             self.next_state("targeting")
 
-        # Fully track the hub.
-        self.hub_tracker.trackPosition(self._auto)
-        self.hub_tracker.trackSpeed(self._auto)
+        # Fully track the target.
+        self.target_tracker.trackPosition(self._auto)
+        self.target_tracker.trackSpeed(self._auto)
 
         # Feed fuel.
         self.hopper.setEnabled(True)
@@ -124,15 +124,15 @@ class Shooter(magicbot.StateMachine):
     ) -> bool:
         """Indicates if shooter is within provided tolerances."""
         turret_error = abs(
-            self.hub_tracker.targetTurretAngleDegrees()
+            self.target_tracker.targetTurretAngleDegrees()
             - self.turret.measuredAngleDegrees()
         )
         hood_error = abs(
-            self.hub_tracker.targetHoodAngleDegrees()
+            self.target_tracker.targetHoodAngleDegrees()
             - self.hood.measuredAngleDegrees()
         )
         flywheel_error = abs(
-            self.hub_tracker.targetFlywheelSpeedRps()
+            self.target_tracker.targetFlywheelSpeedRps()
             - self.flywheel.measuredSpeedRps()
         )
         return (

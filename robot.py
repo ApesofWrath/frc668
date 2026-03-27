@@ -26,8 +26,7 @@ class MyRobot(magicbot.MagicRobot):
     shooter_state_machine: shooter.Shooter
     alliance_fetcher: alliance.AllianceFetcher
 
-    hub_tracker: shooter.HubTracker
-    allience_tracker: shooter.AllienceTracker
+    target_tracker: shooter.TargetTracker
     drivetrain: drivetrain.Drivetrain
     flywheel: shooter.Flywheel
     hopper: shooter.Hopper
@@ -141,11 +140,11 @@ class MyRobot(magicbot.MagicRobot):
         if not self._tuning_mode:
             self.shooter_state_machine.engage()
         else:
-            # In tuning mode, have hub tracker actively track, but don't command
+            # In tuning mode, have target tracker actively track, but don't command
             # the mechanisms.
-            self.hub_tracker.trackPosition(True)
-            self.hub_tracker.trackSpeed(True)
-            self.hub_tracker.setEnabled(False)
+            self.target_tracker.trackPosition(True)
+            self.target_tracker.trackSpeed(True)
+            self.target_tracker.setEnabled(False)
 
         super().robotPeriodic()
 
@@ -241,28 +240,28 @@ class MyRobot(magicbot.MagicRobot):
         if self.driver_controller.shootFromLeftTrench():
             self.shooter_state_machine.setAuto(False)
             self.shooter_state_machine.setDriverWantsFeed(True)
-            self.hub_tracker.setTargetTurretAngleDegrees(4.268)
-            self.hub_tracker.setTargetHoodAngleDegrees(4.8)
-            self.hub_tracker.setTargetFlywheelSpeedRps(30.8)
+            self.target_tracker.setTargetTurretAngleDegrees(4.268)
+            self.target_tracker.setTargetHoodAngleDegrees(4.8)
+            self.target_tracker.setTargetFlywheelSpeedRps(30.8)
         elif self.driver_controller.shootFromRightTrench():
             self.shooter_state_machine.setAuto(False)
             self.shooter_state_machine.setDriverWantsFeed(True)
-            self.hub_tracker.setTargetTurretAngleDegrees(-4.268)
-            self.hub_tracker.setTargetHoodAngleDegrees(4.8)
-            self.hub_tracker.setTargetFlywheelSpeedRps(30.8)
+            self.target_tracker.setTargetTurretAngleDegrees(-4.268)
+            self.target_tracker.setTargetHoodAngleDegrees(4.8)
+            self.target_tracker.setTargetFlywheelSpeedRps(30.8)
         elif self.driver_controller.shootFromBehindTower():
             self.shooter_state_machine.setAuto(False)
             self.shooter_state_machine.setDriverWantsFeed(True)
-            self.hub_tracker.setTargetTurretAngleDegrees(94.85)
-            self.hub_tracker.setTargetHoodAngleDegrees(6.9)
-            self.hub_tracker.setTargetFlywheelSpeedRps(33.8)
+            self.target_tracker.setTargetTurretAngleDegrees(94.85)
+            self.target_tracker.setTargetHoodAngleDegrees(6.9)
+            self.target_tracker.setTargetFlywheelSpeedRps(33.8)
         else:
             self.shooter_state_machine.setAuto(True)
             if self.driver_controller.feedFuel():
                 self.shooter_state_machine.setDriverWantsFeed(True)
             else:
                 self.shooter_state_machine.setDriverWantsFeed(False)
-                self.hub_tracker.setTargetFlywheelSpeedRps(0.0)
+                self.target_tracker.setTargetFlywheelSpeedRps(0.0)
 
     def controlIntake(self) -> None:
         """Drive the intake motors."""
