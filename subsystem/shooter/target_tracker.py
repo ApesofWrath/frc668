@@ -5,7 +5,7 @@ from typing import Tuple
 import magicbot
 import phoenix6
 import wpilib
-from wpimath import geometry, units
+from wpimath import geometry, kinematics, units
 
 import constants
 from common import alliance, datalog
@@ -233,7 +233,9 @@ class TargetTracker:
         compensates for them.
         """
         # Vector from field origin to the target.
-        self._target_position = self._getTargetPosition(self.drivetrain.get_robot_pose())
+        self._target_position = self._getTargetPosition(
+            self.drivetrain.get_robot_pose()
+        )
 
         # Vector from center of turret to the target.
         self.future_turret_to_target = self._target_position - (
@@ -257,22 +259,38 @@ class TargetTracker:
             ),
         )
 
-    def _getTargetPosition(self, robot_pose: geometry.Pose2d) -> geometry.Translation2d:
+    def _getTargetPosition(
+        self, robot_pose: geometry.Pose2d
+    ) -> geometry.Translation2d:
         """Returns the position of our target based on alliance and robot pose."""
         if self.alliance_fetcher.isRedAlliance():
             if robot_pose.X() > self.RED_ZONE_END_X_METERS:
-                return geometry.Translation2d(RED_HUB_TO_FIELD_X, RED_HUB_TO_FIELD_Y)
+                return geometry.Translation2d(
+                    RED_HUB_TO_FIELD_X, RED_HUB_TO_FIELD_Y
+                )
             elif robot_pose.Y() > self.CENTER_Y_METERS:
-                return geometry.Translation2d(self.RED_OUTPOST_PASS_X_METERS, self.RED_OUTPOST_PASS_Y_METERS)
+                return geometry.Translation2d(
+                    self.RED_OUTPOST_PASS_X_METERS,
+                    self.RED_OUTPOST_PASS_Y_METERS,
+                )
             else:
-                return geometry.Translation2d(self.RED_DEPOT_PASS_X_METERS, self.RED_DEPOT_PASS_Y_METERS)
+                return geometry.Translation2d(
+                    self.RED_DEPOT_PASS_X_METERS, self.RED_DEPOT_PASS_Y_METERS
+                )
         else:
             if robot_pose.X() < self.BLUE_ZONE_END_X_METERS:
-                return geometry.Translation2d(BLUE_HUB_TO_FIELD_X, BLUE_HUB_TO_FIELD_Y)
+                return geometry.Translation2d(
+                    BLUE_HUB_TO_FIELD_X, BLUE_HUB_TO_FIELD_Y
+                )
             elif robot_pose.Y() > self.CENTER_Y_METERS:
-                return geometry.Translation2d(self.BLUE_DEPOT_PASS_X_METERS, self.BLUE_DEPOT_PASS_Y_METERS)
+                return geometry.Translation2d(
+                    self.BLUE_DEPOT_PASS_X_METERS, self.BLUE_DEPOT_PASS_Y_METERS
+                )
             else:
-                return geometry.Translation2d(self.BLUE_OUTPOST_PASS_X_METERS, self.BLUE_OUTPOST_PASS_Y_METERS)
+                return geometry.Translation2d(
+                    self.BLUE_OUTPOST_PASS_X_METERS,
+                    self.BLUE_OUTPOST_PASS_Y_METERS,
+                )
 
     def _computeStationaryTargetTurretAngleDegrees(
         self,
@@ -283,7 +301,9 @@ class TargetTracker:
         robot's linear velocity is zero.
         """
         # Vector from field origin to center of the target.
-        self._target_position = self._getTargetPosition(self.drivetrain.get_robot_pose())
+        self._target_position = self._getTargetPosition(
+            self.drivetrain.get_robot_pose()
+        )
 
         # Vector from center of turret to the target.
         self.current_turret_to_target = (
@@ -317,28 +337,23 @@ class TargetTracker:
         This is meant to represent the distance the fuel will travel along the
         direction of the robot's velocity over its time-of-flight.
         """
-        if self.alliance_fetcher.isRedAlliance():
-            sign_multiplier = -1
-        else:
-            sign_multiplier = 1
-        robot_vx = (
-            sign_multiplier * self.drivetrain.swerve_drive.get_state().speeds.vx
+        robot_pose = self.drivetrain.get_robot_pose()
+        robot_centric_speeds = self.drivetrain.swerve_drive.get_state().speeds
+        field_centric_speeds = kinematics.ChassisSpeeds.fromRobotRelativeSpeeds(
+            robot_centric_speeds.vx,
+            robot_centric_speeds.vy,
+            robot_centric_speeds.omega,
+            robot_pose.rotation(),
         )
-        robot_vy = (
-            sign_multiplier * self.drivetrain.swerve_drive.get_state().speeds.vy
-        )
-        robot_omega = self.drivetrain.swerve_drive.get_state().speeds.omega
-        robot_angle = (
-            self.drivetrain.swerve_drive.get_state().pose.rotation().radians()
-        )
+        robot_angle = robot_pose.rotation().radians()
 
         # The turret inherits some linear velocity from the robot's rate of
         # rotation, due to being offset from the robot's center of rotation.
-        turret_vx = robot_vx + robot_omega * (
+        turret_vx = field_centric_speeds.vx + field_centric_speeds.omega * (
             TURRET_TO_ROBOT_Y * math.cos(robot_angle)
             - TURRET_TO_ROBOT_X * math.sin(robot_angle)
         )
-        turret_vy = robot_vy + robot_omega * (
+        turret_vy = field_centric_speeds.vy + field_centric_speeds.omega * (
             TURRET_TO_ROBOT_X * math.cos(robot_angle)
             - TURRET_TO_ROBOT_Y * math.sin(robot_angle)
         )

@@ -222,17 +222,11 @@ class TestShooter:
         """When shooter is ready and robot is stationary, should transition to shooting."""
         # Set up conditions for shooter to be ready
         mock_hub_tracker.targetTurretAngleDegrees.return_value = 0.0
-        mock_turret.measuredAngleDegrees.return_value = (
-            0.0  # Within tolerance
-        )
+        mock_turret.measuredAngleDegrees.return_value = 0.0  # Within tolerance
         mock_hub_tracker.targetHoodAngleDegrees.return_value = 0.0
-        mock_hood.measuredAngleDegrees.return_value = (
-            0.0  # Within tolerance
-        )
+        mock_hood.measuredAngleDegrees.return_value = 0.0  # Within tolerance
         mock_hub_tracker.targetFlywheelSpeedRps.return_value = 20.0
-        mock_flywheel.measuredSpeedRps.return_value = (
-            20.0  # Within tolerance
-        )
+        mock_flywheel.measuredSpeedRps.return_value = 20.0  # Within tolerance
 
         # Robot is stationary
         mock_drivetrain.robotSpeeds.return_value.vx = 0.0
@@ -261,9 +255,7 @@ class TestShooter:
         """When shooter is not ready, should stay in targeting state."""
         # Set up conditions where turret is not at target
         mock_hub_tracker.targetTurretAngleDegrees.return_value = 45.0
-        mock_turret.measuredAngleDegrees.return_value = (
-            0.0  # Far from target
-        )
+        mock_turret.measuredAngleDegrees.return_value = 0.0  # Far from target
 
         shooter_sm.setDriverWantsFeed(True)
         shooter_sm.engage()
@@ -608,17 +600,11 @@ class TestShooter:
     ):
         """Shooter is ready when turret, hood, and flywheel are all within tolerance."""
         mock_hub_tracker.targetTurretAngleDegrees.return_value = 10.0
-        mock_turret.measuredAngleDegrees.return_value = (
-            12.0  # Error = 2 < 3
-        )
+        mock_turret.measuredAngleDegrees.return_value = 12.0  # Error = 2 < 3
         mock_hub_tracker.targetHoodAngleDegrees.return_value = 5.0
-        mock_hood.measuredAngleDegrees.return_value = (
-            5.5  # Error = 0.5 < 1.5
-        )
+        mock_hood.measuredAngleDegrees.return_value = 5.5  # Error = 0.5 < 1.5
         mock_hub_tracker.targetFlywheelSpeedRps.return_value = 30.0
-        mock_flywheel.measuredSpeedRps.return_value = (
-            28.0  # Error = 2 < 3
-        )
+        mock_flywheel.measuredSpeedRps.return_value = 28.0  # Error = 2 < 3
 
         assert shooter_sm._shooterIsReady() is True
 
@@ -632,9 +618,7 @@ class TestShooter:
     ):
         """Shooter is not ready when turret is outside tolerance (3 degrees)."""
         mock_hub_tracker.targetTurretAngleDegrees.return_value = 10.0
-        mock_turret.measuredAngleDegrees.return_value = (
-            5.0  # Error = 5 > 3
-        )
+        mock_turret.measuredAngleDegrees.return_value = 5.0  # Error = 5 > 3
         mock_hub_tracker.targetHoodAngleDegrees.return_value = 5.0
         mock_hood.measuredAngleDegrees.return_value = 5.0
         mock_hub_tracker.targetFlywheelSpeedRps.return_value = 30.0
@@ -654,9 +638,7 @@ class TestShooter:
         mock_hub_tracker.targetTurretAngleDegrees.return_value = 10.0
         mock_turret.measuredAngleDegrees.return_value = 10.0
         mock_hub_tracker.targetHoodAngleDegrees.return_value = 5.0
-        mock_hood.measuredAngleDegrees.return_value = (
-            8.0  # Error = 3 > 1.5
-        )
+        mock_hood.measuredAngleDegrees.return_value = 8.0  # Error = 3 > 1.5
         mock_hub_tracker.targetFlywheelSpeedRps.return_value = 30.0
         mock_flywheel.measuredSpeedRps.return_value = 30.0
 
@@ -676,9 +658,7 @@ class TestShooter:
         mock_hub_tracker.targetHoodAngleDegrees.return_value = 5.0
         mock_hood.measuredAngleDegrees.return_value = 5.0
         mock_hub_tracker.targetFlywheelSpeedRps.return_value = 30.0
-        mock_flywheel.measuredSpeedRps.return_value = (
-            25.0  # Error = 5 > 3
-        )
+        mock_flywheel.measuredSpeedRps.return_value = 25.0  # Error = 5 > 3
 
         assert shooter_sm._shooterIsReady() is False
 
@@ -692,17 +672,11 @@ class TestShooter:
     ):
         """Shooter is ready when at exact tolerance boundary (<=)."""
         mock_hub_tracker.targetTurretAngleDegrees.return_value = 10.0
-        mock_turret.measuredAngleDegrees.return_value = (
-            13.0  # Error = 3 <= 3
-        )
+        mock_turret.measuredAngleDegrees.return_value = 13.0  # Error = 3 <= 3
         mock_hub_tracker.targetHoodAngleDegrees.return_value = 5.0
-        mock_hood.measuredAngleDegrees.return_value = (
-            6.5  # Error = 1.5 <= 1.5
-        )
+        mock_hood.measuredAngleDegrees.return_value = 6.5  # Error = 1.5 <= 1.5
         mock_hub_tracker.targetFlywheelSpeedRps.return_value = 30.0
-        mock_flywheel.measuredSpeedRps.return_value = (
-            27.0  # Error = 3 <= 3
-        )
+        mock_flywheel.measuredSpeedRps.return_value = 27.0  # Error = 3 <= 3
 
         assert shooter_sm._shooterIsReady() is True
 

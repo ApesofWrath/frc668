@@ -396,7 +396,9 @@ class TurretTuner:
         self.turret.setMotionMagicFeedForward(self.mm_feed_forward)
         self.target_tracker.trackPosition(self.auto_track)
         self.target_tracker.trackSpeed(self.auto_track)
-        self.target_tracker.setTurretFeedForwardMultiplier(self.mvt_feed_forward)
+        self.target_tracker.setTurretFeedForwardMultiplier(
+            self.mvt_feed_forward
+        )
 
         # We only want to reapply the gains if they changed. The TalonFX motor
         # doesn't like being reconfigured constantly.

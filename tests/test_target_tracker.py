@@ -443,8 +443,9 @@ def test_compute_stationary_target_turret_angle_degrees_is_relative_to_heading(
         geometry.Rotation2d.fromDegrees(90.0),
     )
 
-    assert tracker._computeStationaryTargetTurretAngleDegrees() == pytest.approx(
-        -90.0
+    assert (
+        tracker._computeStationaryTargetTurretAngleDegrees()
+        == pytest.approx(-90.0)
     )
 
 
