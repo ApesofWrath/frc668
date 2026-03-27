@@ -3,7 +3,7 @@ import types
 import pytest
 from wpimath import geometry
 
-import subsystem.shooter.hub_tracker as hub_tracker
+import subsystem.shooter.target_tracker as target_tracker
 
 
 class TestShotTable:
@@ -11,32 +11,32 @@ class TestShotTable:
 
     def test_clamps_below_minimum(self):
         """Values at or below the first table entry returns the first row."""
-        hood, flywheel = hub_tracker.ShotTable.get(0.0)
+        hood, flywheel = target_tracker.ShotTable.get(0.0)
         assert hood == 2.0
         assert flywheel == 27.5
 
-        hood, flywheel = hub_tracker.ShotTable.get(1.0)
+        hood, flywheel = target_tracker.ShotTable.get(1.0)
         assert hood == 2.0
         assert flywheel == 27.5
 
     def test_clamps_above_maximum(self):
         """Values at or above the last table entry returns the last row."""
-        hood, flywheel = hub_tracker.ShotTable.get(10.0)
+        hood, flywheel = target_tracker.ShotTable.get(10.0)
         assert hood == 7.5
         assert flywheel == 36.0
 
-        hood, flywheel = hub_tracker.ShotTable.get(5.0)
+        hood, flywheel = target_tracker.ShotTable.get(5.0)
         assert hood == 7.5
         assert flywheel == 36.0
 
     def test_exact_table_points(self):
         """Every exact distance that exists in the table returns the exact stored values (no interpolation)."""
-        assert hub_tracker.ShotTable.get(2.25) == (2.0, 27.5)
-        assert hub_tracker.ShotTable.get(2.75) == (3.5, 29.0)
-        assert hub_tracker.ShotTable.get(3.25) == (5.0, 30.5)
-        assert hub_tracker.ShotTable.get(3.75) == (6.5, 32.5)
-        assert hub_tracker.ShotTable.get(4.25) == (7.0, 34.0)
-        assert hub_tracker.ShotTable.get(4.75) == (7.5, 36.0)
+        assert target_tracker.ShotTable.get(2.25) == (2.0, 27.5)
+        assert target_tracker.ShotTable.get(2.75) == (3.5, 29.0)
+        assert target_tracker.ShotTable.get(3.25) == (5.0, 30.5)
+        assert target_tracker.ShotTable.get(3.75) == (6.5, 32.5)
+        assert target_tracker.ShotTable.get(4.25) == (7.0, 34.0)
+        assert target_tracker.ShotTable.get(4.75) == (7.5, 36.0)
 
     @pytest.mark.parametrize(
         "distance, expected_hood, expected_flywheel",
@@ -46,19 +46,19 @@ class TestShotTable:
         self, distance, expected_hood, expected_flywheel
     ):
         """Linear interpolation produces the mathematically correct value between any two table rows."""
-        hood, flywheel = hub_tracker.ShotTable.get(distance)
+        hood, flywheel = target_tracker.ShotTable.get(distance)
         assert hood == pytest.approx(expected_hood, abs=1e-9)
         assert flywheel == pytest.approx(expected_flywheel, abs=1e-9)
 
     def test_interpolation_near_edges(self):
         """Interpolation works exactly right next to the first and last intervals (no off-by-one bugs)."""
         # Just inside the first interval
-        hood, flywheel = hub_tracker.ShotTable.get(2.26)
+        hood, flywheel = target_tracker.ShotTable.get(2.26)
         assert hood == pytest.approx(2.03, abs=1e-9)
         assert flywheel == pytest.approx(27.53, abs=1e-9)
 
         # Just inside the last interval
-        hood, flywheel = hub_tracker.ShotTable.get(4.74)
+        hood, flywheel = target_tracker.ShotTable.get(4.74)
         assert hood == pytest.approx(7.49, abs=1e-9)
         assert flywheel == pytest.approx(35.96, abs=1e-9)
 
@@ -68,8 +68,8 @@ class TestShotTable:
         This is important as we use _DISTANCES to interpolate and _TABLES for
         lookup.
         """
-        assert len(hub_tracker.ShotTable._TABLE) == len(
-            hub_tracker.ShotTable._DISTANCES
+        assert len(target_tracker.ShotTable._TABLE) == len(
+            target_tracker.ShotTable._DISTANCES
         )
 
 
@@ -79,9 +79,9 @@ def _make_tracker(
     min_angle: float = -180.0,
     max_angle: float = 180.0,
     yaw_rate_degrees_per_second: float = 0.0,
-) -> hub_tracker.HubTracker:
-    """Build a HubTracker with mocked dependencies and turret limits."""
-    tracker = hub_tracker.HubTracker()
+) -> target_tracker.TargetTracker:
+    """Build a TargetTracker with mocked dependencies and turret limits."""
+    tracker = target_tracker.TargetTracker()
     tracker.robot_constants = types.SimpleNamespace(
         shooter=types.SimpleNamespace(
             turret=types.SimpleNamespace(
@@ -118,8 +118,8 @@ def _make_tracker(
 def _hub_relative_position(dx: float, dy: float) -> geometry.Translation2d:
     """Return a field position offset from the hub center."""
     return geometry.Translation2d(
-        hub_tracker.BLUE_HUB_TO_FIELD_X + dx,
-        hub_tracker.BLUE_HUB_TO_FIELD_Y + dy,
+        target_tracker.BLUE_HUB_TO_FIELD_X + dx,
+        target_tracker.BLUE_HUB_TO_FIELD_Y + dy,
     )
 
 
@@ -130,8 +130,8 @@ def _robot_pose_with_turret_at(
     """Construct a robot pose that places the turret at turret_position."""
     robot_rotation = geometry.Rotation2d.fromDegrees(robot_yaw_degrees)
     turret_offset = geometry.Translation2d(
-        hub_tracker.TURRET_TO_ROBOT_X,
-        hub_tracker.TURRET_TO_ROBOT_Y,
+        target_tracker.TURRET_TO_ROBOT_X,
+        target_tracker.TURRET_TO_ROBOT_Y,
     ).rotateBy(robot_rotation)
     return geometry.Pose2d(turret_position - turret_offset, robot_rotation)
 
@@ -141,12 +141,12 @@ def test_setup_initializes_known_transforms(mocker) -> None:
     tracker = _make_tracker(mocker, geometry.Pose2d())
 
     expected_turret_offset = geometry.Translation2d(
-        hub_tracker.TURRET_TO_ROBOT_X,
-        hub_tracker.TURRET_TO_ROBOT_Y,
+        target_tracker.TURRET_TO_ROBOT_X,
+        target_tracker.TURRET_TO_ROBOT_Y,
     )
     expected_hub_position = geometry.Translation2d(
-        hub_tracker.BLUE_HUB_TO_FIELD_X,
-        hub_tracker.BLUE_HUB_TO_FIELD_Y,
+        target_tracker.BLUE_HUB_TO_FIELD_X,
+        target_tracker.BLUE_HUB_TO_FIELD_Y,
     )
 
     offset_error = (
@@ -283,7 +283,7 @@ def test_execute_updates_turret_pose_and_commands_angle(
 def test_execute_zero_yaw_rate_does_not_offset_target_angle(mocker) -> None:
     """Zero yaw-rate should produce no predictive offset in commanded angle."""
     blue_hub = geometry.Translation2d(
-        hub_tracker.BLUE_HUB_TO_FIELD_X, hub_tracker.BLUE_HUB_TO_FIELD_Y
+        target_tracker.BLUE_HUB_TO_FIELD_X, target_tracker.BLUE_HUB_TO_FIELD_Y
     )
     turret_pos = blue_hub - geometry.Translation2d(1.0, 0.0).rotateBy(
         geometry.Rotation2d.fromDegrees(17.5)
@@ -323,7 +323,7 @@ def test_execute_clamps_target_angle_to_limits(
 ) -> None:
     """execute clamps commanded turret angle to configured min/max limits."""
     blue_hub = geometry.Translation2d(
-        hub_tracker.BLUE_HUB_TO_FIELD_X, hub_tracker.BLUE_HUB_TO_FIELD_Y
+        target_tracker.BLUE_HUB_TO_FIELD_X, target_tracker.BLUE_HUB_TO_FIELD_Y
     )
     turret_pos = blue_hub - geometry.Translation2d(1.0, 0.0).rotateBy(
         geometry.Rotation2d.fromDegrees(requested_angle)
@@ -365,7 +365,7 @@ def test_execute_compensation_applied_before_clamping(
 ) -> None:
     """Compensation happens before limit clamping and can push in-range targets out."""
     blue_hub = geometry.Translation2d(
-        hub_tracker.BLUE_HUB_TO_FIELD_X, hub_tracker.BLUE_HUB_TO_FIELD_Y
+        target_tracker.BLUE_HUB_TO_FIELD_X, target_tracker.BLUE_HUB_TO_FIELD_Y
     )
     turret_pos = blue_hub - geometry.Translation2d(1.0, 0.0).rotateBy(
         geometry.Rotation2d.fromDegrees(requested_angle)
@@ -391,7 +391,7 @@ def test_execute_compensation_applied_before_clamping(
 def test_execute_updates_compensation_across_control_loops(mocker) -> None:
     """Each execute loop should refresh yaw-rate and recompute compensation."""
     blue_hub = geometry.Translation2d(
-        hub_tracker.BLUE_HUB_TO_FIELD_X, hub_tracker.BLUE_HUB_TO_FIELD_Y
+        target_tracker.BLUE_HUB_TO_FIELD_X, target_tracker.BLUE_HUB_TO_FIELD_Y
     )
     turret_pos = blue_hub - geometry.Translation2d(1.0, 0.0).rotateBy(
         geometry.Rotation2d.fromDegrees(10.0)
@@ -427,7 +427,7 @@ def test_current_turret_distance_from_hub_meters(mocker) -> None:
         geometry.Rotation2d(),
     )
 
-    assert tracker.currentTurretDistanceFromHubMeters() == pytest.approx(5.0)
+    assert tracker.currentTurretDistanceFromTargetMeters() == pytest.approx(5.0)
 
 
 def test_compute_stationary_target_turret_angle_degrees_is_relative_to_heading(
@@ -436,15 +436,16 @@ def test_compute_stationary_target_turret_angle_degrees_is_relative_to_heading(
     """Computed target angle is relative to current turret heading."""
     tracker = _make_tracker(mocker, geometry.Pose2d())
     blue_hub = geometry.Translation2d(
-        hub_tracker.BLUE_HUB_TO_FIELD_X, hub_tracker.BLUE_HUB_TO_FIELD_Y
+        target_tracker.BLUE_HUB_TO_FIELD_X, target_tracker.BLUE_HUB_TO_FIELD_Y
     )
     tracker._turret_field_pose = geometry.Pose2d(
         blue_hub - geometry.Translation2d(1.0, 0.0),
         geometry.Rotation2d.fromDegrees(90.0),
     )
 
-    assert tracker._computeStationaryTargetTurretAngleDegrees() == pytest.approx(
-        -90.0
+    assert (
+        tracker._computeStationaryTargetTurretAngleDegrees()
+        == pytest.approx(-90.0)
     )
 
 
