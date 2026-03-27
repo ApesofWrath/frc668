@@ -34,7 +34,7 @@ class ShotTable:
         (3.75, 6.5, 32.5),
         (4.25, 7.0, 34.0),
         (4.75, 7.5, 36.0),
-        (5.25, 8.0, 38.0),
+        (5.25, 8.0, 38.0),  # Not calibrated
     )
     # A tuple of just the distances from _TABLE.
     _DISTANCES: Tuple[float, ...] = tuple(row[0] for row in _TABLE)
