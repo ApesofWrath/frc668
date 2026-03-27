@@ -1,7 +1,8 @@
 import magicbot
-from phoenix6 import configs, controls, hardware
+from phoenix6 import configs, controls, hardware, units
 
 import constants
+from common import datalog
 
 
 class Intake:
@@ -12,6 +13,7 @@ class Intake:
 
     robot_constants: constants.RobotConstants
     intake_roller_motor: hardware.TalonFX
+    data_logger: datalog.DataLogger
 
     def setup(self) -> None:
         """Set up initial state for the intake.
@@ -63,6 +65,8 @@ class Intake:
 
         self.intake_roller_motor.set_control(self._request)
 
+        self._logData()
+
     def on_enable(self) -> None:
         """Reset to a "safe" state when the robot is enabled.
 
@@ -90,10 +94,41 @@ class Intake:
         """Toggle the intake roller between active and inactive."""
         self._active = not self._active
 
-    @magicbot.feedback
-    def get_measured_speed(self) -> float:
-        value = self.intake_roller_motor.get_velocity().value
-        return value if value else 0.0
+    def measuredSpeedRps(self) -> float:
+        """Returns the measured speed of the roller in rotations per second.
+
+        Note that this is measured from the motor, as there is no external
+        encoder for the intake roller.
+        """
+        return self.intake_roller_motor.get_velocity().value or 0.0
+
+    def rollerSupplyCurrent(self) -> units.ampere:
+        """Returns the measured supply current to the roller motor."""
+        return self.intake_roller_motor.get_supply_current().value or 0.0
+
+    def rollerStatorCurrent(self) -> units.ampere:
+        """Returns the measured stator current in the roller motor."""
+        return self.intake_roller_motor.get_stator_current().value or 0.0
+
+    def _logData(self) -> None:
+        """Writes useful data to the log."""
+        self.data_logger.logBoolean(
+            "/components/intake/active", self._active, on_change=True
+        )
+        self.data_logger.logDouble(
+            "/components/intake/target_speed_rps",
+            self._active_roller_speed_rps,
+            on_change=True,
+        )
+        self.data_logger.logDouble(
+            "/components/intake/measured_speed_rps", self.measuredSpeedRps()
+        )
+        self.data_logger.logDouble(
+            "/components/intake/supply_current", self.rollerSupplyCurrent()
+        )
+        self.data_logger.logDouble(
+            "/components/intake/stator_current", self.rollerStatorCurrent()
+        )
 
 
 class IntakeTuner:

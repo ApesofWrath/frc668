@@ -2,6 +2,7 @@ import magicbot
 import phoenix6
 
 import constants
+from common import datalog
 from subsystem import shooter
 
 
@@ -15,6 +16,7 @@ class Hopper:
     robot_constants: constants.RobotConstants
     hopper_left_motor: phoenix6.hardware.TalonFX
     hopper_right_motor: phoenix6.hardware.TalonFX
+    data_logger: datalog.DataLogger
 
     def __init__(self):
         # The target speeds (in rotations per second) to request the hopper
@@ -58,8 +60,7 @@ class Hopper:
                 .with_supply_current_limit_enable(True)
             )
             .with_feedback(
-                phoenix6.configs.FeedbackConfigs()
-                .with_sensor_to_mechanism_ratio(
+                phoenix6.configs.FeedbackConfigs().with_sensor_to_mechanism_ratio(
                     hopper_constants.gear_reduction
                 )
             )
@@ -88,8 +89,7 @@ class Hopper:
                 .with_supply_current_limit_enable(True)
             )
             .with_feedback(
-                phoenix6.configs.FeedbackConfigs()
-                .with_sensor_to_mechanism_ratio(
+                phoenix6.configs.FeedbackConfigs().with_sensor_to_mechanism_ratio(
                     hopper_constants.gear_reduction
                 )
             )
@@ -121,6 +121,8 @@ class Hopper:
             self.hopper_right_motor.set_control(
                 self._request.with_velocity(0.0)
             )
+
+        self._logData()
 
     def on_enable(self) -> None:
         """Reset to a "safe" state when the robot is enabled.
@@ -161,17 +163,58 @@ class Hopper:
         """
         self._enabled = value
 
-    @magicbot.feedback
-    def get_left_target_rps(self) -> float:
-        return self._left_target_rps
+    def leftMeasuredSpeedRps(self) -> phoenix6.units.rotations_per_second:
+        return self.hopper_left_motor.get_velocity().value
 
-    @magicbot.feedback
-    def get_right_target_rps(self) -> float:
-        return self._right_target_rps
+    def rightMeasuredSpeedRps(self) -> phoenix6.units.rotations_per_second:
+        return self.hopper_right_motor.get_velocity().value
 
-    @magicbot.feedback
-    def get_enabled(self) -> bool:
-        return self._enabled
+    def leftSupplyCurrent(self) -> phoenix6.units.ampere:
+        return self.hopper_left_motor.get_supply_current().value
+
+    def leftStatorCurrent(self) -> phoenix6.units.ampere:
+        return self.hopper_left_motor.get_stator_current().value
+
+    def rightSupplyCurrent(self) -> phoenix6.units.ampere:
+        return self.hopper_right_motor.get_supply_current().value
+
+    def rightStatorCurrent(self) -> phoenix6.units.ampere:
+        return self.hopper_right_motor.get_stator_current().value
+
+    def _logData(self):
+        self.data_logger.logBoolean(
+            "/components/hopper/enabled", self._enabled, on_change=True
+        )
+        self.data_logger.logDouble(
+            "/components/hopper/left_target_speed_rps",
+            self._left_target_rps,
+            on_change=True,
+        )
+        self.data_logger.logDouble(
+            "/components/hopper/right_target_speed_rps",
+            self._right_target_rps,
+            on_change=True,
+        )
+        self.data_logger.logDouble(
+            "/components/hopper/left_measured_speed_rps",
+            self.leftMeasuredSpeedRps(),
+        )
+        self.data_logger.logDouble(
+            "/components/hopper/right_measured_speed_rps",
+            self.rightMeasuredSpeedRps(),
+        )
+        self.data_logger.logDouble(
+            "/components/hopper/left_supply_current", self.leftSupplyCurrent()
+        )
+        self.data_logger.logDouble(
+            "/components/hopper/left_stator_current", self.leftStatorCurrent()
+        )
+        self.data_logger.logDouble(
+            "/components/hopper/right_supply_current", self.rightSupplyCurrent()
+        )
+        self.data_logger.logDouble(
+            "/components/hopper/right_stator_current", self.rightStatorCurrent()
+        )
 
 
 class HopperTuner:
@@ -323,11 +366,3 @@ class HopperTuner:
                     f"{result.name}: {result.description}"
                 )
             )
-
-    @magicbot.feedback
-    def get_left_measured_rps(self) -> float:
-        return self.hopper_left_motor.get_velocity().value
-
-    @magicbot.feedback
-    def get_right_measured_rps(self) -> float:
-        return self.hopper_right_motor.get_velocity().value

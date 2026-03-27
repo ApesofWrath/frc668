@@ -219,3 +219,6 @@ __marimo__/
 
 # pyenv may add this in your project directory sometimes.
 .python-version
+
+# Simulation tests exercise the logger.
+logs/

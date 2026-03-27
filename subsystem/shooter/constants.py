@@ -122,12 +122,15 @@ class TurretConstants:
     motion_magic_cruise_velocity: units.rotations_per_second = 10.0
     motion_magic_acceleration: units.rotations_per_second_squared = 7.0
     motion_magic_jerk: units.rotations_per_second_cubed = 75.0
-    # Feedforward for motion magic.
+    # Feedforward values.
     motion_magic_feed_forward: units.voltage = 0.0
+    feed_forward_mvt_multiplier: units.voltage = 0.0
     # Limits for turret motion.
     min_angle: units.degree = -180.0
     max_angle: units.degree = 180.0
     supply_current_limit: units.ampere = 40.0
+    # TODO: Find a more accurate average
+    time_of_flight: units.second = 1.0
 
 
 @dataclass(frozen=True)
@@ -187,7 +190,7 @@ SHOOTER_CONSTANTS: dict[str, ShooterConstants] = {
             right_k_s=0.2,
             right_k_v=0.123,
             right_k_p=0.5,
-            gear_reduction=1.0
+            gear_reduction=1.0,
         ),
         indexer=IndexerConstants(
             back_motor_can_id=18,
@@ -258,7 +261,7 @@ SHOOTER_CONSTANTS: dict[str, ShooterConstants] = {
             right_k_s=0.1,
             right_k_v=0.21,
             right_k_p=0.5,
-            gear_reduction=1.67
+            gear_reduction=1.67,
         ),
         indexer=IndexerConstants(
             back_motor_can_id=19,
@@ -297,6 +300,7 @@ SHOOTER_CONSTANTS: dict[str, ShooterConstants] = {
             position_k_p=450,
             position_k_d=0.5,
             motion_magic_feed_forward=-1.0,
+            feed_forward_mvt_multiplier=0.15,
         ),
         hood=HoodConstants(
             encoder_can_id=17,

@@ -1,10 +1,13 @@
 import math
 
+import magicbot
+import ntcore
+import wpilib
 import wpimath
-from magicbot import feedback, tunable
 from phoenix6 import utils
 
 import constants
+from common import datalog
 from subsystem import drivetrain
 from subsystem.drivetrain import limelight
 
@@ -18,6 +21,7 @@ RADIANS_TO_DEGREES = 180.0 / math.pi
 class Vision:
     robot_constants: constants.RobotConstants
     drivetrain: drivetrain.Drivetrain
+    data_logger: datalog.DataLogger
 
     def setup(self) -> None:
         """
@@ -27,12 +31,33 @@ class Vision:
         self._limelights: list[str] = (
             self.robot_constants.drivetrain.vision.limelights
         )
-        # Tracks whether the drivetrain's pose estimator has been seeded with a
-        # good vision estimate since startup.
-        self._pose_seeded = False
 
-        self.xy_std_devs = 0.0
-        self.theta_std_devs = 0.0
+        self._xy_std_dev = self.robot_constants.drivetrain.vision.xy_std_dev
+        self._theta_std_dev = (
+            self.robot_constants.drivetrain.vision.theta_std_dev
+        )
+
+        nt = ntcore.NetworkTableInstance.getDefault()
+
+        for ll in self._limelights:
+            # Ensure that the limelights are not throttled.
+            limelight.LimelightHelpers.set_LED_to_pipeline_control(ll)
+            nt.getTable(ll).getEntry("throttle_set").setInteger(0)
+            # Set how much the Limelight trusts the external IMU. This is only
+            # relevant when using IMU mode 4.
+            limelight.LimelightHelpers.set_limelight_NTDouble(
+                ll, "imuassistalpha_set", 0.001
+            )
+
+        # Publishers for accepted and rejected pose estimates.
+        self._accepted_pose_publisher = nt.getStructArrayTopic(
+            "/components/vision/accepted_pose_estimates",
+            wpimath.geometry.Pose2d,
+        ).publish()
+        self._rejected_pose_publisher = nt.getStructArrayTopic(
+            "/components/vision/rejected_pose_estimates",
+            wpimath.geometry.Pose2d,
+        ).publish()
 
     def execute(self) -> None:
         self.setRobotOrientation()
@@ -42,6 +67,15 @@ class Vision:
         #     self.drivetrain.swerve_drive.set_state_std_devs(0.0, 0.0, 0.0)
         self._updateRobotPose()
 
+    def setImuMode(self, value: int) -> None:
+        if not isinstance(value, int) or value < 0 or value > 4:
+            self.logger.warning(
+                f"IMU mode must be an integer in the range [0, 4], got: {value}."
+            )
+            return
+        for ll in self._limelights:
+            limelight.LimelightHelpers.set_imu_mode(ll, value)
+
     def setRobotOrientation(self) -> None:
         """Updates each Limelight with the robot's current orientation.
 
@@ -49,43 +83,52 @@ class Vision:
         robot's latest yaw estimate periodically.
         """
         for ll in self._limelights:
-            yaw = wpimath.inputModulus(self.drivetrain.swerve_drive.pigeon2.get_yaw().value, -180.0, 180.0)
             pitch = self.drivetrain.swerve_drive.pigeon2.get_pitch().value
             limelight.LimelightHelpers.set_robot_orientation(
                 ll,
-                yaw,
+                self.drivetrain.estimatedYawDegrees(),
                 0.0,
-                pitch,
+                0.0,
                 0.0,
                 0.0,
                 0.0,
             )
     def _updateRobotPose(self) -> None:
         """Updates our robot pose estimate with the latest vision measurements."""
+        rejected_poses: list[wpimath.geometry.Pose2d] = []
+        rejected_limelights: list[str] = []
+        rejected_reasons: list[str] = []
+
+        accepted_poses: list[wpimath.geometry.Pose2d] = []
+        accepted_limelights: list[str] = []
+
+        drivetrain_pose = self.drivetrain.get_robot_pose()
+        vision_constants = self.robot_constants.drivetrain.vision
+
         for ll in self._limelights:
             pose_estimate: limelight.PoseEstimate = (
                 limelight.LimelightHelpers.get_botpose_estimate_wpiblue_megatag2(
                     ll
                 )
             )
-
             pose: wpimath.geometry.Pose2d = pose_estimate.pose
-            drivetrain_pose = self.drivetrain.swerve_drive.get_state().pose
-
-            vision_constants = self.robot_constants.drivetrain.vision
 
             # Filter out bad readings
-            
+
             if not (pose_estimate.tag_count > 0):
-                self.logger.warning("Rejected vision estimate: No tags seen")
+                rejected_poses.append(pose)
+                rejected_limelights.append(ll)
+                rejected_reasons.append("No tags seen")
                 continue
 
             if (
                 pose_estimate.avg_tag_dist
                 > vision_constants.average_tag_distance_threshold
             ):
-                self.logger.warning(
-                    f"{ll}: Rejected too far away pose: {pose_estimate.avg_tag_dist}"
+                rejected_poses.append(pose)
+                rejected_limelights.append(ll)
+                rejected_reasons.append(
+                    f"Too far away: {pose_estimate.avg_tag_dist:.2f}m"
                 )
                 continue
 
@@ -96,20 +139,15 @@ class Vision:
                 pose.Y() < vision_constants.pose_y_min
                 or pose.Y() > vision_constants.pose_y_max
             ):
-                self.logger.warning(
-                    f"{ll}: Rejected out-of-bounds pose: ({pose.X()}, {pose.Y()})"
+                rejected_poses.append(pose)
+                rejected_limelights.append(ll)
+                rejected_reasons.append(
+                    f"Out of bounds: ({pose.X():.2f}, {pose.Y():.2f})"
                 )
                 continue
 
-            # If this is the first good vision estimate since startup, hard
-            # reset the translation portion of the drivetrain's estimate to it.
-            if not self._pose_seeded:
-                self.drivetrain.setPose(pose)
-                self._pose_seeded = True
-                self.logger.info(
-                    f"Pose seeded from {ll}: ({pose.X()}, {pose.Y()})"
-                )
-                continue
+            accepted_poses.append(pose)
+            accepted_limelights.append(ll)
 
             synced_timestamp = utils.fpga_to_current_time(
                 pose_estimate.timestamp_seconds
@@ -117,90 +155,24 @@ class Vision:
             self.drivetrain.swerve_drive.add_vision_measurement(
                 pose_estimate.pose,
                 synced_timestamp,
-                (
-                    0.5,
-                    0.5,
-                    math.inf
-                ),
+                (self._xy_std_dev, self._xy_std_dev, self._theta_std_dev),
             )
 
-    def set_std_devs(self, xy_std_dev, theta_std_dev) -> None:
-        self.xy_std_devs = xy_std_dev
-        self.theta_std_devs = theta_std_dev
-
-    @feedback
-    def get_robot_pose(self) -> wpimath.geometry.Pose2d:
-        """
-        Returns robot pose as a Pose2d object.
-        """
-        return self.drivetrain.swerve_drive.get_state().pose
-
-    @feedback
-    def get_drivetrain_yaw_degrees(self) -> float:
-        """
-        Returns drivetrain's yaw estimate.
-        """
-        return (
-            self.drivetrain.swerve_drive.get_state().pose.rotation().degrees()
+        self._accepted_pose_publisher.set(accepted_poses)
+        self.data_logger.logStringArray(
+            "/components/vision/accepted_limelights", accepted_limelights
+        )
+        self._rejected_pose_publisher.set(rejected_poses)
+        self.data_logger.logStringArray(
+            "/components/vision/rejected_limelights", rejected_limelights
+        )
+        self.data_logger.logStringArray(
+            "/components/vision/rejected_reasons", rejected_reasons
         )
 
-
-    @feedback
-    def get_limelight_upfr(self) -> wpimath.geometry.Pose2d:
-        return limelight.LimelightHelpers.get_botpose_2d_wpiblue(
-            "limelight-upfr"
-        )
-    
-    @feedback
-    def get_limelight_upfl(self) -> wpimath.geometry.Pose2d:
-        return limelight.LimelightHelpers.get_botpose_2d_wpiblue(
-            "limelight-upfl"
-        )
-    
-    @feedback
-    def get_limelight_fr(self) -> wpimath.geometry.Pose2d:
-        return limelight.LimelightHelpers.get_botpose_2d_wpiblue(
-            "limelight-fr"
-        )
-    
-    @feedback
-    def get_limelight_fl(self) -> wpimath.geometry.Pose2d:
-        return limelight.LimelightHelpers.get_botpose_2d_wpiblue(
-            "limelight-fl"
-        )
-    
-
-    @feedback
-    def get_limelight_upfr_avg_dist(self):
-        return limelight.LimelightHelpers.get_botpose_estimate_wpiblue_megatag2("limelight-upfr").avg_tag_dist
-    
-    @feedback
-    def get_limelight_upfr_tag_count(self):
-        return limelight.LimelightHelpers.get_botpose_estimate_wpiblue_megatag2("limelight-upfr").tag_count
-    
-    @feedback
-    def get_limelight_upfl_avg_dist(self):
-        return limelight.LimelightHelpers.get_botpose_estimate_wpiblue_megatag2("limelight-upfl").avg_tag_dist
-    
-    @feedback
-    def get_limelight_upfl_tag_count(self):
-        return limelight.LimelightHelpers.get_botpose_estimate_wpiblue_megatag2("limelight-upfl").tag_count
-    
-    @feedback
-    def get_limelight_fr_avg_dist(self):
-        return limelight.LimelightHelpers.get_botpose_estimate_wpiblue_megatag2("limelight-fr").avg_tag_dist
-    
-    @feedback
-    def get_limelight_fr_tag_count(self):
-        return limelight.LimelightHelpers.get_botpose_estimate_wpiblue_megatag2("limelight-fr").tag_count
-    
-    @feedback
-    def get_limelight_fl_avg_dist(self):
-        return limelight.LimelightHelpers.get_botpose_estimate_wpiblue_megatag2("limelight-fl").avg_tag_dist
-    
-    @feedback
-    def get_limelight_fl_tag_count(self):
-        return limelight.LimelightHelpers.get_botpose_estimate_wpiblue_megatag2("limelight-fl").tag_count
+    def setStdDevs(self, xy_std_dev, theta_std_dev) -> None:
+        self._xy_std_dev = xy_std_dev
+        self._theta_std_dev = theta_std_dev
 
 
 class VisionTuner:
@@ -208,56 +180,35 @@ class VisionTuner:
     drivetrain: drivetrain.Drivetrain
     vision: Vision
 
-    xy_std_devs = tunable(0.0)
-    theta_std_devs = tunable(0.0)
+    xy_std_dev = magicbot.tunable(0.0)
+    theta_std_dev = magicbot.tunable(0.0)
 
     def setup(self) -> None:
-        self.xy_std_devs = 0.0
-        self.last_xy_std_devs = self.xy_std_devs
+        self.xy_std_dev = self.robot_constants.drivetrain.vision.xy_std_dev
+        self.theta_std_dev = (
+            self.robot_constants.drivetrain.vision.theta_std_dev
+        )
 
-        self.theta_std_devs = 0.0
-        self.last_theta_std_devs = self.theta_std_devs
         self._limelights: list[str] = (
             self.robot_constants.drivetrain.vision.limelights
         )
-        self.nt = NetworkTableInstance.getDefault()
-
+        self._nt = ntcore.NetworkTableInstance.getDefault()
 
     def execute(self) -> None:
-        if not self.valuesChanged():
-            return
+        self.vision.setStdDevs(self.xy_std_dev, self.theta_std_dev)
+
         if wpilib.DriverStation.isDisabled():
             self.throttleLimelights(True)
         else:
             self.throttleLimelights(False)
 
-        self.applyValues()
-
-        self.last_xy_std_devs = self.xy_std_devs
-        self.last_theta_std_devs = self.theta_std_devs
-
-    def valuesChanged(self) -> bool:
-        return (
-            self.last_xy_std_devs != self.xy_std_devs
-            or self.last_theta_std_devs != self.theta_std_devs
-        )
-
-    def applyValues(self) -> None:
-        self.vision.set_std_devs(self.xy_std_devs, self.theta_std_devs)
-
-    def throttleLimelights(self, on: bool) -> None:
-        if on:
+    def throttleLimelights(self, value: bool) -> None:
+        """Throttle the limelights so they don't overheat."""
+        if value:
             for ll in self._limelights:
                 limelight.LimelightHelpers.set_LED_to_force_off(ll)
-                self.nt.getTable(ll).getEntry("throttle_set").setInteger(150)
+                self._nt.getTable(ll).getEntry("throttle_set").setInteger(150)
         else:
             for ll in self._limelights:
                 limelight.LimelightHelpers.set_LED_to_pipeline_control(ll)
-                self.nt.getTable(ll).getEntry("throttle_set").setInteger(0)
-                
-
-
-                
-
-
-    
+                self._nt.getTable(ll).getEntry("throttle_set").setInteger(0)

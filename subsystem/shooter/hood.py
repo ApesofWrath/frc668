@@ -2,6 +2,7 @@ import magicbot
 import phoenix6
 
 import constants
+from common import datalog
 from subsystem import shooter
 
 
@@ -17,6 +18,7 @@ class Hood:
     robot_constants: constants.RobotConstants
     hood_motor: phoenix6.hardware.TalonFX
     hood_encoder: phoenix6.hardware.CANcoder
+    data_logger: datalog.DataLogger
 
     def setup(self) -> None:
         """Set up initial state for the hood.
@@ -25,7 +27,7 @@ class Hood:
         robot class, and after all components have been created.
         """
         self._hood_speed = 0.0
-        self._target_position_degrees = self.get_measured_angle_degrees()
+        self._target_position_degrees = self.measuredAngleDegrees()
 
         self._is_speed_controlled = False
 
@@ -134,6 +136,8 @@ class Hood:
                 )
             )
 
+        self._logData()
+
     def on_enable(self) -> None:
         """Reset to a "safe" state when the robot is enabled.
 
@@ -141,7 +145,7 @@ class Hood:
         test mode.
         """
         self._hood_speed = 0.0
-        self._target_position_degrees = self.get_measured_angle_degrees()
+        self._target_position_degrees = self.measuredAngleDegrees()
 
     def on_disable(self) -> None:
         """Reset state when the robot is disabled.
@@ -149,7 +153,7 @@ class Hood:
         This method is called when the robot enters disabled mode.
         """
         self._hood_speed = 0.0
-        self._target_position_degrees = self.get_measured_angle_degrees()
+        self._target_position_degrees = self.measuredAngleDegrees()
 
     def setSpeed(self, speed: float) -> None:
         """Set the speed of the hood."""
@@ -182,17 +186,35 @@ class Hood:
         self._target_position_degrees = 0.0
         self.hood_encoder.set_position(0.0)
 
-    @magicbot.feedback
-    def get_measured_angle_degrees(self) -> float:
+    def measuredAngleDegrees(self) -> phoenix6.units.degree:
         return (
             self.hood_encoder.get_position().value
             * self.ROTATIONS_TO_DEGREES
             / self.robot_constants.shooter.hood.sensor_to_mechanism_ratio
         )
 
-    @magicbot.feedback
-    def get_target_position_deg(self) -> float:
-        return self._target_position_degrees
+    def supplyCurrent(self) -> phoenix6.units.ampere:
+        return self.hood_motor.get_supply_current().value
+
+    def statorCurrent(self) -> phoenix6.units.ampere:
+        return self.hood_motor.get_stator_current().value
+
+    def _logData(self) -> None:
+        self.data_logger.logDouble(
+            "/components/hood/target_angle_degrees",
+            self._target_position_degrees,
+            on_change=True,
+        )
+        self.data_logger.logDouble(
+            "/components/hood/measured_angle_degrees",
+            self.measuredAngleDegrees(),
+        )
+        self.data_logger.logDouble(
+            "/components/hood/supply_current", self.supplyCurrent()
+        )
+        self.data_logger.logDouble(
+            "/components/hood/stator_current", self.statorCurrent()
+        )
 
 
 class HoodTuner:
@@ -254,7 +276,7 @@ class HoodTuner:
         self.last_mm_acceleration = self.mm_acceleration
         self.last_mm_jerk = self.mm_jerk
 
-        self.target_angle_deg = self.hood.get_measured_angle_degrees()
+        self.target_angle_deg = self.hood.measuredAngleDegrees()
 
     def execute(self) -> None:
         """Update the hood speed and gains (if they changed).
@@ -323,13 +345,5 @@ class HoodTuner:
             self.logger.error("Failed to apply new gains to hood motor")
 
     @magicbot.feedback
-    def get_motor_voltage(self) -> phoenix6.units.volt:
-        return self.hood_motor.get_motor_voltage().value
-
-    @magicbot.feedback
-    def get_motor_stator_current(self) -> phoenix6.units.ampere:
-        return self.hood_motor.get_stator_current().value
-
-    @magicbot.feedback
-    def get_encoder_position(self) -> float:
-        return self.hood_encoder.get_position().value
+    def get_absolute_position(self) -> float:
+        return self.hood_encoder.get_absolute_position().value

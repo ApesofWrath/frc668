@@ -29,6 +29,7 @@ components = [
 requires = [
     "phoenix6",
     "limelightlib-python==0.9.6",
+    "sleipnirgroup-choreolib==2026.0.2",
 ]
 
 [project.optional-dependencies]

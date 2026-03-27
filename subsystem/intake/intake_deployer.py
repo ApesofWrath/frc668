@@ -3,6 +3,7 @@ import phoenix6
 import wpilib
 
 import constants
+from common import datalog
 from subsystem import intake
 
 
@@ -16,6 +17,7 @@ class IntakeDeployer(magicbot.StateMachine):
     intake_deploy_motor: phoenix6.hardware.TalonFX
     intake_deploy_encoder: phoenix6.hardware.CANcoder
     intake: intake.Intake
+    data_logger: datalog.DataLogger
 
     def __init__(self):
         self._deployed = False
@@ -72,6 +74,11 @@ class IntakeDeployer(magicbot.StateMachine):
         if not self._deployed:
             self.engage()
 
+        self._logData()
+
+    def hasDeployed(self) -> bool:
+        return self._deployed
+
     @magicbot.state(first=True)
     def deploying(self, state_tm) -> None:
         # Based on testing on the robot, deploying the intake corresponds to
@@ -99,6 +106,25 @@ class IntakeDeployer(magicbot.StateMachine):
         self.intake_deploy_motor.set(0.0)
         self.done()
 
-    @magicbot.feedback
-    def get_encoder_rotation(self) -> float:
+    def encoderPositionRotations(self) -> phoenix6.units.rotation:
         return self.intake_deploy_encoder.get_position().value
+
+    def deploySupplyCurrent(self) -> phoenix6.units.ampere:
+        return self.intake_deploy_motor.get_supply_current().value
+
+    def deployStatorCurrent(self) -> phoenix6.units.ampere:
+        return self.intake_deploy_motor.get_stator_current().value
+
+    def _logData(self) -> None:
+        self.data_logger.logDouble(
+            "/components/intake_deployer/encoder_position_rotations",
+            self.encoderPositionRotations(),
+        )
+        self.data_logger.logDouble(
+            "/components/intake_deployer/supply_current",
+            self.deploySupplyCurrent(),
+        )
+        self.data_logger.logDouble(
+            "/components/intake_deployer/stator_current",
+            self.deployStatorCurrent(),
+        )

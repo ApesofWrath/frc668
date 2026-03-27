@@ -2,6 +2,7 @@ import magicbot
 import phoenix6
 
 import constants
+from common import datalog
 from subsystem import shooter
 
 
@@ -14,6 +15,7 @@ class Flywheel:
     robot_constants: constants.RobotConstants
     flywheel_motor: phoenix6.hardware.TalonFX
     flywheel_encoder: phoenix6.hardware.CANcoder
+    data_logger: datalog.DataLogger
 
     def setup(self) -> None:
         """Set up initial state for the flywheel.
@@ -86,6 +88,8 @@ class Flywheel:
             self._request.with_velocity(self._target_rps)
         )
 
+        self._logData()
+
     def on_enable(self) -> None:
         """Reset to a "safe" state when the robot is enabled.
 
@@ -106,17 +110,30 @@ class Flywheel:
     def setTargetRps(self, target_rps: float) -> None:
         self._target_rps = target_rps
 
-    @magicbot.feedback
-    def get_measured_speed_rps(self) -> float:
+    def measuredSpeedRps(self) -> phoenix6.units.rotations_per_second:
         return self._velocity_signal.value
 
-    @magicbot.feedback
-    def get_target_rps(self) -> float:
-        return self._target_rps
+    def supplyCurrent(self) -> phoenix6.units.ampere:
+        return self.flywheel_motor.get_supply_current().value
 
-    @magicbot.feedback
-    def get_measured_rps(self) -> float:
-        return self.flywheel_encoder.get_velocity().value
+    def statorCurrent(self) -> phoenix6.units.ampere:
+        return self.flywheel_motor.get_stator_current().value
+
+    def _logData(self) -> None:
+        self.data_logger.logDouble(
+            "/components/flywheel/target_speed_rps",
+            self._target_rps,
+            on_change=True,
+        )
+        self.data_logger.logDouble(
+            "/components/flywheel/measured_speed_rps", self.measuredSpeedRps()
+        )
+        self.data_logger.logDouble(
+            "/components/flywheel/supply_current", self.supplyCurrent()
+        )
+        self.data_logger.logDouble(
+            "/components/flywheel/stator_current", self.statorCurrent()
+        )
 
 
 class FlywheelTuner:
@@ -217,11 +234,3 @@ class FlywheelTuner:
         )
         if not result.is_ok():
             self.logger.error("Failed to apply new gains to flywheel motor")
-
-    @magicbot.feedback
-    def get_motor_voltage(self) -> phoenix6.units.volt:
-        return self.flywheel_motor.get_motor_voltage().value
-
-    @magicbot.feedback
-    def get_motor_stator_current(self) -> phoenix6.units.ampere:
-        return self.flywheel_motor.get_stator_current().value
