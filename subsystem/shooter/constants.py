@@ -130,7 +130,7 @@ class TurretConstants:
     max_angle: units.degree = 180.0
     supply_current_limit: units.ampere = 40.0
     # TODO: Find a more accurate average
-    time_of_flight: units.second = 1.0
+    time_of_flight: units.second = 1.25
 
 
 @dataclass(frozen=True)
