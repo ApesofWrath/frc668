@@ -135,7 +135,7 @@ class MyRobot(magicbot.MagicRobot):
             # We call this here because the Vision component's execute method
             # does not get called when disabled.
             self.vision.setRobotOrientation()
-            self.drivetrain._maybeSetOperatorPerspectiveForward()
+            self.drivetrain.setOperatorPerspectiveForward()
 
         if not self._tuning_mode:
             self.shooter_state_machine.engage()
