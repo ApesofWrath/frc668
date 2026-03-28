@@ -79,7 +79,7 @@ class FlywheelConstants:
     k_p: float = 0.0
     k_i: float = 0.0
     k_d: float = 0.0
-    default_speed_rps: units.rotations_per_second = 1.0
+    default_speed_rps: units.rotations_per_second = 15.0
     supply_current_limit: units.ampere = 40.0
 
 
