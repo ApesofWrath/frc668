@@ -29,8 +29,8 @@ class HopperConstants:
     right_k_d: float = 0.0
     default_left_speed_rps: units.rotations_per_second = 50.0
     default_right_speed_rps: units.rotations_per_second = 50.0
-    supply_current_limit: units.ampere = 60.0
-    stator_current_limit: units.ampere = 150.0
+    supply_current_limit: units.ampere = 40.0
+    stator_current_limit: units.ampere = 120.0
     gear_reduction: float = 1.0
 
 
@@ -59,7 +59,7 @@ class IndexerConstants:
     front_k_i: float = 0.0
     front_k_d: float = 0.0
     default_speed_rps: units.rotations_per_second = 50.0
-    supply_current_limit: units.ampere = 40.0
+    supply_current_limit: units.ampere = 30.0
 
 
 @dataclass(frozen=True)
@@ -81,7 +81,7 @@ class FlywheelConstants:
     k_i: float = 0.0
     k_d: float = 0.0
     default_speed_rps: units.rotations_per_second = 15.0
-    supply_current_limit: units.ampere = 50.0
+    supply_current_limit: units.ampere = 40.0
 
 
 @dataclass(frozen=True)
