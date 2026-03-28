@@ -70,7 +70,10 @@ class AutoBase(magicbot.AutonomousStateMachine):
     @magicbot.state(first=True)
     def executing_trajectory(self, state_tm) -> None:
         """Executes the trajectory."""
-        if self._trajectory is None or state_tm > 20.0:
+        if (
+            self._trajectory is None
+            or state_tm > self._trajectory.get_total_time()
+        ):
             self.next_state("shooting_fuel")
             return
 
