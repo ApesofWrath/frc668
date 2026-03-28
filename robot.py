@@ -24,7 +24,6 @@ class MyRobot(magicbot.MagicRobot):
 
     intake_deployer: intake.IntakeDeployer
     shooter_state_machine: shooter.Shooter
-    alliance_fetcher: alliance.AllianceFetcher
 
     target_tracker: shooter.TargetTracker
     drivetrain: drivetrain.Drivetrain
@@ -113,6 +112,7 @@ class MyRobot(magicbot.MagicRobot):
             self.robot_constants.intake.deploy_encoder_can_bus,
         )
 
+        self.alliance_fetcher = alliance.AllianceFetcher()
         self.data_logger = datalog.DataLogger()
 
         self._tuning_mode = False

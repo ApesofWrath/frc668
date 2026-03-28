@@ -231,14 +231,16 @@ class Drivetrain(commands2.Subsystem):
     def _maybeSetOperatorPerspectiveForward(self) -> None:
         if self._operator_perspective_set:
             return
-        if self.alliance_fetcher.hasAlliance():
-            self.logger.info(f"Setting operator perspective for {alliance}")
-            self.swerve_drive.set_operator_perspective_forward(
-                drivetrain.constants.RED_ALLIANCE_PERSPECTIVE_ROTATION
-                if self.alliance_fetcher.isRedAlliance()
-                else drivetrain.constants.BLUE_ALLIANCE_PERSPECTIVE_ROTATION
-            )
-            self._operator_perspective_set = True
+
+        alliance = self.alliance_fetcher.get_alliance()
+        self.logger.info(f"Setting operator perspective for {alliance}")
+
+        self.swerve_drive.set_operator_perspective_forward(
+            drivetrain.constants.RED_ALLIANCE_PERSPECTIVE_ROTATION
+            if self.alliance_fetcher.isRedAlliance()
+            else drivetrain.constants.BLUE_ALLIANCE_PERSPECTIVE_ROTATION
+        )
+        self._operator_perspective_set = True
 
     @magicbot.feedback
     def get_robot_pose(self) -> geometry.Pose2d:
