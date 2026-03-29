@@ -28,6 +28,7 @@ components = [
 # Other pip packages to install
 requires = [
     "phoenix6",
+    "sleipnirgroup-choreolib",
     "limelightlib-python==0.9.6",
     "sleipnirgroup-choreolib==2026.0.2",
 ]

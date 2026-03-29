@@ -1,5 +1,9 @@
 import logging
 import math
+import wpilib
+
+from wpimath.geometry import Pose2d
+from phoenix6 import configs, hardware, swerve
 import typing
 
 import commands2
@@ -136,30 +140,14 @@ class Drivetrain(commands2.Subsystem):
             )
         )
 
-        # When set to True, the brake request will be used instead of the drive
-        # request.
-        self._brake_enabled = False
-        self._brake_request = (
+        self.xstance_request = (
             swerve.requests.SwerveDriveBrake().with_drive_request_type(
                 swerve.SwerveModule.DriveRequestType.VELOCITY
             )
         )
-
-        # When set to True, the auto request will be used instead of the brake
-        # or drive requests.
-        self._auto_enabled = False
-        self._auto_request = (
-            swerve.requests.ApplyFieldSpeeds()
-            .with_forward_perspective(
-                swerve.requests.ForwardPerspectiveValue.BLUE_ALLIANCE
-            )
-            .with_drive_request_type(
-                swerve.SwerveModule.DriveRequestType.VELOCITY
-            )
-        )
-
         self._operator_perspective_set = False
         self._maybeSetOperatorPerspectiveForward()
+        self.x_stance_enabled = False
 
     def execute(self) -> None:
         """Command the drivetrain to the current speeds.
@@ -169,15 +157,10 @@ class Drivetrain(commands2.Subsystem):
         self._maybeSetOperatorPerspectiveForward()
         if not self._operator_perspective_set:
             self.logger.warning("Driving without operator perspective set")
-
-        if self._auto_enabled:
-            self.swerve_drive.set_control(self._auto_request)
-        elif self._brake_enabled:
-            self.swerve_drive.set_control(self._brake_request)
+        if self.x_stance_enabled:
+            self.swerve_drive.set_control(self.xstance_request) 
         else:
             self.swerve_drive.set_control(self._drive_request)
-
-        self._logData()
 
     def setSpeeds(
         self,
@@ -188,37 +171,10 @@ class Drivetrain(commands2.Subsystem):
             command.vy
         ).with_rotational_rate(command.omega)
 
-    def followTrajectorySample(self, sample: choreo.SwerveSample) -> None:
-        """Follow a Choreo trajectory sample.
+    def setXStance(self, value: bool) -> None:
+        self.x_stance_enabled = value
 
-        Add corrections to the sample's velocities to stay on track. Use field
-        centric control requests, but always relative to blue alliance origin,
-        so that we don't have to negate the speeds.
-
-        Args:
-            sample:
-                The Choreo trajectory sample to follow.
-        """
-        pose = self.swerve_drive.get_state().pose
-        self._auto_request.with_speeds(
-            kinematics.ChassisSpeeds(
-                sample.vx + self._x_controller.calculate(pose.X(), sample.x),
-                sample.vy + self._y_controller.calculate(pose.Y(), sample.y),
-                sample.omega
-                + self._heading_controller.calculate(
-                    pose.rotation().radians(), sample.heading
-                ),
-            )
-        )
-
-    def stop(self) -> None:
-        """Stop the drivetrain."""
-        self._auto_request.with_speeds(kinematics.ChassisSpeeds(0, 0, 0))
-        self._drive_request.with_velocity_x(0).with_velocity_y(
-            0
-        ).with_rotational_rate(0)
-
-    def setPose(self, pose: geometry.Pose2d) -> None:
+    def setPose(self, pose: wpimath.geometry.Pose2d) -> None:
         """Hard reset the robot's pose estimate."""
         self.swerve_drive.reset_pose(pose)
 
@@ -231,7 +187,8 @@ class Drivetrain(commands2.Subsystem):
     def _maybeSetOperatorPerspectiveForward(self) -> None:
         if self._operator_perspective_set:
             return
-        if self.alliance_fetcher.hasAlliance():
+        alliance = wpilib.DriverStation.getAlliance()
+        if alliance:
             self.logger.info(f"Setting operator perspective for {alliance}")
             self.swerve_drive.set_operator_perspective_forward(
                 drivetrain.constants.RED_ALLIANCE_PERSPECTIVE_ROTATION

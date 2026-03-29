@@ -179,11 +179,14 @@ class Vision:
                 continue
 
 
-            # if self.check_for_one_bad_tag_case(ll):
-                # rejected_poses.append(pose)
-                # rejected_limelights.append(ll)
-                # rejected_reasons.append("Seeing only one bad tag")     
-                # continue
+            # if (
+            #     drivetrain_pose.translation().distance(pose.translation())
+            #     > vision_constants.max_diff_from_robot_pose
+            # ):
+            #     self.logger.warning(
+            #         f"{ll}: Rejected large jump: {drivetrain_pose.translation().distance(pose.translation())}m"
+            #     )
+            #     continue
 
             accepted_poses.append(pose)
             accepted_limelights.append(ll)
@@ -209,9 +212,9 @@ class Vision:
             "/components/vision/rejected_reasons", rejected_reasons
         )
 
-    def setStdDevs(self, xy_std_dev, theta_std_dev) -> None:
-        self._xy_std_dev = xy_std_dev
-        self._theta_std_dev = theta_std_dev
+    @magicbot.feedback
+    def get_limelight_fl(self) -> wpimath.geometry.Pose2d:
+        return limelight.LimelightHelpers.get_botpose_2d_wpiblue("limelight-fl")
 
 
     @magicbot.feedback
