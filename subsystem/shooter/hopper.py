@@ -58,6 +58,10 @@ class Hopper:
                     hopper_constants.supply_current_limit
                 )
                 .with_supply_current_limit_enable(True)
+                .with_stator_current_limit(
+                    hopper_constants.stator_current_limit
+                )
+                .with_stator_current_limit_enable(True)
             )
             .with_feedback(
                 phoenix6.configs.FeedbackConfigs().with_sensor_to_mechanism_ratio(

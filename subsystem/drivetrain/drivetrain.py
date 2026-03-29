@@ -158,17 +158,14 @@ class Drivetrain(commands2.Subsystem):
             )
         )
 
-        self._operator_perspective_set = False
-        self._maybeSetOperatorPerspectiveForward()
+        self.setOperatorPerspectiveForward()
 
     def execute(self) -> None:
         """Command the drivetrain to the current speeds.
 
         This method is called at the end of the control loop.
         """
-        self._maybeSetOperatorPerspectiveForward()
-        if not self._operator_perspective_set:
-            self.logger.warning("Driving without operator perspective set")
+        self.setOperatorPerspectiveForward()
 
         if self._auto_enabled:
             self.swerve_drive.set_control(self._auto_request)
@@ -228,17 +225,12 @@ class Drivetrain(commands2.Subsystem):
     def setAutoEnabled(self, value: bool) -> None:
         self._auto_enabled = value
 
-    def _maybeSetOperatorPerspectiveForward(self) -> None:
-        if self._operator_perspective_set:
-            return
-        if self.alliance_fetcher.hasAlliance():
-            self.logger.info(f"Setting operator perspective for {alliance}")
-            self.swerve_drive.set_operator_perspective_forward(
-                drivetrain.constants.RED_ALLIANCE_PERSPECTIVE_ROTATION
-                if self.alliance_fetcher.isRedAlliance()
-                else drivetrain.constants.BLUE_ALLIANCE_PERSPECTIVE_ROTATION
-            )
-            self._operator_perspective_set = True
+    def setOperatorPerspectiveForward(self) -> None:
+        self.swerve_drive.set_operator_perspective_forward(
+            drivetrain.constants.RED_ALLIANCE_PERSPECTIVE_ROTATION
+            if self.alliance_fetcher.isRedAlliance()
+            else drivetrain.constants.BLUE_ALLIANCE_PERSPECTIVE_ROTATION
+        )
 
     @magicbot.feedback
     def get_robot_pose(self) -> geometry.Pose2d:

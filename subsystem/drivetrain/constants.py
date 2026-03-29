@@ -58,7 +58,7 @@ class SwerveModuleCommonConstants:
         configs.TalonFXConfiguration
     ) = configs.TalonFXConfiguration().with_current_limits(
         configs.CurrentLimitsConfigs()
-        .with_supply_current_limit(40.0)
+        .with_supply_current_limit(35.0)
         .with_supply_current_limit_enable(True)
     )
     # The initial configs used to configure the steer motor of the swerve
@@ -67,7 +67,7 @@ class SwerveModuleCommonConstants:
         configs.TalonFXConfiguration
     ) = configs.TalonFXConfiguration().with_current_limits(
         configs.CurrentLimitsConfigs()
-        .with_supply_current_limit(40.0)
+        .with_supply_current_limit(30.0)
         .with_supply_current_limit_enable(True)
     )
     # The initial configs used to configure the azimuth encoder of the swerve
@@ -135,7 +135,7 @@ class VisionConstants:
     pose_y_max: float = 8.07
     # Average tag distance limit. Vision estimates whose average tag distance
     # exceeds this will be discarded.
-    average_tag_distance_threshold: float = 2.75
+    average_tag_distance_threshold: float = 3.0
     xy_std_dev: float = 0.5
     theta_std_dev: float = math.inf
     # Vision estimates that differ by more than this from the current robot pose
@@ -376,7 +376,7 @@ DRIVETRAIN_CONSTANTS: dict[str, DrivetrainConstants] = {
         trajectory_following=TrajectoryFollowingConstants(
             x_kp=1.0,
             y_kp=1.0,
-            heading_kp=5.0,
+            heading_kp=2.5,
         ),
     ),
 }
