@@ -59,44 +59,17 @@ class Vision:
             wpimath.geometry.Pose2d,
         ).publish()
 
-
-    # def _get_tids_for_ll(self, ll: str) -> list[int]:
-    #     tag_ids = []
-    #     pose_estimate = limelight.LimelightHelpers.get_botpose_estimate_wpiblue_megatag2(ll)
-    #     if pose_estimate and pose_estimate.tag_count > 0:
-    #         for apriltag in pose_estimate.raw_fiducials:
-    #             if apriltag.id not in tag_ids:
-    #                 tag_ids.append(apriltag.id)
-    #     return tag_ids
+        self._nt = ntcore.NetworkTableInstance.getDefault()
+        self._last_throttle_state: bool = False
 
 
-            # def check_for_one_bad_tag_case(self, ll):
-    #     bad_blue_tags = self.robot_constants.drivetrain.vision.bad_blue_tags
-    #     bad_red_tags = self.robot_constants.drivetrain.vision.bad_red_tags
-    #     alliance = wpilib.DriverStation.getAlliance()
-    #     is_red = alliance == wpilib.DriverStation.Alliance.kRed
-    #     is_blue = alliance == wpilib.DriverStation.Alliance.kBlue
-    #     tag_ids = self._get_tids_for_ll(ll)     
-    #     if is_red:
-    #         if len(tag_ids) == 1:
-    #             for apriltag in tag_ids:
-    #                 if apriltag in bad_red_tags:
-    #                     return False
-                    
-    #     if is_blue:
-    #         if len(tag_ids) == 1:
-    #             for apriltag in tag_ids:
-    #                 if apriltag in bad_blue_tags:
-    #                     return False
-        
-    #     return True
 
     def execute(self) -> None:
+        is_disabled = wpilib.DriverStation.isDisabled()
+        if is_disabled != self._last_throttle_state:
+            self.throttleLimelights(is_disabled)
+            self._last_throttle_state = is_disabled
         self.setRobotOrientation()
-        # if self.drivetrain.swerve_drive.pigeon2.get_pitch().value > 0.0:
-        #     self.drivetrain.swerve_drive.set_state_std_devs(math.inf, math.inf, math.inf)
-        # else:
-        #     self.drivetrain.swerve_drive.set_state_std_devs(0.0, 0.0, 0.0)
         self._updateRobotPose()
 
     def setImuMode(self, value: int) -> None:
@@ -115,7 +88,6 @@ class Vision:
         robot's latest yaw estimate periodically.
         """
         for ll in self._limelights:
-            pitch = self.drivetrain.swerve_drive.pigeon2.get_pitch().value
             limelight.LimelightHelpers.set_robot_orientation(
                 ll,
                 self.drivetrain.estimatedYawDegrees(),
@@ -212,30 +184,23 @@ class Vision:
             "/components/vision/rejected_reasons", rejected_reasons
         )
 
+
+    def throttleLimelights(self, value: bool) -> None:
+        """Throttle the limelights so they don't overheat."""
+        if value:
+            for ll in self._limelights:
+                limelight.LimelightHelpers.set_LED_to_force_off(ll)
+                self._nt.getTable(ll).getEntry("throttle_set").setInteger(150)
+        else:
+            for ll in self._limelights:
+                limelight.LimelightHelpers.set_LED_to_pipeline_control(ll)
+                self._nt.getTable(ll).getEntry("throttle_set").setInteger(0)
+
     @magicbot.feedback
     def get_limelight_fl(self) -> wpimath.geometry.Pose2d:
         return limelight.LimelightHelpers.get_botpose_2d_wpiblue("limelight-fl")
 
 
-    @magicbot.feedback
-    def _get_tids_for_limelight_upfr(self, ll: str) -> list[int]:
-        tag_ids = []
-        pose_estimate = limelight.LimelightHelpers.get_botpose_estimate_wpiblue_megatag2("upfr")
-        if pose_estimate and pose_estimate.tag_count > 0:
-            for apriltag in pose_estimate.raw_fiducials:
-                if apriltag.id not in tag_ids:
-                    tag_ids.append(apriltag.id)
-        return tag_ids
-    
-    @magicbot.feedback
-    def _get_tids_for_limelight_upfl(self, ll: str) -> list[int]:
-        tag_ids = []
-        pose_estimate = limelight.LimelightHelpers.get_botpose_estimate_wpiblue_megatag2("upfl")
-        if pose_estimate and pose_estimate.tag_count > 0:
-            for apriltag in pose_estimate.raw_fiducials:
-                if apriltag.id not in tag_ids:
-                    tag_ids.append(apriltag.id)
-        return tag_ids
 
 
 class VisionTuner:
@@ -255,23 +220,7 @@ class VisionTuner:
         self._limelights: list[str] = (
             self.robot_constants.drivetrain.vision.limelights
         )
-        self._nt = ntcore.NetworkTableInstance.getDefault()
 
     def execute(self) -> None:
         self.vision.setStdDevs(self.xy_std_dev, self.theta_std_dev)
 
-        if wpilib.DriverStation.isDisabled():
-            self.throttleLimelights(True)
-        else:
-            self.throttleLimelights(False)
-
-    def throttleLimelights(self, value: bool) -> None:
-        """Throttle the limelights so they don't overheat."""
-        if value:
-            for ll in self._limelights:
-                limelight.LimelightHelpers.set_LED_to_force_off(ll)
-                self._nt.getTable(ll).getEntry("throttle_set").setInteger(150)
-        else:
-            for ll in self._limelights:
-                limelight.LimelightHelpers.set_LED_to_pipeline_control(ll)
-                self._nt.getTable(ll).getEntry("throttle_set").setInteger(0)
