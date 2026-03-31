@@ -58,7 +58,7 @@ class SwerveModuleCommonConstants:
         configs.TalonFXConfiguration
     ) = configs.TalonFXConfiguration().with_current_limits(
         configs.CurrentLimitsConfigs()
-        .with_supply_current_limit(40.0)
+        .with_supply_current_limit(35.0)
         .with_supply_current_limit_enable(True)
     )
     # The initial configs used to configure the steer motor of the swerve
@@ -67,7 +67,7 @@ class SwerveModuleCommonConstants:
         configs.TalonFXConfiguration
     ) = configs.TalonFXConfiguration().with_current_limits(
         configs.CurrentLimitsConfigs()
-        .with_supply_current_limit(40.0)
+        .with_supply_current_limit(30.0)
         .with_supply_current_limit_enable(True)
     )
     # The initial configs used to configure the azimuth encoder of the swerve
