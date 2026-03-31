@@ -31,7 +31,7 @@ class TestChassis(magicbot.MagicRobot):
     def disabledPeriodic(self) -> None:
         # Periodically try to set operator perspective, in case we weren't able
         # to during setup.
-        self.drivetrain._maybeSetOperatorPerspectiveForward()
+        self.drivetrain.setOperatorPerspectiveForward()
 
     def teleopPeriodic(self) -> None:
         if self.joystick.resetOrientation():
