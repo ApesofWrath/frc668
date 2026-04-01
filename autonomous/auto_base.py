@@ -11,18 +11,22 @@ class AutoBase(magicbot.AutonomousStateMachine):
     """A base class for autonomous routines.
 
     This performs the following sequence of events:
-    1. Waits for a specified amount of time for the intake to deploy.
-    2. Executes the specified trajectory.
-    3. Shoots fuel for the specified duration.
-    4. Disables the intake and flywheel.
+    1. Executes the specified trajectory. Shoots on the move if configured.
+    2. Comes to a stop and shoots fuel for the specified duration.
+    3. Disables the intake and flywheel.
     """
 
     # The trajectory to follow. Every subclass *must* specifcy this.
     TRAJECTORY_NAME: str = ""
-    # The period of time in seconds to wait for the intake to deploy.
-    INTAKE_DEPLOY_DURATION_SECONDS: float = 1.0
-    # The period of time in seconds to shoot for in the shooting_fuel state.
-    SHOOT_DURATION_SECONDS: float = 8.0
+    # If set to True, shoot while executing the trajectory, when we are in our
+    # alliance zone.
+    SHOOT_ON_THE_MOVE = False
+    # If set to a positive value, shoot for this amount of time after the
+    # trajectory is executed.
+    SHOOT_DURATION_SECONDS: float = 0.0
+    # Alliance zone extents.
+    BLUE_ZONE_END_X_METERS: float = 5.189
+    RED_ZONE_END_X_METERS: float = 11.352
 
     alliance_fetcher: alliance.AllianceFetcher
     drivetrain: drivetrain.Drivetrain
@@ -64,19 +68,6 @@ class AutoBase(magicbot.AutonomousStateMachine):
         super().on_enable()
 
     @magicbot.state(first=True)
-    def deploying_intake(self, state_tm) -> None:
-        """Waits for the intake to deploy.
-
-        The deploy is initiated automatically, we just need to wait.
-        """
-        if (
-            self.intake_deployer.hasDeployed()
-            or state_tm >= self.INTAKE_DEPLOY_DURATION_SECONDS
-        ):
-            self.next_state("executing_trajectory")
-            return
-
-    @magicbot.state
     def executing_trajectory(self, state_tm) -> None:
         """Executes the trajectory."""
         if (
@@ -99,12 +90,35 @@ class AutoBase(magicbot.AutonomousStateMachine):
 
         self.drivetrain.followTrajectorySample(sample)
 
+        if state_tm < 1.0 or not self.SHOOT_ON_THE_MOVE:
+            return
+
+        # Shoot on the move, when in the alliance zone.
+        pose = self.drivetrain.get_robot_pose()
+        if self.alliance_fetcher.isRedAlliance():
+            if pose.X() > self.RED_ZONE_END_X_METERS:
+                # We're in the red alliance zone, shoot at the hub.
+                self.shooter_state_machine.setAuto(True)
+                self.shooter_state_machine.setDriverWantsFeed(True)
+            else:
+                # We're in the neutral zone, don't shoot.
+                self.shooter_state_machine.setAuto(True)
+                self.shooter_state_machine.setDriverWantsFeed(False)
+        else:
+            if pose.X() < self.BLUE_ZONE_END_X_METERS:
+                # We're in the blue alliance zone, shoot at the hub.
+                self.shooter_state_machine.setAuto(True)
+                self.shooter_state_machine.setDriverWantsFeed(True)
+            else:
+                # We're in the neutral zone, don't shoot.
+                self.shooter_state_machine.setAuto(True)
+                self.shooter_state_machine.setDriverWantsFeed(False)
+
     @magicbot.state
     def shooting_fuel(self, state_tm) -> None:
-        """Stops moving and shoots the fuel in the hopper."""
+        """Stops moving and shoots the fuel in the hub."""
         if state_tm >= self.SHOOT_DURATION_SECONDS:
             self.next_state("finished")
-            return
 
         self.drivetrain.stop()
         self.shooter_state_machine.setAuto(True)
