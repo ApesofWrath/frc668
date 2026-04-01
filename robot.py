@@ -28,7 +28,6 @@ class MyRobot(magicbot.MagicRobot):
 
     intake_deployer: intake.IntakeDeployer
     shooter_state_machine: shooter.Shooter
-    alliance_fetcher: alliance.AllianceFetcher
 
     target_tracker: shooter.TargetTracker
     drivetrain: drivetrain.Drivetrain
@@ -39,6 +38,7 @@ class MyRobot(magicbot.MagicRobot):
     intake: intake.Intake
     turret: shooter.Turret
     vision: drivetrain.Vision
+    rumble: joystick.DriverControllerRumble
 
     AutoHelper: AutoHelper.AutoHelper
 
@@ -119,6 +119,7 @@ class MyRobot(magicbot.MagicRobot):
             self.robot_constants.intake.deploy_encoder_can_bus,
         )
 
+        self.alliance_fetcher = alliance.AllianceFetcher()
         self.data_logger = datalog.DataLogger()
 
         self._tuning_mode = False
@@ -131,16 +132,12 @@ class MyRobot(magicbot.MagicRobot):
             for ll in self.vision._limelights:
                 limelight.LimelightHelpers.set_imu_mode(ll, 4)
         else:
-            auto_mode = self._automodes.chooser.getSelected()
-            if auto_mode and not self._auto_done:
-                # self.logger.info(f"Alliance: {self.alliance_fetcher.getAlliance()}")
-                # self.logger.info(f"Auto mode: {auto_mode.MODE_NAME}")
-                initial_pose = auto_mode.trajectory.get_initial_pose(wpilib.DriverStation.getAlliance() == wpilib.DriverStation.Alliance.kRed)
-                # self.logger.info(f"Initial pose: {initial_pose}")
-                self.drivetrain.swerve_drive.reset_pose(initial_pose)
-            for ll in self.vision._limelights:
-                limelight.LimelightHelpers.set_imu_mode(ll, 1)
-                self.vision.setRobotOrientation()
+            # Hard reset each lime light's yaw to the external IMU when disabled.
+            self.vision.setImuMode(1)
+            # We call this here because the Vision component's execute method
+            # does not get called when disabled.
+            self.vision.setRobotOrientation()
+            self.drivetrain.setOperatorPerspectiveForward()
 
         if not self._tuning_mode:
             self.shooter_state_machine.engage()
@@ -166,6 +163,19 @@ class MyRobot(magicbot.MagicRobot):
         self.logger.info("Entering autonomous mode")
         self._auto_done = True
 
+    def disabledInit(self) -> None:
+        """Initialize disabled mode.
+
+        This is called each time the robot enters disabled mode. The
+        `on_disable` method of all components are called before this method is
+        called.
+        """
+        self.logger.info("Robot disabled")
+        self.drivetrain.setAutoEnabled(False)
+        # This starts the log manager if it wasn't already started.
+        self.data_logger.flush()
+        self.driver_controller.setRumble(0.0)
+
     def disabledPeriodic(self) -> None:
         """Run during disabled mode.
 
@@ -179,12 +189,6 @@ class MyRobot(magicbot.MagicRobot):
             auto_mode = self._automodes.chooser.getSelected()
             if auto_mode is not None:
                 self.drivetrain.setPose(auto_mode.getInitialPose())
-
-        for ll in self.vision._limelights:
-            limelight.LimelightHelpers.set_imu_mode(ll, 1)
-            self.vision.setRobotOrientation()
-        self.drivetrain._maybeSetOperatorPerspectiveForward()
-        # self.logger.info(self._automodes.chooser.getSelected())
 
     def teleopInit(self) -> None:
         """Initialize teleoperated mode.

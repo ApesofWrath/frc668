@@ -58,7 +58,7 @@ class IndexerConstants:
     front_k_i: float = 0.0
     front_k_d: float = 0.0
     default_speed_rps: units.rotations_per_second = 50.0
-    supply_current_limit: units.ampere = 40.0
+    supply_current_limit: units.ampere = 30.0
 
 
 @dataclass(frozen=True)
@@ -79,7 +79,7 @@ class FlywheelConstants:
     k_p: float = 0.0
     k_i: float = 0.0
     k_d: float = 0.0
-    default_speed_rps: units.rotations_per_second = 1.0
+    default_speed_rps: units.rotations_per_second = 15.0
     supply_current_limit: units.ampere = 40.0
 
 
@@ -130,7 +130,7 @@ class TurretConstants:
     max_angle: units.degree = 180.0
     supply_current_limit: units.ampere = 40.0
     # TODO: Find a more accurate average
-    time_of_flight: units.second = 1.0
+    time_of_flight: units.second = 1.25
 
 
 @dataclass(frozen=True)
@@ -309,7 +309,7 @@ SHOOTER_CONSTANTS: dict[str, ShooterConstants] = {
             motor_can_id=14,
             motor_can_bus="rio",
             motor_inverted=signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE,
-            magnet_offset=-0.4465,
+            magnet_offset=0.06,
             k_s=0.5,
             k_g=0.15,
             k_p=500.0,
