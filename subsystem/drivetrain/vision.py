@@ -16,6 +16,7 @@ from ntcore import NetworkTableInstance
 import wpilib
 
 RADIANS_TO_DEGREES = 180.0 / math.pi
+DEGREES_TO_RADIANS = math.pi / 180.0
 
 
 class Vision:
@@ -97,6 +98,19 @@ class Vision:
                 0.0,
                 0.0,
             )
+    
+    def avg_dist_stds(self, distance) -> float:
+        return ((math.pow(distance, 2) / 23) - (distance/10) + 0.16)
+    
+    def rot_vel_stds(self, rot_vel) -> float:
+        return (((math.pow(rot_vel, 2)) / (10 * math.pi)) + 0.05)
+    
+    def vel_stds(self, vel) -> float:
+        return (math.pow(vel, 2) / 3)
+    
+    def tag_factor(n):
+        return max(0.5, 1.0 / math.sqrt(max(1, n)))
+
     def _updateRobotPose(self) -> None:
         """Updates our robot pose estimate with the latest vision measurements."""
         rejected_poses: list[wpimath.geometry.Pose2d] = []
@@ -107,6 +121,8 @@ class Vision:
         accepted_limelights: list[str] = []
 
         drivetrain_pose = self.drivetrain.get_robot_pose()
+        drivetrain_velocity = self.drivetrain.robotSpeeds()
+        drivetrain_yaw = self.drivetrain.swerve_drive.pigeon2.get_angular_velocity_z_world().value * DEGREES_TO_RADIANS
         vision_constants = self.robot_constants.drivetrain.vision
 
         for ll in self._limelights:
@@ -124,6 +140,14 @@ class Vision:
                 rejected_limelights.append(ll)
                 rejected_reasons.append("No tags seen")
                 continue
+
+            """
+            @param avg_distance
+            @param drivetrain_velocty / drivetrain_rotation_velocity
+            @param number_tags_seen
+            """
+            
+            
 
             if (
                 pose_estimate.avg_tag_dist
@@ -166,6 +190,21 @@ class Vision:
             synced_timestamp = utils.fpga_to_current_time(
                 pose_estimate.timestamp_seconds
             )
+
+            velocity_stds = self.vel_stds(drivetrain_velocity)
+            average_distance_stds = self.avg_dist_stds(pose_estimate.avg_tag_dist)
+            rotational_velocity_stds = self.rot_vel_stds(drivetrain_yaw)
+            factor = self.tag_factor()
+
+            self._xy_std_dev = average_distance_stds + 0.5 * velocity_stds + 0.2 * rotational_velocity_stds
+            self._theta_std_dev = self.rotational_velocity_stds + 0.5 * self.average_distance_stds
+
+            self._xy_std_dev *= factor
+            self._theta_std_dev *= max(0.7, factor)
+
+            self._xy_std_dev = min(max(self._xy_std_dev, 0.1), 3.0)
+            self._theta_std_dev = min(max(self._theta_std_dev, 0.05), 2.0)
+
             self.drivetrain.swerve_drive.add_vision_measurement(
                 pose_estimate.pose,
                 synced_timestamp,
