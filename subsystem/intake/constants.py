@@ -53,7 +53,7 @@ INTAKE_CONSTANTS: dict[str, IntakeConstants] = {
     "0323CA4B": IntakeConstants(
         roller_motor_can_id=41,
         roller_motor_can_bus="rio",
-        roller_motor_inverted=signals.InvertedValue.CLOCKWISE_POSITIVE,
+        roller_motor_inverted=signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE,
         deploy_motor_can_id=50,
         deploy_motor_can_bus="rio",
         deploy_motor_inverted=signals.InvertedValue.CLOCKWISE_POSITIVE,
