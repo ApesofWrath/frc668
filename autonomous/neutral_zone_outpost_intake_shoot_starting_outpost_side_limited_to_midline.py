@@ -1,7 +1,9 @@
 from autonomous import auto_base
 
 
-class NeutralZoneOutpostIntakeShootStartingOutpostSideLimitedToMidline(auto_base.AutoBase):
+class NeutralZoneOutpostIntakeShootStartingOutpostSideLimitedToMidline(
+    auto_base.AutoBase
+):
     """
     1. Start on the outpost-side bump.
     2. Drive over bump into the neutral zone, do 2 intake sweeps.

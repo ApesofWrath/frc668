@@ -1,7 +1,5 @@
 import wpilib
 
-from common import datalog
-
 
 class AllianceFetcher:
     """Fetches the current alliance and provides some helpers."""
