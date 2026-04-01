@@ -1,6 +1,3 @@
-import typing
-
-import magicbot
 import wpilib
 
 from common import datalog
@@ -11,12 +8,12 @@ class AllianceFetcher:
 
     def isBlueAlliance(self) -> bool:
         """Returns True if we are the blue alliance."""
-        return self.get_alliance() == wpilib.DriverStation.Alliance.kBlue
+        return self.getAlliance() == wpilib.DriverStation.Alliance.kBlue
 
     def isRedAlliance(self) -> bool:
         """Returns True if we are the red alliance."""
-        return self.get_alliance() == wpilib.DriverStation.Alliance.kRed
+        return self.getAlliance() == wpilib.DriverStation.Alliance.kRed
 
-    @magicbot.feedback
-    def get_alliance(self) -> wpilib.DriverStation.Alliance:
+    def getAlliance(self) -> wpilib.DriverStation.Alliance:
+        """Returns our alliance as reported by the DriverStation."""
         return wpilib.DriverStation.getAlliance()
