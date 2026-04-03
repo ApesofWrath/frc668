@@ -108,7 +108,7 @@ class Vision:
     def vel_stds(self, vel) -> float:
         return (math.pow(vel, 2) / 3)
     
-    def tag_factor(n):
+    def tag_factor(self, n: int):
         return max(0.5, 1.0 / math.sqrt(max(1, n)))
 
     def _updateRobotPose(self) -> None:
@@ -191,16 +191,21 @@ class Vision:
                 pose_estimate.timestamp_seconds
             )
 
-            velocity_stds = self.vel_stds(drivetrain_velocity)
+            # velocity_stds = math.sqrt(
+            #     math.pow(drivetrain_velocity.vx, 2)
+            #     + math.pow(drivetrain_velocity.vy, 2)
+            #     )
+
+
             average_distance_stds = self.avg_dist_stds(pose_estimate.avg_tag_dist)
-            rotational_velocity_stds = self.rot_vel_stds(drivetrain_yaw)
-            factor = self.tag_factor()
+            # rotational_velocity_stds = self.rot_vel_stds(drivetrain_yaw)
+            # factor = self.tag_factor()
 
-            self._xy_std_dev = average_distance_stds + 0.5 * velocity_stds + 0.2 * rotational_velocity_stds
-            self._theta_std_dev = self.rotational_velocity_stds + 0.5 * self.average_distance_stds
+            self._xy_std_dev = average_distance_stds # + 0.5 * velocity_stds + 0.2 * rotational_velocity_stds
+            self._theta_std_dev = 0.5 * average_distance_stds # + self.rotational_velocity_stds
 
-            self._xy_std_dev *= factor
-            self._theta_std_dev *= max(0.7, factor)
+            # self._xy_std_dev *= factor
+            # self._theta_std_dev *= max(0.7, factor)
 
             self._xy_std_dev = min(max(self._xy_std_dev, 0.1), 3.0)
             self._theta_std_dev = min(max(self._theta_std_dev, 0.05), 2.0)
@@ -261,5 +266,6 @@ class VisionTuner:
         )
 
     def execute(self) -> None:
-        self.vision.setStdDevs(self.xy_std_dev, self.theta_std_dev)
+        # self.vision.setStdDevs(self.xy_std_dev, self.theta_std_dev)
+        pass
 
