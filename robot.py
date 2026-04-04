@@ -7,7 +7,7 @@ import wpimath
 from phoenix6 import swerve, hardware
 
 import constants
-from common import alliance, datalog, joystick
+from common import alliance, datalog, joystick, power_management
 from subsystem import drivetrain, shooter, intake
 from subsystem.drivetrain import limelight
 
@@ -35,6 +35,7 @@ class MyRobot(magicbot.MagicRobot):
     turret: shooter.Turret
     vision: drivetrain.Vision
     rumble: joystick.DriverControllerRumble
+    power_management: power_management.PowerManagement
 
     def createObjects(self) -> None:
         """Create and initialize robot objects."""
@@ -119,6 +120,8 @@ class MyRobot(magicbot.MagicRobot):
         self._auto_done = False
 
     def robotPeriodic(self) -> None:
+        self.power_management.engage()
+        self.power_management._logData()
         if wpilib.DriverStation.isEnabled():
             # Deploy the intake.
             self.intake_deployer.deploy()

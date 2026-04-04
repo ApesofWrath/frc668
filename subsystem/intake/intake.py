@@ -25,6 +25,7 @@ class Intake:
         self._active_roller_speed_rps = (
             self.robot_constants.intake.active_roller_speed_rps
         )
+        self.intake_roller_current_limit = self.robot_constants.intake.roller_motor_supply_current_limit
 
         self.intake_roller_motor.configurator.apply(
             configs.TalonFXConfiguration()
@@ -45,7 +46,7 @@ class Intake:
             .with_current_limits(
                 configs.CurrentLimitsConfigs()
                 .with_supply_current_limit(
-                    self.robot_constants.intake.roller_motor_supply_current_limit
+                    self.intake_roller_current_limit
                 )
                 .with_supply_current_limit_enable(True)
             )
@@ -94,6 +95,9 @@ class Intake:
         """Toggle the intake roller between active and inactive."""
         self._active = not self._active
 
+    def getActive(self) -> bool:
+        return self._active
+
     def measuredSpeedRps(self) -> float:
         """Returns the measured speed of the roller in rotations per second.
 
@@ -102,6 +106,9 @@ class Intake:
         """
         return self.intake_roller_motor.get_velocity().value or 0.0
 
+    def setCurrentLimit(self, current_limit: float) -> None:
+        self.intake_roller_current_limit = current_limit
+        
     def rollerSupplyCurrent(self) -> units.ampere:
         """Returns the measured supply current to the roller motor."""
         return self.intake_roller_motor.get_supply_current().value or 0.0
@@ -109,7 +116,7 @@ class Intake:
     def rollerStatorCurrent(self) -> units.ampere:
         """Returns the measured stator current in the roller motor."""
         return self.intake_roller_motor.get_stator_current().value or 0.0
-
+    
     def _logData(self) -> None:
         """Writes useful data to the log."""
         self.data_logger.logBoolean(

@@ -24,7 +24,7 @@ class Drivetrain(commands2.Subsystem):
     def setup(self) -> None:
         constants = self.robot_constants.drivetrain
 
-        constants_factory: swerve.SwerveModuleConstantsFactory[
+        self.constants_factory: swerve.SwerveModuleConstantsFactory[
             configs.TalonFXConfiguration,
             configs.TalonFXConfiguration,
             configs.CANcoderConfiguration,
@@ -71,7 +71,7 @@ class Drivetrain(commands2.Subsystem):
             .with_pigeon2_id(constants.drivetrain.pigeon2_id)
             .with_pigeon2_configs(constants.drivetrain.pigeon2_configs),
             [
-                constants_factory.create_module_constants(
+                self.constants_factory.create_module_constants(
                     constants.front_left.steer_motor_id,
                     constants.front_left.drive_motor_id,
                     constants.front_left.encoder_id,
@@ -82,7 +82,7 @@ class Drivetrain(commands2.Subsystem):
                     constants.front_left.steer_motor_inverted,
                     constants.front_left.encoder_inverted,
                 ),
-                constants_factory.create_module_constants(
+                self.constants_factory.create_module_constants(
                     constants.front_right.steer_motor_id,
                     constants.front_right.drive_motor_id,
                     constants.front_right.encoder_id,
@@ -93,7 +93,7 @@ class Drivetrain(commands2.Subsystem):
                     constants.front_right.steer_motor_inverted,
                     constants.front_right.encoder_inverted,
                 ),
-                constants_factory.create_module_constants(
+                self.constants_factory.create_module_constants(
                     constants.back_left.steer_motor_id,
                     constants.back_left.drive_motor_id,
                     constants.back_left.encoder_id,
@@ -104,7 +104,7 @@ class Drivetrain(commands2.Subsystem):
                     constants.back_left.steer_motor_inverted,
                     constants.back_left.encoder_inverted,
                 ),
-                constants_factory.create_module_constants(
+                self.constants_factory.create_module_constants(
                     constants.back_right.steer_motor_id,
                     constants.back_right.drive_motor_id,
                     constants.back_right.encoder_id,
@@ -232,12 +232,48 @@ class Drivetrain(commands2.Subsystem):
             else drivetrain.constants.BLUE_ALLIANCE_PERSPECTIVE_ROTATION
         )
 
+    def setDriveMotorCurrentLimits(self, current_limit: float) -> None:
+        current_limit_configs = configs.TalonFXConfiguration().with_current_limits(
+                configs.CurrentLimitsConfigs()
+                    .with_supply_current_limit(
+                        current_limit
+                    )
+                    .with_supply_current_limit_enable(True)
+            )
+        self.swerve_drive.get_module(0).drive_motor.configurator.apply(current_limit_configs)
+        self.swerve_drive.get_module(1).drive_motor.configurator.apply(current_limit_configs)
+        self.swerve_drive.get_module(2).drive_motor.configurator.apply(current_limit_configs)
+        self.swerve_drive.get_module(3).drive_motor.configurator.apply(current_limit_configs)
+
+    def setSteerMotorCurrentLimits(self, current_limit: float) -> None:
+        current_limit_configs = configs.TalonFXConfiguration().with_current_limits(
+                configs.CurrentLimitsConfigs()
+                    .with_supply_current_limit(
+                        current_limit
+                    )
+                    .with_supply_current_limit_enable(True)
+            )
+        self.swerve_drive.get_module(0).steer_motor.configurator.apply(current_limit_configs)
+        self.swerve_drive.get_module(1).steer_motor.configurator.apply(current_limit_configs)
+        self.swerve_drive.get_module(2).steer_motor.configurator.apply(current_limit_configs)
+        self.swerve_drive.get_module(3).steer_motor.configurator.apply(current_limit_configs)
+
     @magicbot.feedback
     def get_robot_pose(self) -> geometry.Pose2d:
         return self.swerve_drive.get_state().pose
 
     def robotSpeeds(self) -> kinematics.ChassisSpeeds:
         return self.swerve_drive.get_state().speeds
+    
+    def _robotIsMoving(self) -> bool:
+        """Indicates if the robot's linear speed is over the threshold."""
+        robot_speed_mps = math.sqrt(
+            (self.robotSpeeds().vx**2) + (self.robotSpeeds().vy**2)
+        )
+        return robot_speed_mps > 0.1
+    
+    def getBrakeEnabled(self) -> bool:
+        return self._brake_enabled
 
     def rawYawDegrees(self) -> units.degree:
         return wpimath.inputModulus(

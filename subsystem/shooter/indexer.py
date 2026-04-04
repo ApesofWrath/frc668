@@ -26,6 +26,8 @@ class Indexer:
         indexer_constants: shooter.IndexerConstants = (
             self.robot_constants.shooter.indexer
         )
+        self.indexer_current_limit = indexer_constants.supply_current_limit
+
         # Configuration settings for back motor.
         self.indexer_back_motor.configurator.apply(
             phoenix6.configs.TalonFXConfiguration()
@@ -46,7 +48,7 @@ class Indexer:
             .with_current_limits(
                 phoenix6.configs.CurrentLimitsConfigs()
                 .with_supply_current_limit(
-                    indexer_constants.supply_current_limit
+                    self.indexer_current_limit
                 )
                 .with_supply_current_limit_enable(True)
             )
@@ -71,7 +73,7 @@ class Indexer:
             .with_current_limits(
                 phoenix6.configs.CurrentLimitsConfigs()
                 .with_supply_current_limit(
-                    indexer_constants.supply_current_limit
+                    self.indexer_current_limit
                 )
                 .with_supply_current_limit_enable(True)
             )
@@ -143,6 +145,9 @@ class Indexer:
             value: Set to True to enable the motors, False to disable them.
         """
         self._enabled = value
+
+    def setCurrentLimit(self, current_limit: float) -> None:
+        self.indexer_current_limit = current_limit
 
     def backMeasuredSpeedRps(self) -> phoenix6.units.rotations_per_second:
         return self.indexer_back_motor.get_velocity().value

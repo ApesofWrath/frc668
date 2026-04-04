@@ -108,6 +108,9 @@ class Shooter(magicbot.StateMachine):
     def setAuto(self, value: bool) -> None:
         self._auto = value
 
+    def getDriverWantsFeed(self) -> bool:
+        return self._driver_wants_feed
+
     def _shooterIsReady(self) -> bool:
         """Indicates if shooter components are close enough to their targets."""
         # These values were roughly tuned during drive testing.
@@ -141,14 +144,6 @@ class Shooter(magicbot.StateMachine):
             and (hood_error <= hood_tolerance_degrees)
             and (flywheel_error <= flywheel_tolerance_rotations_per_second)
         )
-
-    def _robotIsMoving(self, speed_threshold_mps: float = 0.1) -> bool:
-        """Indicates if the robot's linear speed is over the threshold."""
-        chassis_speeds: kinematics.ChassisSpeeds = self.drivetrain.robotSpeeds()
-        robot_speed_mps = math.sqrt(
-            (chassis_speeds.vx**2) + (chassis_speeds.vy**2)
-        )
-        return robot_speed_mps > speed_threshold_mps
 
     def _logData(self) -> None:
         self.data_logger.logBoolean(

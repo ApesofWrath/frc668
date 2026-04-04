@@ -36,6 +36,8 @@ class Hopper:
         hopper_constants: shooter.HopperConstants = (
             self.robot_constants.shooter.hopper
         )
+        self.hopper_current_limit = hopper_constants.supply_current_limit
+
         self.hopper_left_motor.configurator.apply(
             phoenix6.configs.TalonFXConfiguration()
             .with_motor_output(
@@ -55,7 +57,7 @@ class Hopper:
             .with_current_limits(
                 phoenix6.configs.CurrentLimitsConfigs()
                 .with_supply_current_limit(
-                    hopper_constants.supply_current_limit
+                    self.hopper_current_limit
                 )
                 .with_supply_current_limit_enable(True)
             )
@@ -84,7 +86,7 @@ class Hopper:
             .with_current_limits(
                 phoenix6.configs.CurrentLimitsConfigs()
                 .with_supply_current_limit(
-                    hopper_constants.supply_current_limit
+                    self.hopper_current_limit
                 )
                 .with_supply_current_limit_enable(True)
             )
@@ -162,6 +164,9 @@ class Hopper:
             value: Set to True to enable the motors, False to disable them.
         """
         self._enabled = value
+
+    def setCurrentLimit(self, current_limit: float) -> None:
+        self.hopper_current_limit = current_limit
 
     def leftMeasuredSpeedRps(self) -> phoenix6.units.rotations_per_second:
         return self.hopper_left_motor.get_velocity().value

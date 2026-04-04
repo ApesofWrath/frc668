@@ -37,6 +37,8 @@ class Turret:
         turret_constants: shooter.TurretConstants = (
             self.robot_constants.shooter.turret
         )
+        self.turret_current_limit = turret_constants.supply_current_limit
+
         self.turret_motor_configs = (
             phoenix6.configs.TalonFXConfiguration()
             .with_feedback(
@@ -88,7 +90,7 @@ class Turret:
             .with_current_limits(
                 phoenix6.configs.CurrentLimitsConfigs()
                 .with_supply_current_limit(
-                    turret_constants.supply_current_limit
+                    self.turret_current_limit
                 )
                 .with_supply_current_limit_enable(True)
             )
@@ -242,6 +244,9 @@ class Turret:
         self, feed_forward_mvt_value: phoenix6.units.volt
     ) -> None:
         self.feed_forward_movement = feed_forward_mvt_value
+
+    def setCurrentLimit(self, current_limit: float) -> None:
+        self.turret_current_limit = current_limit
 
     def isControlTypeVelocity(self) -> bool:
         """Get the type of turret control being used used: position or velocity"""

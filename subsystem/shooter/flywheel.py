@@ -26,6 +26,8 @@ class Flywheel:
         flywheel_constants: shooter.FlywheelConstants = (
             self.robot_constants.shooter.flywheel
         )
+        self.flywheel_current_limit = flywheel_constants.supply_current_limit
+
         self.flywheel_motor.configurator.apply(
             phoenix6.configs.TalonFXConfiguration()
             .with_feedback(
@@ -54,7 +56,7 @@ class Flywheel:
             .with_current_limits(
                 phoenix6.configs.CurrentLimitsConfigs()
                 .with_supply_current_limit(
-                    flywheel_constants.supply_current_limit
+                    self.flywheel_current_limit
                 )
                 .with_supply_current_limit_enable(True)
             )
@@ -107,12 +109,15 @@ class Flywheel:
         """
         self._target_rps = 0.0
 
+    def setCurrentLimit(self, current_limit: float) -> None:
+        self.flywheel_current_limit = current_limit
+
     def setTargetRps(self, target_rps: float) -> None:
         self._target_rps = target_rps
 
     def measuredSpeedRps(self) -> phoenix6.units.rotations_per_second:
         return self._velocity_signal.value
-
+    
     def supplyCurrent(self) -> phoenix6.units.ampere:
         return self.flywheel_motor.get_supply_current().value
 

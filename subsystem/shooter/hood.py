@@ -34,6 +34,8 @@ class Hood:
         hood_constants: shooter.HoodConstants = (
             self.robot_constants.shooter.hood
         )
+        self.hood_current_limit = hood_constants.supply_current_limit
+
         # TODO: Configure soft limits.
         self.hood_motor_configs = (
             phoenix6.configs.TalonFXConfiguration()
@@ -77,7 +79,7 @@ class Hood:
             )
             .with_current_limits(
                 phoenix6.configs.CurrentLimitsConfigs()
-                .with_supply_current_limit(hood_constants.supply_current_limit)
+                .with_supply_current_limit(self.hood_current_limit)
                 .with_supply_current_limit_enable(True)
             )
         )
@@ -176,6 +178,9 @@ class Hood:
             use_speed: The type of controller that should be used. True for manual speed control, False for position control.
         """
         self._is_speed_controlled = use_speed
+
+    def setCurrentLimit(self, current_limit: float) -> None:
+        self.hood_current_limit = current_limit
 
     def isControlTypeSpeed(self) -> bool:
         """Get the type of hood control being used: position or speed"""
