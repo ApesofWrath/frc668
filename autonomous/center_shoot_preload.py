@@ -6,3 +6,4 @@ class CenterShootPreload(auto_base.AutoBase):
 
     MODE_NAME = "Center Shoot Preload"
     TRAJECTORY_NAME = "center_shoot_preload"
+    SHOOT_DURATION_SECONDS = 8.0

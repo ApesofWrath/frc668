@@ -293,7 +293,7 @@ class TurretTuner:
     turret_motor: phoenix6.hardware.TalonFX
     turret_encoder: phoenix6.hardware.CANcoder
     turret: Turret
-    hub_tracker: shooter.HubTracker
+    target_tracker: shooter.TargetTracker
 
     # Gains for position control of the turret.
     position_k_s = magicbot.tunable(0.0)
@@ -394,9 +394,11 @@ class TurretTuner:
         self.turret.setVelocity(self.target_velocity)
         self.turret.setControlType(self.use_velocity)
         self.turret.setMotionMagicFeedForward(self.mm_feed_forward)
-        self.hub_tracker.trackPosition(self.auto_track)
-        self.hub_tracker.trackSpeed(self.auto_track)
-        self.hub_tracker.setTurretFeedForwardMultiplier(self.mvt_feed_forward)
+        self.target_tracker.trackPosition(self.auto_track)
+        self.target_tracker.trackSpeed(self.auto_track)
+        self.target_tracker.setTurretFeedForwardMultiplier(
+            self.mvt_feed_forward
+        )
 
         # We only want to reapply the gains if they changed. The TalonFX motor
         # doesn't like being reconfigured constantly.

@@ -8,7 +8,7 @@ from .constants import (
     SHOOTER_CONSTANTS,
 )
 from .hood import Hood, HoodTuner
-from .hub_tracker import HubTracker
+from .target_tracker import TargetTracker
 from .turret import Turret, TurretTuner
 from .flywheel import Flywheel, FlywheelTuner
 from .hopper import Hopper, HopperTuner
@@ -26,5 +26,6 @@ __all__ = [
     "IndexerConstants",
     "Turret",
     "TurretConstants",
+    "TargetTracker",
     "SHOOTER_CONSTANTS",
 ]

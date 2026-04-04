@@ -24,9 +24,8 @@ class MyRobot(magicbot.MagicRobot):
 
     intake_deployer: intake.IntakeDeployer
     shooter_state_machine: shooter.Shooter
-    alliance_fetcher: alliance.AllianceFetcher
 
-    hub_tracker: shooter.HubTracker
+    target_tracker: shooter.TargetTracker
     drivetrain: drivetrain.Drivetrain
     flywheel: shooter.Flywheel
     hopper: shooter.Hopper
@@ -35,6 +34,7 @@ class MyRobot(magicbot.MagicRobot):
     intake: intake.Intake
     turret: shooter.Turret
     vision: drivetrain.Vision
+    rumble: joystick.DriverControllerRumble
 
     def createObjects(self) -> None:
         """Create and initialize robot objects."""
@@ -112,6 +112,7 @@ class MyRobot(magicbot.MagicRobot):
             self.robot_constants.intake.deploy_encoder_can_bus,
         )
 
+        self.alliance_fetcher = alliance.AllianceFetcher()
         self.data_logger = datalog.DataLogger()
 
         self._tuning_mode = False
@@ -121,30 +122,29 @@ class MyRobot(magicbot.MagicRobot):
         if wpilib.DriverStation.isEnabled():
             # Deploy the intake.
             self.intake_deployer.deploy()
-            # Just use the Limelight's internal IMUs when we're enabled. Ideally
-            # we want to provide an assist from the external IMU, but testing
-            # shows that our network traffic is causing latencies large enough
-            # that the Limelights lag by a noticeable amount when using external
-            # IMU for corrections.
+            # Always use external IMU to seed heading for the Limelights. This
+            # will make localization worse when rotating fast, but it converges
+            # much faster after rotation slows/stops.
             #
-            # This is probably because of all the data we are publishing on NT.
-            self.vision.setImuMode(4)
+            # We were seeing very slow convergence on IMU mode 4.
+            # TODO: Try playing with the alpha values.
+            self.vision.setImuMode(1)
         else:
             # Hard reset each lime light's yaw to the external IMU when disabled.
             self.vision.setImuMode(1)
             # We call this here because the Vision component's execute method
             # does not get called when disabled.
             self.vision.setRobotOrientation()
-            self.drivetrain._maybeSetOperatorPerspectiveForward()
+            self.drivetrain.setOperatorPerspectiveForward()
 
         if not self._tuning_mode:
             self.shooter_state_machine.engage()
         else:
-            # In tuning mode, have hub tracker actively track, but don't command
+            # In tuning mode, have target tracker actively track, but don't command
             # the mechanisms.
-            self.hub_tracker.trackPosition(True)
-            self.hub_tracker.trackSpeed(True)
-            self.hub_tracker.setEnabled(False)
+            self.target_tracker.trackPosition(True)
+            self.target_tracker.trackSpeed(True)
+            self.target_tracker.setEnabled(False)
 
         super().robotPeriodic()
 
@@ -167,10 +167,9 @@ class MyRobot(magicbot.MagicRobot):
         """
         self.logger.info("Robot disabled")
         self.drivetrain.setAutoEnabled(False)
-        self.vision._pose_seeded = False
-        self.vision.imu_four = False
         # This starts the log manager if it wasn't already started.
         self.data_logger.flush()
+        self.driver_controller.setRumble(0.0)
 
     def disabledPeriodic(self) -> None:
         """Run during disabled mode.
@@ -185,11 +184,6 @@ class MyRobot(magicbot.MagicRobot):
             auto_mode = self._automodes.chooser.getSelected()
             if auto_mode is not None:
                 self.drivetrain.setPose(auto_mode.getInitialPose())
-
-        for ll in self.vision._limelights:
-            limelight.LimelightHelpers.set_imu_mode(ll, 1)
-            self.vision.setRobotOrientation()
-        self.drivetrain._maybeSetOperatorPerspectiveForward()
 
     def teleopInit(self) -> None:
         """Initialize teleoperated mode.
@@ -240,28 +234,28 @@ class MyRobot(magicbot.MagicRobot):
         if self.driver_controller.shootFromLeftTrench():
             self.shooter_state_machine.setAuto(False)
             self.shooter_state_machine.setDriverWantsFeed(True)
-            self.hub_tracker.setTargetTurretAngleDegrees(4.268)
-            self.hub_tracker.setTargetHoodAngleDegrees(4.8)
-            self.hub_tracker.setTargetFlywheelSpeedRps(30.8)
+            self.target_tracker.setTargetTurretAngleDegrees(4.268)
+            self.target_tracker.setTargetHoodAngleDegrees(4.8)
+            self.target_tracker.setTargetFlywheelSpeedRps(30.8)
         elif self.driver_controller.shootFromRightTrench():
             self.shooter_state_machine.setAuto(False)
             self.shooter_state_machine.setDriverWantsFeed(True)
-            self.hub_tracker.setTargetTurretAngleDegrees(-4.268)
-            self.hub_tracker.setTargetHoodAngleDegrees(4.8)
-            self.hub_tracker.setTargetFlywheelSpeedRps(30.8)
+            self.target_tracker.setTargetTurretAngleDegrees(-4.268)
+            self.target_tracker.setTargetHoodAngleDegrees(4.8)
+            self.target_tracker.setTargetFlywheelSpeedRps(30.8)
         elif self.driver_controller.shootFromBehindTower():
             self.shooter_state_machine.setAuto(False)
             self.shooter_state_machine.setDriverWantsFeed(True)
-            self.hub_tracker.setTargetTurretAngleDegrees(94.85)
-            self.hub_tracker.setTargetHoodAngleDegrees(6.9)
-            self.hub_tracker.setTargetFlywheelSpeedRps(33.8)
+            self.target_tracker.setTargetTurretAngleDegrees(94.85)
+            self.target_tracker.setTargetHoodAngleDegrees(6.9)
+            self.target_tracker.setTargetFlywheelSpeedRps(33.8)
         else:
             self.shooter_state_machine.setAuto(True)
             if self.driver_controller.feedFuel():
                 self.shooter_state_machine.setDriverWantsFeed(True)
             else:
                 self.shooter_state_machine.setDriverWantsFeed(False)
-                self.hub_tracker.setTargetFlywheelSpeedRps(0.0)
+                self.target_tracker.setTargetFlywheelSpeedRps(0.0)
 
     def controlIntake(self) -> None:
         """Drive the intake motors."""
