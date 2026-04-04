@@ -104,11 +104,11 @@ class TimeTable:
         Returns:
             A tuple containing the target hood angle in degrees and flywheel
             speed in rotations per second.
-        """
+         """
         if distance_meters <= cls._TABLE[0][0]:
-            return cls._TABLE[0][1], cls._TABLE[0][2]
+            return cls._TABLE[0][1]
         if distance_meters >= cls._TABLE[-1][0]:
-            return cls._TABLE[-1][1], cls._TABLE[-1][2]
+            return cls._TABLE[-1][1]
 
         idx = bisect.bisect_left(cls._DISTANCES, distance_meters) - 1
 
@@ -418,12 +418,13 @@ class TargetTracker:
         )
 
         for i in range(3):
-            self.time_of_flight = TimeTable.get(self.get_turret_current_distance_from_hub_meters())
+            self.time_of_flight = TimeTable.get(self.currentTurretDistanceFromTargetMeters())
             self.movement_vector = (geometry.Translation2d(turret_vx, turret_vy)) * self.time_of_flight 
             i+=1
 
         return self.movement_vector
 
+    @magicbot.feedback
     def currentTurretDistanceFromTargetMeters(self) -> phoenix6.units.meter:
         """Returns the current absolute distance of the turret from the target."""
         # Vector from center of turret to center of target.
