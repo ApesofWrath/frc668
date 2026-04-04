@@ -5,9 +5,14 @@ from phoenix6 import signals, units
 
 @dataclass(frozen=True)
 class IntakeConstants:
-    roller_motor_can_id: int = 0
-    roller_motor_can_bus: str = ""
-    roller_motor_inverted: signals.InvertedValue = (
+    roller_top_motor_can_id: int = 0
+    roller_top_motor_can_bus: str = ""
+    roller_top_motor_inverted: signals.InvertedValue = (
+        signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
+    )
+    roller_bottom_motor_can_id: int = 0
+    roller_bottom_motor_can_bus: str = ""
+    roller_bottom_motor_inverted: signals.InvertedValue = (
         signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
     )
     roller_motor_supply_current_limit: units.ampere = 40.0
@@ -16,7 +21,7 @@ class IntakeConstants:
     deploy_motor_inverted: signals.InvertedValue = (
         signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
     )
-    deploy_motor_supply_current_limit: units.ampere = 10.0
+    deploy_motor_supply_current_limit: units.ampere = 20.0
     deploy_encoder_can_id: int = 0
     deploy_encoder_can_bus: str = ""
     deploy_encoder_direction: signals.SensorDirectionValue = (
@@ -32,14 +37,16 @@ class IntakeConstants:
     k_i: float = 0.0
     k_d: float = 0.0
     active_roller_speed_rps: float = 0.0
+    sensor_to_mechanism_ratio: float = 1.0
+    rotor_to_sensor_ratio: float = 1.0
 
 
 INTAKE_CONSTANTS: dict[str, IntakeConstants] = {
     # Alphabot
     "023AC96C": IntakeConstants(
-        roller_motor_can_id=41,
-        roller_motor_can_bus="Shooter",
-        roller_motor_inverted=signals.InvertedValue.CLOCKWISE_POSITIVE,
+        roller_top_motor_can_id=41,
+        roller_top_motor_can_bus="Shooter",
+        roller_top_motor_inverted=signals.InvertedValue.CLOCKWISE_POSITIVE,
         # TODO: Tune.
         k_s=0.0,
         k_v=0.0,
@@ -51,9 +58,12 @@ INTAKE_CONSTANTS: dict[str, IntakeConstants] = {
     ),
     # Juno
     "0323CA4B": IntakeConstants(
-        roller_motor_can_id=41,
-        roller_motor_can_bus="rio",
-        roller_motor_inverted=signals.InvertedValue.CLOCKWISE_POSITIVE,
+        roller_top_motor_can_id=41,
+        roller_top_motor_can_bus="rio",
+        roller_top_motor_inverted=signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE,
+        roller_bottom_motor_can_id=42,
+        roller_bottom_motor_can_bus="rio",
+        roller_bottom_motor_inverted=signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE,
         deploy_motor_can_id=50,
         deploy_motor_can_bus="rio",
         deploy_motor_inverted=signals.InvertedValue.CLOCKWISE_POSITIVE,
@@ -68,6 +78,7 @@ INTAKE_CONSTANTS: dict[str, IntakeConstants] = {
         k_p=0.2,
         k_i=0.0,
         k_d=0.0,
-        active_roller_speed_rps=100.0,
+        active_roller_speed_rps=50.0,
+        sensor_to_mechanism_ratio=1.79,
     ),
 }

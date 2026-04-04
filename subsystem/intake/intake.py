@@ -12,7 +12,8 @@ class Intake:
     """
 
     robot_constants: constants.RobotConstants
-    intake_roller_motor: hardware.TalonFX
+    intake_roller_top_motor: hardware.TalonFX
+    intake_roller_bottom_motor: hardware.TalonFX
     data_logger: datalog.DataLogger
 
     def setup(self) -> None:
@@ -26,11 +27,11 @@ class Intake:
             self.robot_constants.intake.active_roller_speed_rps
         )
 
-        self.intake_roller_motor.configurator.apply(
+        self.intake_roller_top_motor.configurator.apply(
             configs.TalonFXConfiguration()
             .with_motor_output(
                 configs.MotorOutputConfigs().with_inverted(
-                    self.robot_constants.intake.roller_motor_inverted
+                    self.robot_constants.intake.roller_top_motor_inverted
                 )
             )
             .with_slot0(
@@ -49,6 +50,48 @@ class Intake:
                 )
                 .with_supply_current_limit_enable(True)
             )
+            .with_feedback(
+                configs.FeedbackConfigs()
+                .with_sensor_to_mechanism_ratio(
+                    self.robot_constants.intake.sensor_to_mechanism_ratio
+                )
+                .with_rotor_to_sensor_ratio(
+                    self.robot_constants.intake.rotor_to_sensor_ratio
+                )
+            )
+        )
+        self.intake_roller_bottom_motor.configurator.apply(
+            configs.TalonFXConfiguration()
+            .with_motor_output(
+                configs.MotorOutputConfigs().with_inverted(
+                    self.robot_constants.intake.roller_bottom_motor_inverted
+                )
+            )
+            .with_slot0(
+                configs.Slot0Configs()
+                .with_k_s(self.robot_constants.intake.k_s)
+                .with_k_v(self.robot_constants.intake.k_v)
+                .with_k_a(self.robot_constants.intake.k_a)
+                .with_k_p(self.robot_constants.intake.k_p)
+                .with_k_i(self.robot_constants.intake.k_i)
+                .with_k_d(self.robot_constants.intake.k_d)
+            )
+            .with_current_limits(
+                configs.CurrentLimitsConfigs()
+                .with_supply_current_limit(
+                    self.robot_constants.intake.roller_motor_supply_current_limit
+                )
+                .with_supply_current_limit_enable(True)
+            )
+            .with_feedback(
+                configs.FeedbackConfigs()
+                .with_sensor_to_mechanism_ratio(
+                    self.robot_constants.intake.sensor_to_mechanism_ratio
+                )
+                .with_rotor_to_sensor_ratio(
+                    self.robot_constants.intake.rotor_to_sensor_ratio
+                )
+            )
         )
 
         self._request = controls.VelocityVoltage(0.0).with_slot(0)
@@ -63,7 +106,8 @@ class Intake:
         else:
             self._request.with_velocity(0.0)
 
-        self.intake_roller_motor.set_control(self._request)
+        self.intake_roller_top_motor.set_control(self._request)
+        self.intake_roller_bottom_motor.set_control(self._request)
 
         self._logData()
 
@@ -94,21 +138,29 @@ class Intake:
         """Toggle the intake roller between active and inactive."""
         self._active = not self._active
 
-    def measuredSpeedRps(self) -> float:
-        """Returns the measured speed of the roller in rotations per second.
+    def topMeasuredSpeedRps(self) -> float:
+        """Returns the measured speed of the top motor in rotations per second."""
+        return self.intake_roller_top_motor.get_velocity().value or 0.0
 
-        Note that this is measured from the motor, as there is no external
-        encoder for the intake roller.
-        """
-        return self.intake_roller_motor.get_velocity().value or 0.0
+    def bottomMeasuredSpeedRps(self) -> float:
+        """Returns the measured speed of the bottom motor in rotations per second."""
+        return self.intake_roller_bottom_motor.get_velocity().value or 0.0
 
-    def rollerSupplyCurrent(self) -> units.ampere:
-        """Returns the measured supply current to the roller motor."""
-        return self.intake_roller_motor.get_supply_current().value or 0.0
+    def rollerTopSupplyCurrent(self) -> units.ampere:
+        """Returns the measured supply current to the top roller motor."""
+        return self.intake_roller_top_motor.get_supply_current().value or 0.0
 
-    def rollerStatorCurrent(self) -> units.ampere:
-        """Returns the measured stator current in the roller motor."""
-        return self.intake_roller_motor.get_stator_current().value or 0.0
+    def rollerBottomSupplyCurrent(self) -> units.ampere:
+        """Returns the measured supply current to the bottom roller motor."""
+        return self.intake_roller_bottom_motor.get_supply_current().value or 0.0
+
+    def rollerTopStatorCurrent(self) -> units.ampere:
+        """Returns the measured stator current in the top roller motor."""
+        return self.intake_roller_top_motor.get_stator_current().value or 0.0
+
+    def rollerBottomStatorCurrent(self) -> units.ampere:
+        """Returns the measured stator current in the bottom roller motor."""
+        return self.intake_roller_bottom_motor.get_stator_current().value or 0.0
 
     def _logData(self) -> None:
         """Writes useful data to the log."""
@@ -121,13 +173,28 @@ class Intake:
             on_change=True,
         )
         self.data_logger.logDouble(
-            "/components/intake/measured_speed_rps", self.measuredSpeedRps()
+            "/components/intake/top_measured_speed_rps",
+            self.topMeasuredSpeedRps(),
         )
         self.data_logger.logDouble(
-            "/components/intake/supply_current", self.rollerSupplyCurrent()
+            "/components/intake/top_supply_current",
+            self.rollerTopSupplyCurrent(),
         )
         self.data_logger.logDouble(
-            "/components/intake/stator_current", self.rollerStatorCurrent()
+            "/components/intake/top_stator_current",
+            self.rollerTopStatorCurrent(),
+        )
+        self.data_logger.logDouble(
+            "/components/intake/bottom_measured_speed_rps",
+            self.bottomMeasuredSpeedRps(),
+        )
+        self.data_logger.logDouble(
+            "/components/intake/bottom_supply_current",
+            self.rollerBottomSupplyCurrent(),
+        )
+        self.data_logger.logDouble(
+            "/components/intake/bottom_stator_current",
+            self.rollerBottomStatorCurrent(),
         )
 
 
@@ -139,7 +206,8 @@ class IntakeTuner:
     """
 
     robot_constants: constants.RobotConstants
-    intake_roller_motor: hardware.TalonFX
+    intake_roller_top_motor: hardware.TalonFX
+    intake_roller_bottom_motor: hardware.TalonFX
     intake: Intake
 
     # Gains for velocity control of the intake.
@@ -214,7 +282,7 @@ class IntakeTuner:
 
     def applyGains(self) -> None:
         """Apply the current gains to the motor."""
-        result = self.intake_roller_motor.configurator.apply(
+        result = self.intake_roller_top_motor.configurator.apply(
             configs.config_groups.Slot0Configs()
             .with_k_s(self.k_s)
             .with_k_v(self.k_v)
@@ -224,4 +292,25 @@ class IntakeTuner:
             .with_k_d(self.k_d)
         )
         if not result.is_ok():
-            self.logger.error("Failed to apply new gains to intake motor")
+            self.logger.error("Failed to apply new gains to top intake motor")
+        result = self.intake_roller_bottom_motor.configurator.apply(
+            configs.config_groups.Slot0Configs()
+            .with_k_s(self.k_s)
+            .with_k_v(self.k_v)
+            .with_k_a(self.k_a)
+            .with_k_p(self.k_p)
+            .with_k_i(self.k_i)
+            .with_k_d(self.k_d)
+        )
+        if not result.is_ok():
+            self.logger.error(
+                "Failed to apply new gains to bottom intake motor"
+            )
+
+    @magicbot.feedback
+    def get_top_measured_speed_rps(self) -> float:
+        return self.intake.topMeasuredSpeedRps()
+
+    @magicbot.feedback
+    def get_bottom_measured_speed_rps(self) -> float:
+        return self.intake.bottomMeasuredSpeedRps()
