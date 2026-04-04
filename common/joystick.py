@@ -120,6 +120,10 @@ class DriverController:
         pushed around too easily.
         """
         return self._controller.getYButton()
+    
+    def shakeIntake(self) -> bool:
+        """Returns True if the driver wants to shake the intake in order to jolt the fuel in the hopper."""
+        return self._controller.getLeftTriggerAxis()
 
     def setRumble(self, rumble_value: float) -> None:
         """Set both rumble motors in the controller to the provided value."""

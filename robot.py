@@ -261,3 +261,6 @@ class MyRobot(magicbot.MagicRobot):
         """Drive the intake motors."""
         if self.driver_controller.toggleIntake():
             self.intake.toggleActive()
+
+        if self.driver_controller.shakeIntake():
+            self.intake_deployer.shake_intake()

@@ -1,6 +1,6 @@
 import magicbot
 import phoenix6
-import wpilib
+from wpilib import Timer
 
 import constants
 from common import datalog
@@ -18,6 +18,7 @@ class IntakeDeployer(magicbot.StateMachine):
     intake_deploy_encoder: phoenix6.hardware.CANcoder
     intake: intake.Intake
     data_logger: datalog.DataLogger
+    timer: Timer
 
     def __init__(self):
         self._deployed = False
@@ -105,6 +106,13 @@ class IntakeDeployer(magicbot.StateMachine):
         self.logger.error("Intake deploy timed out!")
         self.intake_deploy_motor.set(0.0)
         self.done()
+
+    def shake_intake(self) -> None:
+        self.timer.restart()
+        self.intake_deploy_motor.set(-0.1)
+        if self.timer.advanceIfElapsed(0.1):
+            self.intake_deploy_motor.set(0.1)
+            self.timer.restart()        
 
     def encoderPositionRotations(self) -> phoenix6.units.rotation:
         return self.intake_deploy_encoder.get_position().value
