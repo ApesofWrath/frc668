@@ -2,7 +2,6 @@ import math
 
 import magicbot
 from wpimath import kinematics
-from phoenix6 import swerve 
 
 import constants
 from common import datalog
@@ -50,9 +49,9 @@ class Shooter(magicbot.StateMachine):
 
         # Idle the flywheel to save power, but have the turret and hood track
         # position.
-        self.hub_tracker.trackPosition(self._auto)
-        self.hub_tracker.trackSpeed(False)
-        self.hub_tracker.setTargetFlywheelSpeedRps(
+        self.target_tracker.trackPosition(self._auto)
+        self.target_tracker.trackSpeed(False)
+        self.target_tracker.setTargetFlywheelSpeedRps(
             self.robot_constants.shooter.flywheel.default_speed_rps
         )
 
