@@ -4,7 +4,7 @@ import magicbot
 import constants 
 from phoenix6 import units 
 from subsystem import shooter, drivetrain, intake  
-import datalog
+from common import datalog 
 
 class PowerManagement(magicbot.StateMachine):
     turret: shooter.Turret
@@ -15,7 +15,7 @@ class PowerManagement(magicbot.StateMachine):
     drivetrain: drivetrain.Drivetrain 
     intake: intake.Intake 
     intake_deployer: intake.IntakeDeployer
-    shooter: shooter.Shooter 
+    shooter_state_machine: shooter.Shooter 
     robot_constants: constants.RobotConstants
     data_logger: datalog.DataLogger
 
@@ -147,10 +147,10 @@ class PowerManagement(magicbot.StateMachine):
             self.next_state_now("driving_and_shooting") 
 
     def computeTotalCurrentDrawn(self) -> units.ampere:
-        intake_currents = self.intake.rollerSupplyCurrent() + self.intake_deployer.deploySupplyCurrent() 
-        drive_currents = self.drivetrain.backLeftDriveSupplyCurrent() + self.drivetrain.frontLeftDriveSupplyCurrent() + self.drivetrain.backRightDriveSupplyCurrent() + self.drivetrain.frontRightDriveSupplyCurrent()
-        steer_currents = self.drivetrain.backLeftSteerSupplyCurrent() + self.drivetrain.frontLeftSteerSupplyCurrent() + self.drivetrain.backRightSteerSupplyCurrent() + self.drivetrain.frontRightSteerSupplyCurrent()
-        shooter_currents = self.turret.supplyCurrent() + self.hood.supplyCurrent() + self.flywheel.supplyCurrent() + self.indexer.frontSupplyCurrent + self.indexer.backSupplyCurrent + self.hopper.leftSupplyCurrent + self.hopper.rightSupplyCurrent
+        intake_currents = float(self.intake.rollerSupplyCurrent()) + float(self.intake_deployer.deploySupplyCurrent()) 
+        drive_currents = float(self.drivetrain.backLeftDriveSupplyCurrent()) + float(self.drivetrain.frontLeftDriveSupplyCurrent()) + float(self.drivetrain.backRightDriveSupplyCurrent()) + float(self.drivetrain.frontRightDriveSupplyCurrent())
+        steer_currents = float(self.drivetrain.backLeftSteerSupplyCurrent()) + float(self.drivetrain.frontLeftSteerSupplyCurrent()) + float(self.drivetrain.backRightSteerSupplyCurrent()) + float(self.drivetrain.frontRightSteerSupplyCurrent())
+        shooter_currents = float(self.turret.supplyCurrent()) + float(self.hood.supplyCurrent()) + float(self.flywheel.supplyCurrent()) + float(self.indexer.frontSupplyCurrent()) + float(self.indexer.backSupplyCurrent()) + float(self.hopper.leftSupplyCurrent()) + float(self.hopper.rightSupplyCurrent())
         
         total_current = intake_currents + drive_currents + steer_currents + shooter_currents
         return total_current
@@ -162,7 +162,7 @@ class PowerManagement(magicbot.StateMachine):
         return self.intake.getActive()
     
     def _currentlyShooting(self) -> bool:
-        return self.shooter.getDriverWantsFeed()
+        return self.shooter_state_machine.getDriverWantsFeed()
     
     def _logData(self) -> None:
-        self.data_logger.logDouble("Total Power Drawn", self.computeTotalCurrentDrawn())
+        self.data_logger.logDouble("Total Power Drawn", float(self.computeTotalCurrentDrawn()))
