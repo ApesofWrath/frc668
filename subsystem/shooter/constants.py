@@ -100,7 +100,7 @@ class TurretConstants:
     # The positive discontinuity point of the absolute encoder in rotations.
     # This determines the point at which the sensor wraps around, keeping the
     # absolute position (after offset) in the interval [x-1, x).
-    absolute_sensor_discontinuity_point: units.rotation = 0.5
+    absolute_sensor_discontinuity_point: units.rotation = 1
     # This offset is added to the reported position, allowing the application to
     # trim the zero position.
     magnet_offset: units.rotation = 0.0
@@ -131,9 +131,6 @@ class TurretConstants:
     supply_current_limit: units.ampere = 40.0
     # TODO: Find a more accurate average
     time_of_flight: units.second = 1.25
-
-    time_of_flight: units.second = 1.0 #TODO: Find a more accurate average
-
 
 @dataclass(frozen=True)
 class HoodConstants:
@@ -298,7 +295,7 @@ SHOOTER_CONSTANTS: dict[str, ShooterConstants] = {
             motor_can_id=13,
             motor_can_bus="rio",
             motor_inverted=signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE,
-            magnet_offset=0.466064,
+            magnet_offset=0.218506,
             position_k_p=450,
             position_k_d=0.5,
             motion_magic_feed_forward=-1.0,

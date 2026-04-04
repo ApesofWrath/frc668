@@ -140,10 +140,10 @@ class Turret:
         self.logger.info(
             f"Setting turret position to {absolute_position} rotations"
         )
-        result = self.turret_encoder.set_position(absolute_position)
+        result = self.turret_encoder.set_position(2.5+(0.5-absolute_position))
         if not result.is_ok():
             self.logger.error("Failed to set position on turret encoder")
-        result = self.turret_motor.set_position(absolute_position)
+        result = self.turret_motor.set_position(10.4175+4.167*(0.5-absolute_position))
         if not result.is_ok():
             self.logger.error("Failed to set position on turret motor")
 
@@ -327,7 +327,7 @@ class TurretTuner:
     use_velocity = magicbot.tunable(False)
 
     # Auto-track hub
-    auto_track = magicbot.tunable(False)
+    auto_track = magicbot.tunable(False)    
 
     def setup(self) -> None:
         """Set up initial state for the turret tuner.
@@ -489,3 +489,7 @@ class TurretTuner:
     @magicbot.feedback
     def get_measured_dps(self) -> float:
         return self.turret_motor.get_velocity().value * 360
+    
+    @magicbot.feedback
+    def get_measured_deg(self) -> float:
+        return self.turret.measuredAngleDegrees()

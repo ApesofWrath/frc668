@@ -68,7 +68,7 @@ class DriverController:
             self.SLOW
             if (
                 self._controller.getLeftBumper()
-                or self._controller.getRightTriggerAxis()
+                #or self._controller.getRightTriggerAxis()
             )
             else self.FAST
         )

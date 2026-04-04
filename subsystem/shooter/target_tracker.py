@@ -80,12 +80,13 @@ class TimeTable:
     #  * turret-to-hub distance in meters
     #  * flight time of fuel in seconds
     _TABLE: Tuple[Tuple[float, float], ...] = (
-        (2.25, 1.0),
-        (2.75, 1.0),
-        (3.25, 1.0),
-        (3.75, 1.0),
-        (4.25, 1.0),
-        (4.75, 1.0),
+        (2.25, 0.84), # 2.49 to 3.33
+        (2.75, 0.94), # 2.33 to 3.27
+        (3.25, 1.00),  # 1.33 to 2.33
+        (3.75, 0.99), # 2.16 to 3.17
+        (4.25, 1.02), # 1.65 to 2.67 
+        (4.75, 1.23), # 1.12 to 2.35
+        (5.25, 1.31), # 10.14 to 11.45
     )
     # A tuple of just the distances from _TABLE.
     _DISTANCES: Tuple[float, ...] = tuple(row[0] for row in _TABLE)
@@ -102,8 +103,7 @@ class TimeTable:
                 of the turret to the center of the hub.
 
         Returns:
-            A tuple containing the target hood angle in degrees and flywheel
-            speed in rotations per second.
+            A float containing the time of flight of fuel in seconds.
          """
         if distance_meters <= cls._TABLE[0][0]:
             return cls._TABLE[0][1]
@@ -183,11 +183,6 @@ class TargetTracker:
 
         self.current_turret_to_hub: geometry.Translation2d = geometry.Translation2d(0, 0)
         self.future_turret_to_hub: geometry.Translation2d = geometry.Translation2d(0, 0)
-
-        self.turret_mvt_feed_forward_multiplier: float = (
-            self.robot_constants.shooter.turret.feed_forward_mvt_multiplier
-        )
-        self.turret_mvt_feed_forward: float = 0.0
 
         self.current_turret_to_target: geometry.Translation2d = (
             geometry.Translation2d(0, 0)
@@ -274,12 +269,15 @@ class TargetTracker:
     def setTurretFeedForwardMultiplier(self, multiplier) -> None:
         self.turret_mvt_feed_forward_multiplier = multiplier
 
+    @magicbot.feedback
     def targetTurretAngleDegrees(self) -> float:
         return self._target_turret_angle_degrees
 
+    @magicbot.feedback
     def targetHoodAngleDegrees(self) -> float:
         return self._target_hood_angle_degrees
 
+    @magicbot.feedback
     def targetFlywheelSpeedRps(self) -> float:
         return self._target_flywheel_speed_rps
 
@@ -417,12 +415,16 @@ class TargetTracker:
             - TURRET_TO_ROBOT_Y * math.sin(robot_angle)
         )
 
-        for i in range(3):
+        for i in range(10):
             self.time_of_flight = TimeTable.get(self.currentTurretDistanceFromTargetMeters())
             self.movement_vector = (geometry.Translation2d(turret_vx, turret_vy)) * self.time_of_flight 
             i+=1
 
         return self.movement_vector
+    
+    @magicbot.feedback
+    def getTimeOfFlight(self) -> float:
+        return TimeTable.get(self.currentTurretDistanceFromTargetMeters())
 
     @magicbot.feedback
     def currentTurretDistanceFromTargetMeters(self) -> phoenix6.units.meter:
@@ -433,11 +435,25 @@ class TargetTracker:
         )
         return current_turret_to_target.norm()
 
+    @magicbot.feedback
     def futureTurretDistanceFromTargetMeters(self) -> phoenix6.units.meter:
         return self.future_turret_to_target.norm()
 
+    @magicbot.feedback
     def futureTurretAngleToTarget(self) -> phoenix6.units.degree:
         return self.future_turret_to_target.angle().degrees()
+    
+    @magicbot.feedback
+    def getTurretMeasuredDeg(self) -> phoenix6.units.degree:
+        return self.turret.measuredAngleDegrees()
+    
+    @magicbot.feedback
+    def getHoodMeasuredDeg(self) -> phoenix6.units.degree:
+        return self.hood.measuredAngleDegrees()
+    
+    @magicbot.feedback
+    def getFlywheelMeasuredRps(self) -> phoenix6.units.rotations_per_second:
+        return self.flywheel.measuredSpeedRps()
 
     def _logData(self) -> None:
         self.data_logger.logBoolean(

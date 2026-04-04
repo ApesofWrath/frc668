@@ -57,7 +57,7 @@ class Vision:
 
     def execute(self) -> None:
         self.setRobotOrientation()
-        #self._updateRobotPose()
+        self._updateRobotPose()
 
     def setImuMode(self, value: int) -> None:
         if not isinstance(value, int) or value < 0 or value > 4:

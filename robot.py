@@ -251,7 +251,8 @@ class MyRobot(magicbot.MagicRobot):
             self.target_tracker.setTargetFlywheelSpeedRps(33.8)
         else:
             self.shooter_state_machine.setAuto(True)
-            if self.driver_controller.feedFuel():
+            if self.driver_controller.feedFuel() and self.target_tracker.currentTurretDistanceFromTargetMeters() > 2.00:
+                # Only allow shooting if the robot is a far enough distance from the hub
                 self.shooter_state_machine.setDriverWantsFeed(True)
             else:
                 self.shooter_state_machine.setDriverWantsFeed(False)
