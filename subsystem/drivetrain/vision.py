@@ -23,7 +23,31 @@ class Vision:
     robot_constants: constants.RobotConstants
     drivetrain: drivetrain.Drivetrain
     data_logger: datalog.DataLogger
-    vision_tuner: VisionTuner
+
+
+
+    vel_weight = magicbot.tunable(0.5)
+    rot_weight = magicbot.tunable(0.2)
+    
+    distance_scale = magicbot.tunable(23.0)
+    distance_linear = magicbot.tunable(10.0)
+    distance_offset = magicbot.tunable(0.16)
+
+    rot_vel_scale = magicbot.tunable(10.0)
+    rot_vel_offset = magicbot.tunable(0.05)
+
+    vel_scale = magicbot.tunable(3.0)
+
+
+    max_xy_std = magicbot.tunable(3.0)
+    min_xy_std = magicbot.tunable(0.1)
+    max_theta_std = magicbot.tunable(2.0)
+    min_theta_std = magicbot.tunable(0.05)
+
+    use_velocity = magicbot.tunable(False)
+    use_rotation = magicbot.tunable(False)
+    use_tag_factor = magicbot.tunable(False)
+    use_distance = magicbot.tunable(True)
 
     def setup(self) -> None:
         """
@@ -101,18 +125,18 @@ class Vision:
             )
     
     def avg_dist_stds(self, distance) -> float:
-        value = ((math.pow(distance, 2) / self.vision_tuner.distance_scale)
-                 - (distance / self.vision_tuner.distance_linear)
-                 + self.vision_tuner.distance_offset)
+        value = ((math.pow(distance, 2) / self.distance_scale)
+                 - (distance / self.distance_linear)
+                 + self.distance_offset)
         return max(0.0, value)
     
     def rot_vel_stds(self, rot_vel) -> float:
-        value = (((math.pow(rot_vel, 2)) / (self.vision_tuner.rot_vel_scale * math.pi))
-                 + self.vision_tuner.rot_vel_offset)
+        value = (((math.pow(rot_vel, 2)) / (self.rot_vel_scale * math.pi))
+                 + self.rot_vel_offset)
         return min(value, 5.0)
     
     def vel_stds(self, vel) -> float:
-        return (math.pow(vel, 2) / self.vision_tuner.vel_scale)
+        return (math.pow(vel, 2) / self.vel_scale)
     
     def tag_factor(self, n: int):
         return max(0.5, 1.0 / math.sqrt(max(1, n)))
@@ -184,24 +208,24 @@ class Vision:
             rotational_velocity_stds = 0.0
             factor = 1.0
 
-            if self.vision_tuner.use_velocity:
+            if self.use_velocity:
                 speed = math.sqrt(
                     drivetrain_velocity.vx**2 + drivetrain_velocity.vy**2
                 )
                 velocity_stds = self.vel_stds(speed)
 
-            if self.vision_tuner.use_distance:
+            if self.use_distance:
                 average_distance_stds = self.avg_dist_stds(
                     pose_estimate.avg_tag_dist
                 )
 
-            if self.vision_tuner.use_rotation:
+            if self.use_rotation:
                 rotational_velocity_stds = self.rot_vel_stds(drivetrain_yaw)
 
             self._xy_std_dev = (
                 average_distance_stds
-                + self.vision_tuner.vel_weight * velocity_stds
-                + self.vision_tuner.rot_weight * rotational_velocity_stds
+                + self.vel_weight * velocity_stds
+                + self.rot_weight * rotational_velocity_stds
             )
 
             self._theta_std_dev = (
@@ -209,19 +233,19 @@ class Vision:
                 + rotational_velocity_stds
             )
 
-            if self.vision_tuner.use_tag_factor:
+            if self.use_tag_factor:
                 factor = self.tag_factor(pose_estimate.tag_count)
                 self._xy_std_dev *= factor
                 self._theta_std_dev *= max(0.7, factor)
 
             self._xy_std_dev = min(
-                max(self._xy_std_dev, self.vision_tuner.min_xy_std),
-                self.vision_tuner.max_xy_std,
+                max(self._xy_std_dev, self.min_xy_std),
+                self.max_xy_std,
             )
 
             self._theta_std_dev = min(
-                max(self._theta_std_dev, self.vision_tuner.min_theta_std),
-                self.vision_tuner.max_theta_std,
+                max(self._theta_std_dev, self.min_theta_std),
+                self.max_theta_std,
             )
 
             self.drivetrain.swerve_drive.add_vision_measurement(
@@ -268,52 +292,3 @@ class Vision:
     @magicbot.feedback
     def get_limelight_fl(self) -> wpimath.geometry.Pose2d:
         return limelight.LimelightHelpers.get_botpose_2d_wpiblue("limelight-fl")
-
-
-
-
-class VisionTuner:
-    robot_constants: constants.RobotConstants
-    drivetrain: drivetrain.Drivetrain
-    vision: Vision
-
-    theta_std_dev = magicbot.tunable(0.0)
-
-    vel_weight = magicbot.tunable(0.5)
-    rot_weight = magicbot.tunable(0.2)
-    
-    distance_scale = magicbot.tunable(23.0)
-    distance_linear = magicbot.tunable(10.0)
-    distance_offset = magicbot.tunable(0.16)
-
-    rot_vel_scale = magicbot.tunable(10.0)
-    rot_vel_offset = magicbot.tunable(0.05)
-
-    vel_scale = magicbot.tunable(3.0)
-
-
-    max_xy_std = magicbot.tunable(3.0)
-    min_xy_std = magicbot.tunable(0.1)
-    max_theta_std = magicbot.tunable(2.0)
-    min_theta_std = magicbot.tunable(0.05)
-
-    use_velocity = magicbot.tunable(False)
-    use_rotation = magicbot.tunable(False)
-    use_tag_factor = magicbot.tunable(False)
-    use_distance = magicbot.tunable(True)
-
-
-    def setup(self) -> None:
-        self.xy_std_dev = self.robot_constants.drivetrain.vision.xy_std_dev
-        self.theta_std_dev = (
-            self.robot_constants.drivetrain.vision.theta_std_dev
-        )
-
-        self._limelights: list[str] = (
-            self.robot_constants.drivetrain.vision.limelights
-        )
-
-    def execute(self) -> None:
-        # self.vision.setStdDevs(self.xy_std_dev, self.theta_std_dev)
-        pass
-
