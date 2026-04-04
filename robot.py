@@ -100,9 +100,13 @@ class MyRobot(magicbot.MagicRobot):
         )
 
         # Intake motors.
-        self.intake_roller_motor = phoenix6.hardware.TalonFX(
-            self.robot_constants.intake.roller_motor_can_id,
-            self.robot_constants.intake.roller_motor_can_bus,
+        self.intake_roller_top_motor = phoenix6.hardware.TalonFX(
+            self.robot_constants.intake.roller_top_motor_can_id,
+            self.robot_constants.intake.roller_top_motor_can_bus,
+        )
+        self.intake_roller_bottom_motor = phoenix6.hardware.TalonFX(
+            self.robot_constants.intake.roller_bottom_motor_can_id,
+            self.robot_constants.intake.roller_bottom_motor_can_bus,
         )
         self.intake_deploy_motor = phoenix6.hardware.TalonFX(
             self.robot_constants.intake.deploy_motor_can_id,
