@@ -183,7 +183,7 @@ class Drivetrain(commands2.Subsystem):
         """Set the drivetrain's target speeds."""
         if command.auto_angle:
             current_angle = self.swerve_drive.get_state().pose.rotation().radians()
-            target_angle = math.atan2(-command.vy,-command.vx) # The negitives rotate it by 180 degrees
+            target_angle = math.atan2(command.vy,command.vx)
 
             self._drive_request.with_velocity_x(command.vx).with_velocity_y(command.vy).with_rotational_rate(
                 self._heading_controller.calculate(current_angle,target_angle))
