@@ -23,6 +23,7 @@ class Vision:
     robot_constants: constants.RobotConstants
     drivetrain: drivetrain.Drivetrain
     data_logger: datalog.DataLogger
+    vision_tuner: VisionTuner
 
     def setup(self) -> None:
         """
@@ -100,13 +101,18 @@ class Vision:
             )
     
     def avg_dist_stds(self, distance) -> float:
-        return ((math.pow(distance, 2) / 23) - (distance/10) + 0.16)
+        value = ((math.pow(distance, 2) / self.vision_tuner.distance_scale)
+                 - (distance / self.vision_tuner.distance_linear)
+                 + self.vision_tuner.distance_offset)
+        return max(0.0, value)
     
     def rot_vel_stds(self, rot_vel) -> float:
-        return (((math.pow(rot_vel, 2)) / (10 * math.pi)) + 0.05)
+        value = (((math.pow(rot_vel, 2)) / (self.vision_tuner.rot_vel_scale * math.pi))
+                 + self.vision_tuner.rot_vel_offset)
+        return min(value, 5.0)
     
     def vel_stds(self, vel) -> float:
-        return (math.pow(vel, 2) / 3)
+        return (math.pow(vel, 2) / self.vision_tuner.vel_scale)
     
     def tag_factor(self, n: int):
         return max(0.5, 1.0 / math.sqrt(max(1, n)))
@@ -141,14 +147,6 @@ class Vision:
                 rejected_reasons.append("No tags seen")
                 continue
 
-            """
-            @param avg_distance
-            @param drivetrain_velocty / drivetrain_rotation_velocity
-            @param number_tags_seen
-            """
-            
-            
-
             if (
                 pose_estimate.avg_tag_dist
                 > vision_constants.average_tag_distance_threshold
@@ -174,16 +172,6 @@ class Vision:
                 )
                 continue
 
-
-            # if (
-            #     drivetrain_pose.translation().distance(pose.translation())
-            #     > vision_constants.max_diff_from_robot_pose
-            # ):
-            #     self.logger.warning(
-            #         f"{ll}: Rejected large jump: {drivetrain_pose.translation().distance(pose.translation())}m"
-            #     )
-            #     continue
-
             accepted_poses.append(pose)
             accepted_limelights.append(ll)
 
@@ -191,24 +179,50 @@ class Vision:
                 pose_estimate.timestamp_seconds
             )
 
-            # velocity_stds = math.sqrt(
-            #     math.pow(drivetrain_velocity.vx, 2)
-            #     + math.pow(drivetrain_velocity.vy, 2)
-            #     )
+            velocity_stds = 0.0
+            average_distance_stds = 0.0
+            rotational_velocity_stds = 0.0
+            factor = 1.0
 
+            if self.vision_tuner.use_velocity:
+                speed = math.sqrt(
+                    drivetrain_velocity.vx**2 + drivetrain_velocity.vy**2
+                )
+                velocity_stds = self.vel_stds(speed)
 
-            average_distance_stds = self.avg_dist_stds(pose_estimate.avg_tag_dist)
-            # rotational_velocity_stds = self.rot_vel_stds(drivetrain_yaw)
-            # factor = self.tag_factor()
+            if self.vision_tuner.use_distance:
+                average_distance_stds = self.avg_dist_stds(
+                    pose_estimate.avg_tag_dist
+                )
 
-            self._xy_std_dev = average_distance_stds # + 0.5 * velocity_stds + 0.2 * rotational_velocity_stds
-            self._theta_std_dev = 0.5 * average_distance_stds # + self.rotational_velocity_stds
+            if self.vision_tuner.use_rotation:
+                rotational_velocity_stds = self.rot_vel_stds(drivetrain_yaw)
 
-            # self._xy_std_dev *= factor
-            # self._theta_std_dev *= max(0.7, factor)
+            self._xy_std_dev = (
+                average_distance_stds
+                + self.vision_tuner.vel_weight * velocity_stds
+                + self.vision_tuner.rot_weight * rotational_velocity_stds
+            )
 
-            self._xy_std_dev = min(max(self._xy_std_dev, 0.1), 3.0)
-            self._theta_std_dev = min(max(self._theta_std_dev, 0.05), 2.0)
+            self._theta_std_dev = (
+                0.5 * average_distance_stds
+                + rotational_velocity_stds
+            )
+
+            if self.vision_tuner.use_tag_factor:
+                factor = self.tag_factor(pose_estimate.tag_count)
+                self._xy_std_dev *= factor
+                self._theta_std_dev *= max(0.7, factor)
+
+            self._xy_std_dev = min(
+                max(self._xy_std_dev, self.vision_tuner.min_xy_std),
+                self.vision_tuner.max_xy_std,
+            )
+
+            self._theta_std_dev = min(
+                max(self._theta_std_dev, self.vision_tuner.min_theta_std),
+                self.vision_tuner.max_theta_std,
+            )
 
             self.drivetrain.swerve_drive.add_vision_measurement(
                 pose_estimate.pose,
@@ -227,8 +241,19 @@ class Vision:
         self.data_logger.logStringArray(
             "/components/vision/rejected_reasons", rejected_reasons
         )
-
-
+        
+        self.data_logger.logNumber(
+            f"/vision/{ll}/xy_std", self._xy_std_dev
+        )
+        self.data_logger.logNumber(
+            f"/vision/{ll}/theta_std", self._theta_std_dev
+        )
+        self.data_logger.logNumber(
+            f"/vision/{ll}/tag_count", pose_estimate.tag_count
+        )
+        self.data_logger.logNumber(
+            f"/vision/{ll}/distance", pose_estimate.avg_tag_dist
+        )
     def throttleLimelights(self, value: bool) -> None:
         """Throttle the limelights so they don't overheat."""
         if value:
@@ -252,8 +277,31 @@ class VisionTuner:
     drivetrain: drivetrain.Drivetrain
     vision: Vision
 
-    xy_std_dev = magicbot.tunable(0.0)
     theta_std_dev = magicbot.tunable(0.0)
+
+    vel_weight = magicbot.tunable(0.5)
+    rot_weight = magicbot.tunable(0.2)
+    
+    distance_scale = magicbot.tunable(23.0)
+    distance_linear = magicbot.tunable(10.0)
+    distance_offset = magicbot.tunable(0.16)
+
+    rot_vel_scale = magicbot.tunable(10.0)
+    rot_vel_offset = magicbot.tunable(0.05)
+
+    vel_scale = magicbot.tunable(3.0)
+
+
+    max_xy_std = magicbot.tunable(3.0)
+    min_xy_std = magicbot.tunable(0.1)
+    max_theta_std = magicbot.tunable(2.0)
+    min_theta_std = magicbot.tunable(0.05)
+
+    use_velocity = magicbot.tunable(False)
+    use_rotation = magicbot.tunable(False)
+    use_tag_factor = magicbot.tunable(False)
+    use_distance = magicbot.tunable(True)
+
 
     def setup(self) -> None:
         self.xy_std_dev = self.robot_constants.drivetrain.vision.xy_std_dev
