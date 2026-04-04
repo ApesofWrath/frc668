@@ -22,12 +22,12 @@ class TestShotTable:
     def test_clamps_above_maximum(self):
         """Values at or above the last table entry returns the last row."""
         hood, flywheel = target_tracker.ShotTable.get(10.0)
-        assert hood == 7.5
-        assert flywheel == 36.0
+        assert hood == 8.0
+        assert flywheel == 38.0
 
         hood, flywheel = target_tracker.ShotTable.get(5.0)
-        assert hood == 7.5
-        assert flywheel == 36.0
+        assert hood == 7.75
+        assert flywheel == 37.0
 
     def test_exact_table_points(self):
         """Every exact distance that exists in the table returns the exact stored values (no interpolation)."""
@@ -144,19 +144,16 @@ def test_setup_initializes_known_transforms(mocker) -> None:
         target_tracker.TURRET_TO_ROBOT_X,
         target_tracker.TURRET_TO_ROBOT_Y,
     )
-    expected_hub_position = geometry.Translation2d(
-        target_tracker.BLUE_HUB_TO_FIELD_X,
-        target_tracker.BLUE_HUB_TO_FIELD_Y,
-    )
+    expected_target_position = geometry.Translation2d()
 
     offset_error = (
         expected_turret_offset
         - tracker._robot_to_turret_transform.translation()
     )
-    hub_error = expected_hub_position - tracker._hub_position
+    target_error = expected_target_position - tracker._target_position
 
     assert offset_error.norm() == pytest.approx(0.0, abs=1e-9)
-    assert hub_error.norm() == pytest.approx(0.0, abs=1e-9)
+    assert target_error.norm() == pytest.approx(0.0, abs=1e-9)
     assert (
         tracker._yaw_rate_signal
         is tracker.drivetrain.swerve_drive.pigeon2.get_angular_velocity_z_world.return_value
@@ -185,7 +182,7 @@ def test_setup_initializes_known_transforms(mocker) -> None:
                 robot_yaw_degrees=180.0,
             ),
             -50.0,
-            1.0,
+            35.08564969731822,
             id="in_front_of_hub_yaw_180",
         ),
         pytest.param(
@@ -221,7 +218,7 @@ def test_setup_initializes_known_transforms(mocker) -> None:
                 robot_yaw_degrees=-90.0,
             ),
             -150.0,
-            -42.0,
+            -97.6100107929573,
             id="northwest_of_hub_yaw_neg_90",
         ),
         pytest.param(
@@ -230,7 +227,7 @@ def test_setup_initializes_known_transforms(mocker) -> None:
                 robot_yaw_degrees=90.0,
             ),
             200.0,
-            41.0,
+            96.60087887970982,
             id="northeast_of_hub_yaw_90",
         ),
         pytest.param(
@@ -421,7 +418,7 @@ def test_execute_updates_compensation_across_control_loops(mocker) -> None:
 def test_current_turret_distance_from_hub_meters(mocker) -> None:
     """Distance feedback returns Euclidean distance from turret to hub."""
     tracker = _make_tracker(mocker, geometry.Pose2d())
-    tracker._hub_position = geometry.Translation2d(4.0, 6.0)
+    tracker._target_position = geometry.Translation2d(4.0, 6.0)
     tracker._turret_field_pose = geometry.Pose2d(
         geometry.Translation2d(1.0, 2.0),
         geometry.Rotation2d(),
