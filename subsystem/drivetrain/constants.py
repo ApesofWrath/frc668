@@ -371,7 +371,7 @@ DRIVETRAIN_CONSTANTS: dict[str, DrivetrainConstants] = {
                 "limelight-fr",
                 "limelight-upfl",
                 "limelight-upfr",
-            ],
+            ]
         ),
         trajectory_following=TrajectoryFollowingConstants(
             x_kp=1.0,

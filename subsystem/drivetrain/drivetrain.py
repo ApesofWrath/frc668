@@ -1,9 +1,5 @@
 import logging
 import math
-import wpilib
-
-from wpimath.geometry import Pose2d
-from phoenix6 import configs, hardware, swerve
 import typing
 
 import commands2
@@ -140,7 +136,10 @@ class Drivetrain(commands2.Subsystem):
             )
         )
 
-        self.xstance_request = (
+        # When set to True, the brake request will be used instead of the drive
+        # request.
+        self._brake_enabled = False
+        self._brake_request = (
             swerve.requests.SwerveDriveBrake().with_drive_request_type(
                 swerve.SwerveModule.DriveRequestType.VELOCITY
             )
@@ -175,6 +174,8 @@ class Drivetrain(commands2.Subsystem):
         else:
             self.swerve_drive.set_control(self._drive_request)
 
+        self._logData()
+
     def setSpeeds(
         self,
         command: joystick.DriveCommand,
@@ -184,10 +185,37 @@ class Drivetrain(commands2.Subsystem):
             command.vy
         ).with_rotational_rate(command.omega)
 
-    def setXStance(self, value: bool) -> None:
-        self.x_stance_enabled = value
+    def followTrajectorySample(self, sample: choreo.SwerveSample) -> None:
+        """Follow a Choreo trajectory sample.
 
-    def setPose(self, pose: wpimath.geometry.Pose2d) -> None:
+        Add corrections to the sample's velocities to stay on track. Use field
+        centric control requests, but always relative to blue alliance origin,
+        so that we don't have to negate the speeds.
+
+        Args:
+            sample:
+                The Choreo trajectory sample to follow.
+        """
+        pose = self.swerve_drive.get_state().pose
+        self._auto_request.with_speeds(
+            kinematics.ChassisSpeeds(
+                sample.vx + self._x_controller.calculate(pose.X(), sample.x),
+                sample.vy + self._y_controller.calculate(pose.Y(), sample.y),
+                sample.omega
+                + self._heading_controller.calculate(
+                    pose.rotation().radians(), sample.heading
+                ),
+            )
+        )
+
+    def stop(self) -> None:
+        """Stop the drivetrain."""
+        self._auto_request.with_speeds(kinematics.ChassisSpeeds(0, 0, 0))
+        self._drive_request.with_velocity_x(0).with_velocity_y(
+            0
+        ).with_rotational_rate(0)
+
+    def setPose(self, pose: geometry.Pose2d) -> None:
         """Hard reset the robot's pose estimate."""
         self.swerve_drive.reset_pose(pose)
 
@@ -608,22 +636,3 @@ class DrivetrainTuner:
     ) -> None:
         self._scheduler.cancelAll()
         self._scheduler.schedule(self._sysid_steer.dynamic(direction))
-
-    @magicbot.feedback
-    def get_pigeon_yaw(self) -> units.degree:
-        return wpimath.inputModulus(self.drivetrain.swerve_drive.pigeon2.get_yaw().value, -180.0, 180.0)
-
-    @magicbot.feedback
-    def get_pigeon_rotation2d(self) -> units.degree:
-         return wpimath.inputModulus(self.drivetrain.swerve_drive.pigeon2.getRotation2d().degrees(), -180.0, 180.0)
-    
-    @magicbot.feedback
-    def get_drivetrain_yaw(self):
-        return self.drivetrain.swerve_drive.get_state().pose.rotation().degrees()
-
-    @magicbot.feedback
-    def get_pitch(self):
-        return self.drivetrain.swerve_drive.pigeon2.get_pitch().value
-    
-
-     
