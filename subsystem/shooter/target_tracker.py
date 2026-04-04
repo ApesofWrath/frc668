@@ -35,7 +35,10 @@ class ShotTable:
         (3.75, 6.5, 32.5),
         (4.25, 7.0, 34.0),
         (4.75, 7.5, 36.0),
-        (5.25, 8.0, 38.0),  # Not calibrated
+        (5.25, 8.0, 38.0),  # Not calibrated at or after this value
+        (5.75, 8.5, 40.0),  
+        (6.25, 9.0, 42.0),  
+        (6.75, 9.5, 44.0),
     )
     # A tuple of just the distances from _TABLE.
     _DISTANCES: Tuple[float, ...] = tuple(row[0] for row in _TABLE)
@@ -82,11 +85,14 @@ class TimeTable:
     _TABLE: Tuple[Tuple[float, float], ...] = (
         (2.25, 0.84), # 2.49 to 3.33
         (2.75, 0.94), # 2.33 to 3.27
-        (3.25, 1.00),  # 1.33 to 2.33
+        (3.25, 1.00), # 1.33 to 2.33
         (3.75, 0.99), # 2.16 to 3.17
         (4.25, 1.02), # 1.65 to 2.67 
         (4.75, 1.23), # 1.12 to 2.35
         (5.25, 1.31), # 10.14 to 11.45
+        (5.75, 1.40), # not calibrated at or after this value
+        (6.25, 1.50),
+        (6.75, 1.60),
     )
     # A tuple of just the distances from _TABLE.
     _DISTANCES: Tuple[float, ...] = tuple(row[0] for row in _TABLE)
@@ -415,7 +421,7 @@ class TargetTracker:
             - TURRET_TO_ROBOT_Y * math.sin(robot_angle)
         )
 
-        for i in range(10):
+        for i in range(20):
             self.time_of_flight = TimeTable.get(self.currentTurretDistanceFromTargetMeters())
             self.movement_vector = (geometry.Translation2d(turret_vx, turret_vy)) * self.time_of_flight 
             i+=1
