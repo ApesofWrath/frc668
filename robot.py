@@ -77,6 +77,14 @@ class MyRobot(magicbot.MagicRobot):
             self.robot_constants.shooter.hopper.right_motor_can_id,
             self.robot_constants.shooter.hopper.right_motor_can_bus,
         )
+        self.hopper_left_auxiliary_motor = phoenix6.hardware.TalonFX(
+            self.robot_constants.shooter.hopper.left_aux_motor_can_id,
+            self.robot_constants.shooter.hopper.left_aux_motor_can_bus,
+        )
+        self.hopper_right_auxiliary_motor = phoenix6.hardware.TalonFX(
+            self.robot_constants.shooter.hopper.right_aux_motor_can_id,
+            self.robot_constants.shooter.hopper.right_aux_motor_can_bus,
+        )
 
         # Indexer motors.
         self.indexer_back_motor = phoenix6.hardware.TalonFX(

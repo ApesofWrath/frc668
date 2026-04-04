@@ -16,6 +16,8 @@ class Hopper:
     robot_constants: constants.RobotConstants
     hopper_left_motor: phoenix6.hardware.TalonFX
     hopper_right_motor: phoenix6.hardware.TalonFX
+    hopper_left_auxiliary_motor: phoenix6.hardware.TalonFX
+    hopper_right_auxiliary_motor: phoenix6.hardware.TalonFX
     data_logger: datalog.DataLogger
 
     def __init__(self):
@@ -94,12 +96,76 @@ class Hopper:
                 )
             )
         )
+        self.hopper_left_auxiliary_motor.configurator.apply(
+            phoenix6.configs.TalonFXConfiguration()
+            .with_motor_output(
+                phoenix6.configs.MotorOutputConfigs().with_inverted(
+                    hopper_constants.left_aux_motor_inverted
+                )
+            )
+            .with_slot0(
+                phoenix6.configs.Slot0Configs()
+                .with_k_s(hopper_constants.left_aux_k_s)
+                .with_k_v(hopper_constants.left_aux_k_v)
+                .with_k_a(hopper_constants.left_aux_k_a)
+                .with_k_p(hopper_constants.left_aux_k_p)
+                .with_k_i(hopper_constants.left_aux_k_i)
+                .with_k_d(hopper_constants.left_aux_k_d)
+            )
+            .with_current_limits(
+                phoenix6.configs.CurrentLimitsConfigs()
+                .with_supply_current_limit(
+                    hopper_constants.supply_current_limit
+                )
+                .with_supply_current_limit_enable(True)
+            )
+            .with_feedback(
+                phoenix6.configs.FeedbackConfigs().with_sensor_to_mechanism_ratio(
+                    hopper_constants.gear_reduction
+                )
+            )
+        )
+        self.hopper_right_auxiliary_motor.configurator.apply(
+            phoenix6.configs.TalonFXConfiguration()
+            .with_motor_output(
+                phoenix6.configs.MotorOutputConfigs().with_inverted(
+                    hopper_constants.right_aux_motor_inverted
+                )
+            )
+            .with_slot0(
+                phoenix6.configs.Slot0Configs()
+                .with_k_s(hopper_constants.right_aux_k_s)
+                .with_k_v(hopper_constants.right_aux_k_v)
+                .with_k_a(hopper_constants.right_aux_k_a)
+                .with_k_p(hopper_constants.right_aux_k_p)
+                .with_k_i(hopper_constants.right_aux_k_i)
+                .with_k_d(hopper_constants.right_aux_k_d)
+            )
+            .with_current_limits(
+                phoenix6.configs.CurrentLimitsConfigs()
+                .with_supply_current_limit(
+                    hopper_constants.supply_current_limit
+                )
+                .with_supply_current_limit_enable(True)
+            )
+            .with_feedback(
+                phoenix6.configs.FeedbackConfigs().with_sensor_to_mechanism_ratio(
+                    hopper_constants.gear_reduction
+                )
+            )
+        )
 
         self._left_target_rps = (
             self.robot_constants.shooter.hopper.default_left_speed_rps
         )
         self._right_target_rps = (
             self.robot_constants.shooter.hopper.default_right_speed_rps
+        )
+        self._left_aux_target_rps = (
+            self.robot_constants.shooter.hopper.default_left_aux_speed_rps
+        )
+        self._right_aux_target_rps = (
+            self.robot_constants.shooter.hopper.default_left_aux_speed_rps
         )
 
         self._request = phoenix6.controls.VelocityVoltage(0.0).with_slot(0)
@@ -116,9 +182,21 @@ class Hopper:
             self.hopper_right_motor.set_control(
                 self._request.with_velocity(self._right_target_rps)
             )
+            self.hopper_left_auxiliary_motor.set_control(
+                self._request.with_velocity(self._left_aux_target_rps)
+            )
+            self.hopper_right_auxiliary_motor.set_control(
+                self._request.with_velocity(self._right_aux_target_rps)
+            )
         else:
             self.hopper_left_motor.set_control(self._request.with_velocity(0.0))
             self.hopper_right_motor.set_control(
+                self._request.with_velocity(0.0)
+            )
+            self.hopper_left_auxiliary_motor.set_control(
+                self._request.with_velocity(0.0)
+            )
+            self.hopper_right_auxiliary_motor.set_control(
                 self._request.with_velocity(0.0)
             )
 
@@ -154,6 +232,22 @@ class Hopper:
             target_rps: Speed in rotations per second.
         """
         self._right_target_rps = target_rps
+
+    def setLeftAuxTargetRps(self, target_rps: float) -> None:
+        """Set the target speed for the left auxiliary hopper motor.
+
+        Args:
+            target_rps: Speed in rotations per second.
+        """
+        self._left_aux_target_rps = target_rps
+
+    def setRightAuxTargetRps(self, target_rps: float) -> None:
+        """Set the target speed for the right auxiliary hopper motor.
+
+        Args:
+            target_rps: Speed in rotations per second.
+        """
+        self._right_aux_target_rps = target_rps
 
     def setEnabled(self, value: bool) -> None:
         """Enable or disable the hopper motors.
@@ -227,6 +321,8 @@ class HopperTuner:
     robot_constants: constants.RobotConstants
     hopper_left_motor: phoenix6.hardware.TalonFX
     hopper_right_motor: phoenix6.hardware.TalonFX
+    hopper_left_auxiliary_motor: phoenix6.hardware.TalonFX
+    hopper_right_auxiliary_motor: phoenix6.hardware.TalonFX
     hopper: Hopper
 
     # Gains for velocity control of the left hopper motor.
@@ -245,9 +341,27 @@ class HopperTuner:
     right_k_i = magicbot.tunable(0.0)
     right_k_d = magicbot.tunable(0.0)
 
+    # Gains for velocity control of the left auxiliary hopper motor.
+    left_aux_k_s = magicbot.tunable(0.0)
+    left_aux_k_v = magicbot.tunable(0.0)
+    left_aux_k_a = magicbot.tunable(0.0)
+    left_aux_k_p = magicbot.tunable(0.0)
+    left_aux_k_i = magicbot.tunable(0.0)
+    left_aux_k_d = magicbot.tunable(0.0)
+
+    # Gains for velocity control of the right auxiliary hopper motor.
+    right_aux_k_s = magicbot.tunable(0.0)
+    right_aux_k_v = magicbot.tunable(0.0)
+    right_aux_k_a = magicbot.tunable(0.0)
+    right_aux_k_p = magicbot.tunable(0.0)
+    right_aux_k_i = magicbot.tunable(0.0)
+    right_aux_k_d = magicbot.tunable(0.0)
+
     # The target rotational speeds for the hopper motors.
     left_target_rps = magicbot.tunable(0.0)
     right_target_rps = magicbot.tunable(0.0)
+    left_aux_target_rps = magicbot.tunable(0.0)
+    right_aux_target_rps = magicbot.tunable(0.0)
     # Whether or not the hopper motors should run.
     enabled = magicbot.tunable(False)
 
@@ -270,6 +384,20 @@ class HopperTuner:
         self.right_k_i = hopper_constants.right_k_i
         self.right_k_d = hopper_constants.right_k_d
 
+        self.left_aux_k_s = hopper_constants.left_aux_k_s
+        self.left_aux_k_v = hopper_constants.left_aux_k_v
+        self.left_aux_k_a = hopper_constants.left_aux_k_a
+        self.left_aux_k_p = hopper_constants.left_aux_k_p
+        self.left_aux_k_i = hopper_constants.left_aux_k_i
+        self.left_aux_k_d = hopper_constants.left_aux_k_d
+
+        self.right_aux_k_s = hopper_constants.right_aux_k_s
+        self.right_aux_k_v = hopper_constants.right_aux_k_v
+        self.right_aux_k_a = hopper_constants.right_aux_k_a
+        self.right_aux_k_p = hopper_constants.right_aux_k_p
+        self.right_aux_k_i = hopper_constants.right_aux_k_i
+        self.right_aux_k_d = hopper_constants.right_aux_k_d
+
         self._current_left_gains = (
             phoenix6.configs.config_groups.Slot0Configs()
             .with_k_s(self.left_k_s)
@@ -288,10 +416,30 @@ class HopperTuner:
             .with_k_i(self.right_k_i)
             .with_k_d(self.right_k_d)
         )
+        self._current_left_aux_gains = (
+            phoenix6.configs.Slot0Configs()
+            .with_k_s(self.left_aux_k_s)
+            .with_k_v(self.left_aux_k_v)
+            .with_k_a(self.left_aux_k_a)
+            .with_k_p(self.left_aux_k_p)
+            .with_k_i(self.left_aux_k_i)
+            .with_k_d(self.left_aux_k_d)
+        )
+        self._current_right_aux_gains = (
+            phoenix6.configs.Slot0Configs()
+            .with_k_s(self.right_aux_k_s)
+            .with_k_v(self.right_aux_k_v)
+            .with_k_a(self.right_aux_k_a)
+            .with_k_p(self.right_aux_k_p)
+            .with_k_i(self.right_aux_k_i)
+            .with_k_d(self.right_aux_k_d)
+        )
 
     def execute(self) -> None:
         self.hopper.setLeftTargetRps(self.left_target_rps)
         self.hopper.setRightTargetRps(self.right_target_rps)
+        self.hopper.setLeftAuxTargetRps(self.left_aux_target_rps)
+        self.hopper.setRightAuxTargetRps(self.right_aux_target_rps)
         self.hopper.setEnabled(self.enabled)
 
         # We only want to reapply the gains if they changed. The TalonFX motor
@@ -300,6 +448,10 @@ class HopperTuner:
             self.applyLeftGains()
         if self.rightGainsChanged():
             self.applyRightGains()
+        if self.leftAuxGainsChanged():
+            self.applyLeftAuxGains()
+        if self.rightAuxGainsChanged():
+            self.applyRightAuxGains()
 
     def leftGainsChanged(self) -> bool:
         """Detect if any of the gains for the left motor changed.
@@ -329,6 +481,36 @@ class HopperTuner:
             or self.right_k_p != self._current_right_gains.k_p
             or self.right_k_i != self._current_right_gains.k_i
             or self.right_k_d != self._current_right_gains.k_d
+        )
+
+    def leftAuxGainsChanged(self) -> bool:
+        """Detect if any of the gains for the left auxiliary motor changed.
+
+        Returns:
+            True if any of the gains changed, False if they didn't.
+        """
+        return (
+            self.left_aux_k_s != self._current_left_aux_gains.k_s
+            or self.left_aux_k_v != self._current_left_aux_gains.k_v
+            or self.left_aux_k_a != self._current_left_aux_gains.k_a
+            or self.left_aux_k_p != self._current_left_aux_gains.k_p
+            or self.left_aux_k_i != self._current_left_aux_gains.k_i
+            or self.left_aux_k_d != self._current_left_aux_gains.k_d
+        )
+
+    def rightAuxGainsChanged(self) -> bool:
+        """Detect if any of the gains for the right auxiliary motor changed.
+
+        Returns:
+            True if any of the gains changed, False if they didn't.
+        """
+        return (
+            self.right_aux_k_s != self._current_right_aux_gains.k_s
+            or self.right_aux_k_v != self._current_right_aux_gains.k_v
+            or self.right_aux_k_a != self._current_right_aux_gains.k_a
+            or self.right_aux_k_p != self._current_right_aux_gains.k_p
+            or self.right_aux_k_i != self._current_right_aux_gains.k_i
+            or self.right_aux_k_d != self._current_right_aux_gains.k_d
         )
 
     def applyLeftGains(self) -> None:
@@ -366,3 +548,55 @@ class HopperTuner:
                     f"{result.name}: {result.description}"
                 )
             )
+
+    def applyLeftAuxGains(self) -> None:
+        """Apply the current gains to the left aux motor."""
+        result = self.hopper_left_auxiliary_motor.configurator.apply(
+            self._current_left_aux_gains.with_k_s(self.left_aux_k_s)
+            .with_k_v(self.left_aux_k_v)
+            .with_k_a(self.left_aux_k_a)
+            .with_k_p(self.left_aux_k_p)
+            .with_k_i(self.left_aux_k_i)
+            .with_k_d(self.left_aux_k_d)
+        )
+        if not result.is_ok():
+            self.logger.error(
+                (
+                    f"Failed to apply new gains to hopper left auxiliary motor: "
+                    f"{result.name}: {result.description}"
+                )
+            )
+
+    def applyRightAuxGains(self) -> None:
+        """Apply the current gains to the right aux motor."""
+        result = self.hopper_right_auxiliary_motor.configurator.apply(
+            self._current_right_aux_gains.with_k_s(self.right_aux_k_s)
+            .with_k_v(self.right_aux_k_v)
+            .with_k_a(self.right_aux_k_a)
+            .with_k_p(self.right_aux_k_p)
+            .with_k_i(self.right_aux_k_i)
+            .with_k_d(self.right_aux_k_d)
+        )
+        if not result.is_ok():
+            self.logger.error(
+                (
+                    f"Failed to apply new gains to hopper left auxiliary motor: "
+                    f"{result.name}: {result.description}"
+                )
+            )
+
+    @magicbot.feedback
+    def get_left_measured_speed_rps(self) -> float:
+        return self.hopper_left_motor.get_velocity().value
+
+    @magicbot.feedback
+    def get_right_measured_speed_rps(self) -> float:
+        return self.hopper_right_motor.get_velocity().value
+
+    @magicbot.feedback
+    def get_left_aux_measured_speed_rps(self) -> float:
+        return self.hopper_left_auxiliary_motor.get_velocity().value
+
+    @magicbot.feedback
+    def get_right_aux_measured_speed_rps(self) -> float:
+        return self.hopper_right_auxiliary_motor.get_velocity().value

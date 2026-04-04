@@ -27,8 +27,32 @@ class HopperConstants:
     right_k_p: float = 0.0
     right_k_i: float = 0.0
     right_k_d: float = 0.0
-    default_left_speed_rps: units.rotations_per_second = 50.0
-    default_right_speed_rps: units.rotations_per_second = 50.0
+    left_aux_motor_can_id: int = 0
+    left_aux_motor_can_bus: str = ""
+    left_aux_motor_inverted: signals.InvertedValue = (
+        signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
+    )
+    left_aux_k_s: float = 0.0
+    left_aux_k_v: float = 0.0
+    left_aux_k_a: float = 0.0
+    left_aux_k_p: float = 0.0
+    left_aux_k_i: float = 0.0
+    left_aux_k_d: float = 0.0
+    right_aux_motor_can_id: int = 0
+    right_aux_motor_can_bus: str = ""
+    right_aux_motor_inverted: signals.InvertedValue = (
+        signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
+    )
+    right_aux_k_s: float = 0.0
+    right_aux_k_v: float = 0.0
+    right_aux_k_a: float = 0.0
+    right_aux_k_p: float = 0.0
+    right_aux_k_i: float = 0.0
+    right_aux_k_d: float = 0.0
+    default_left_speed_rps: units.rotations_per_second = 20.0
+    default_right_speed_rps: units.rotations_per_second = 20.0
+    default_left_aux_speed_rps: units.rotations_per_second = 5.0
+    default_right_aux_speed_rps: units.rotations_per_second = 5.0
     supply_current_limit: units.ampere = 40.0
     gear_reduction: float = 1.0
 
@@ -181,16 +205,28 @@ SHOOTER_CONSTANTS: dict[str, ShooterConstants] = {
             left_motor_can_id=55,
             left_motor_can_bus="rio",
             left_motor_inverted=signals.InvertedValue.CLOCKWISE_POSITIVE,
-            left_k_s=0.5,
-            left_k_v=0.123,
-            left_k_p=0.5,
+            left_k_s=0.35,
+            left_k_v=0.3,
+            left_k_p=0.75,
             right_motor_can_id=59,
             right_motor_can_bus="rio",
             right_motor_inverted=signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE,
-            right_k_s=0.2,
-            right_k_v=0.123,
-            right_k_p=0.5,
-            gear_reduction=1.0,
+            right_k_s=0.35,
+            right_k_v=0.31,
+            right_k_p=0.75,
+            left_aux_motor_can_id=56,
+            left_aux_motor_can_bus="rio",
+            left_aux_motor_inverted=signals.InvertedValue.CLOCKWISE_POSITIVE,
+            left_aux_k_s=0.2,
+            left_aux_k_v=0.26,
+            left_aux_k_p=0.8,
+            right_aux_motor_can_id=60,
+            right_aux_motor_can_bus="rio",
+            right_aux_motor_inverted=signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE,
+            left_aux_k_s=0.19,
+            left_aux_k_v=0.26,
+            left_aux_k_p=0.8,
+            gear_reduction=2.5,
         ),
         indexer=IndexerConstants(
             back_motor_can_id=18,
