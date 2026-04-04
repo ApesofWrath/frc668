@@ -14,6 +14,7 @@ class DriveCommand:
     vx: float = 0.0  # meters per second
     vy: float = 0.0  # meters per second
     omega: float = 0.0  # radians per second
+    auto_angle: bool = False
 
 
 class DriverController:
@@ -87,6 +88,7 @@ class DriverController:
             * self._options.max_angular_speed_radians_per_second
             * modifier
         )
+        self._command.auto_angle = self._controller.getPOV() != -1
         return self._command
 
     def shootFromLeftTrench(self) -> bool:
