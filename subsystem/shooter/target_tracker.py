@@ -404,14 +404,14 @@ class TargetTracker:
             self.futureTurretAngleToTarget(),
         )
         self.data_logger.logDouble(
-            "/components/target_tracker/target_turret_angle_degrees",
+            "/components/target_tracker/target_turret_position_degrees",
             self._target_turret_angle_degrees,
         )
         self.data_logger.logDouble(
-            "/components/target_tracker/target_hood_angle_degrees",
+            "/components/target_tracker/target_hood_position_degrees",
             self._target_hood_angle_degrees,
         )
         self.data_logger.logDouble(
-            "/components/target_tracker/target_flywheel_speed_rps",
+            "/components/target_tracker/target_flywheel_velocity_rotations_per_second",
             self._target_flywheel_speed_rps,
         )

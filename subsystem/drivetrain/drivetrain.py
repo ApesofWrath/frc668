@@ -160,6 +160,9 @@ class Drivetrain(commands2.Subsystem):
 
         self.setOperatorPerspectiveForward()
 
+        self._log_timer = wpilib.Timer()
+        self._log_timer.start()
+
     def execute(self) -> None:
         """Command the drivetrain to the current speeds.
 
@@ -257,196 +260,102 @@ class Drivetrain(commands2.Subsystem):
     def estimatedYawDegrees(self) -> units.degree:
         return self.swerve_drive.get_state().pose.rotation().degrees()
 
-    def frontLeftDriveSupplyCurrent(self) -> units.ampere:
-        return (
-            self.swerve_drive.get_module(0)
-            .drive_motor.get_supply_current()
-            .value
-        )
-
-    def frontLeftDriveStatorCurrent(self) -> units.ampere:
-        return (
-            self.swerve_drive.get_module(0)
-            .drive_motor.get_stator_current()
-            .value
-        )
-
-    def frontLeftSteerSupplyCurrent(self) -> units.ampere:
-        return (
-            self.swerve_drive.get_module(0)
-            .steer_motor.get_supply_current()
-            .value
-        )
-
-    def frontLeftSteerStatorCurrent(self) -> units.ampere:
-        return (
-            self.swerve_drive.get_module(0)
-            .steer_motor.get_stator_current()
-            .value
-        )
-
-    def frontRightDriveSupplyCurrent(self) -> units.ampere:
-        return (
-            self.swerve_drive.get_module(1)
-            .drive_motor.get_supply_current()
-            .value
-        )
-
-    def frontRightDriveStatorCurrent(self) -> units.ampere:
-        return (
-            self.swerve_drive.get_module(1)
-            .drive_motor.get_stator_current()
-            .value
-        )
-
-    def frontRightSteerSupplyCurrent(self) -> units.ampere:
-        return (
-            self.swerve_drive.get_module(1)
-            .steer_motor.get_supply_current()
-            .value
-        )
-
-    def frontRightSteerStatorCurrent(self) -> units.ampere:
-        return (
-            self.swerve_drive.get_module(1)
-            .steer_motor.get_stator_current()
-            .value
-        )
-
-    def backLeftDriveSupplyCurrent(self) -> units.ampere:
-        return (
-            self.swerve_drive.get_module(2)
-            .drive_motor.get_supply_current()
-            .value
-        )
-
-    def backLeftDriveStatorCurrent(self) -> units.ampere:
-        return (
-            self.swerve_drive.get_module(2)
-            .drive_motor.get_stator_current()
-            .value
-        )
-
-    def backLeftSteerSupplyCurrent(self) -> units.ampere:
-        return (
-            self.swerve_drive.get_module(2)
-            .steer_motor.get_supply_current()
-            .value
-        )
-
-    def backLeftSteerStatorCurrent(self) -> units.ampere:
-        return (
-            self.swerve_drive.get_module(2)
-            .steer_motor.get_stator_current()
-            .value
-        )
-
-    def backRightDriveSupplyCurrent(self) -> units.ampere:
-        return (
-            self.swerve_drive.get_module(3)
-            .drive_motor.get_supply_current()
-            .value
-        )
-
-    def backRightDriveStatorCurrent(self) -> units.ampere:
-        return (
-            self.swerve_drive.get_module(3)
-            .drive_motor.get_stator_current()
-            .value
-        )
-
-    def backRightSteerSupplyCurrent(self) -> units.ampere:
-        return (
-            self.swerve_drive.get_module(3)
-            .steer_motor.get_supply_current()
-            .value
-        )
-
-    def backRightSteerStatorCurrent(self) -> units.ampere:
-        return (
-            self.swerve_drive.get_module(3)
-            .steer_motor.get_stator_current()
-            .value
-        )
-
     def _logData(self) -> None:
         self.data_logger.logDouble(
-            "/components/drivetrain/estimated_yaw_degrees",
+            "/components/drivetrain/yaw_degrees",
             self.estimatedYawDegrees(),
         )
         self.data_logger.logDouble(
-            "/components/drivetrain/raw_yaw_degrees", self.rawYawDegrees()
+            "/components/drivetrain/pigeon/yaw_degrees", self.rawYawDegrees()
         )
         self.data_logger.logDouble(
-            "/components/drivetrain/raw_pitch_degrees", self.rawPitchDegrees()
+            "/components/drivetrain/pigeon/pitch_degrees",
+            self.rawPitchDegrees(),
         )
         self.data_logger.logDouble(
-            "/components/drivetrain/raw_roll_degrees", self.rawRollDegrees()
+            "/components/drivetrain/pigeon/roll_degrees", self.rawRollDegrees()
         )
-        self.data_logger.logDouble(
-            "/components/drivetrain/front_left_drive_supply_current",
-            self.frontLeftDriveSupplyCurrent(),
+        datalog.logPrimaryMotorData(
+            self.data_logger,
+            "/components/drivetrain/front_left_drive_motor",
+            self.swerve_drive.get_module(0).drive_motor,
         )
-        self.data_logger.logDouble(
-            "/components/drivetrain/front_left_drive_stator_current",
-            self.frontLeftDriveStatorCurrent(),
+        datalog.logPrimaryMotorData(
+            self.data_logger,
+            "/components/drivetrain/front_left_steer_motor",
+            self.swerve_drive.get_module(0).steer_motor,
         )
-        self.data_logger.logDouble(
-            "/components/drivetrain/front_left_steer_supply_current",
-            self.frontLeftSteerSupplyCurrent(),
+        datalog.logPrimaryMotorData(
+            self.data_logger,
+            "/components/drivetrain/front_right_drive_motor",
+            self.swerve_drive.get_module(1).drive_motor,
         )
-        self.data_logger.logDouble(
-            "/components/drivetrain/front_left_steer_stator_current",
-            self.frontLeftSteerStatorCurrent(),
+        datalog.logPrimaryMotorData(
+            self.data_logger,
+            "/components/drivetrain/front_right_steer_motor",
+            self.swerve_drive.get_module(1).steer_motor,
         )
-        self.data_logger.logDouble(
-            "/components/drivetrain/front_right_drive_supply_current",
-            self.frontRightDriveSupplyCurrent(),
+        datalog.logPrimaryMotorData(
+            self.data_logger,
+            "/components/drivetrain/back_left_drive_motor",
+            self.swerve_drive.get_module(2).drive_motor,
         )
-        self.data_logger.logDouble(
-            "/components/drivetrain/front_right_drive_stator_current",
-            self.frontRightDriveStatorCurrent(),
+        datalog.logPrimaryMotorData(
+            self.data_logger,
+            "/components/drivetrain/back_left_steer_motor",
+            self.swerve_drive.get_module(2).steer_motor,
         )
-        self.data_logger.logDouble(
-            "/components/drivetrain/front_right_steer_supply_current",
-            self.frontRightSteerSupplyCurrent(),
+        datalog.logPrimaryMotorData(
+            self.data_logger,
+            "/components/drivetrain/back_right_drive_motor",
+            self.swerve_drive.get_module(3).drive_motor,
         )
-        self.data_logger.logDouble(
-            "/components/drivetrain/front_right_steer_stator_current",
-            self.frontRightSteerStatorCurrent(),
+        datalog.logPrimaryMotorData(
+            self.data_logger,
+            "/components/drivetrain/back_right_steer_motor",
+            self.swerve_drive.get_module(3).steer_motor,
         )
-        self.data_logger.logDouble(
-            "/components/drivetrain/back_left_drive_supply_current",
-            self.backLeftDriveSupplyCurrent(),
-        )
-        self.data_logger.logDouble(
-            "/components/drivetrain/back_left_drive_stator_current",
-            self.backLeftDriveStatorCurrent(),
-        )
-        self.data_logger.logDouble(
-            "/components/drivetrain/back_left_steer_supply_current",
-            self.backLeftSteerSupplyCurrent(),
-        )
-        self.data_logger.logDouble(
-            "/components/drivetrain/back_left_steer_stator_current",
-            self.backLeftSteerStatorCurrent(),
-        )
-        self.data_logger.logDouble(
-            "/components/drivetrain/back_right_drive_supply_current",
-            self.backRightDriveSupplyCurrent(),
-        )
-        self.data_logger.logDouble(
-            "/components/drivetrain/back_right_drive_stator_current",
-            self.backRightDriveStatorCurrent(),
-        )
-        self.data_logger.logDouble(
-            "/components/drivetrain/back_right_steer_supply_current",
-            self.backRightSteerSupplyCurrent(),
-        )
-        self.data_logger.logDouble(
-            "/components/drivetrain/back_right_steer_stator_current",
-            self.backRightSteerStatorCurrent(),
-        )
+        if self._log_timer.advanceIfElapsed(1.0):
+            datalog.logSecondaryMotorData(
+                self.data_logger,
+                "/components/drivetrain/front_left_drive_motor",
+                self.swerve_drive.get_module(0).drive_motor,
+            )
+            datalog.logSecondaryMotorData(
+                self.data_logger,
+                "/components/drivetrain/front_left_steer_motor",
+                self.swerve_drive.get_module(0).steer_motor,
+            )
+            datalog.logSecondaryMotorData(
+                self.data_logger,
+                "/components/drivetrain/front_right_drive_motor",
+                self.swerve_drive.get_module(1).drive_motor,
+            )
+            datalog.logSecondaryMotorData(
+                self.data_logger,
+                "/components/drivetrain/front_right_steer_motor",
+                self.swerve_drive.get_module(1).steer_motor,
+            )
+            datalog.logSecondaryMotorData(
+                self.data_logger,
+                "/components/drivetrain/back_left_drive_motor",
+                self.swerve_drive.get_module(2).drive_motor,
+            )
+            datalog.logSecondaryMotorData(
+                self.data_logger,
+                "/components/drivetrain/back_left_steer_motor",
+                self.swerve_drive.get_module(2).steer_motor,
+            )
+            datalog.logSecondaryMotorData(
+                self.data_logger,
+                "/components/drivetrain/back_right_drive_motor",
+                self.swerve_drive.get_module(3).drive_motor,
+            )
+            datalog.logSecondaryMotorData(
+                self.data_logger,
+                "/components/drivetrain/back_right_steer_motor",
+                self.swerve_drive.get_module(3).steer_motor,
+            )
 
 
 class DrivetrainTuner:

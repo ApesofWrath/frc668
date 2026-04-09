@@ -66,6 +66,9 @@ class IntakeDeployer(magicbot.StateMachine):
         # mechanism position to zero.
         self.intake_deploy_encoder.set_position(0.0)
 
+        self._log_timer = wpilib.Timer()
+        self._log_timer.start()
+
     def deploy(self) -> None:
         """Deploy the intake.
 
@@ -109,22 +112,21 @@ class IntakeDeployer(magicbot.StateMachine):
     def encoderPositionRotations(self) -> phoenix6.units.rotation:
         return self.intake_deploy_encoder.get_position().value
 
-    def deploySupplyCurrent(self) -> phoenix6.units.ampere:
-        return self.intake_deploy_motor.get_supply_current().value
-
-    def deployStatorCurrent(self) -> phoenix6.units.ampere:
-        return self.intake_deploy_motor.get_stator_current().value
-
     def _logData(self) -> None:
         self.data_logger.logDouble(
-            "/components/intake_deployer/encoder_position_rotations",
+            "/components/intake/deploy_encoder/position_rotations",
             self.encoderPositionRotations(),
         )
-        self.data_logger.logDouble(
-            "/components/intake_deployer/supply_current",
-            self.deploySupplyCurrent(),
+        datalog.logPrimaryMotorData(
+            self.data_logger,
+            "/components/intake/deploy_motor",
+            self.intake_deploy_motor,
+            position=True,
         )
-        self.data_logger.logDouble(
-            "/components/intake_deployer/stator_current",
-            self.deployStatorCurrent(),
-        )
+        # Log the rest of the data at a slower frequency.
+        if self._log_timer.advanceIfElapsed(1.0):
+            datalog.logSecondaryMotorData(
+                self.data_logger,
+                "/components/intake/deploy_motor",
+                self.intake_deploy_motor,
+            )
