@@ -11,7 +11,10 @@ class MockIntakeConstants:
 
     def __init__(self):
         self.active_roller_speed_rps = 80.0
-        self.roller_motor_inverted = (
+        self.roller_top_motor_inverted = (
+            phoenix6.signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
+        )
+        self.roller_bottom_motor_inverted = (
             phoenix6.signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
         )
         self.k_s = 0.25
@@ -21,6 +24,8 @@ class MockIntakeConstants:
         self.k_i = 0.0
         self.k_d = 0.0
         self.roller_motor_supply_current_limit = 40.0
+        self.sensor_to_mechanism_ratio = 1.79
+        self.rotor_to_sensor_ratio = 1.0
 
 
 @pytest.fixture
@@ -32,12 +37,11 @@ def mock_constants():
 
 
 @pytest.fixture
-def mock_motor():
-    """Mock for phoenix6.hardware.TalonFX."""
+def mock_top_motor():
+    """Mock for top phoenix6.hardware.TalonFX intake roller motor."""
     motor = mock.MagicMock(spec=phoenix6.hardware.TalonFX)
     motor.configurator = mock.MagicMock()
 
-    # Simulate the velocity status signal (used by get_measured_speed)
     vel_signal = mock.MagicMock()
     vel_signal.value = 42.0
     motor.get_velocity.return_value = vel_signal
@@ -45,11 +49,24 @@ def mock_motor():
 
 
 @pytest.fixture
-def intake(mock_constants, mock_motor):
+def mock_bottom_motor():
+    """Mock for bottom phoenix6.hardware.TalonFX intake roller motor."""
+    motor = mock.MagicMock(spec=phoenix6.hardware.TalonFX)
+    motor.configurator = mock.MagicMock()
+
+    vel_signal = mock.MagicMock()
+    vel_signal.value = 42.0
+    motor.get_velocity.return_value = vel_signal
+    return motor
+
+
+@pytest.fixture
+def intake(mock_constants, mock_top_motor, mock_bottom_motor):
     """Fresh Intake instance with mocks injected and setup() already called."""
     component = Intake()
     component.robot_constants = mock_constants
-    component.intake_roller_motor = mock_motor
+    component.intake_roller_top_motor = mock_top_motor
+    component.intake_roller_bottom_motor = mock_bottom_motor
     component.data_logger = mock.MagicMock()
     component.setup()
     return component
@@ -59,30 +76,46 @@ class TestIntake:
     """Unit tests for the Intake magicbot component."""
 
     def test_setup_applies_configuration(
-        self, intake, mock_constants, mock_motor
+        self, intake, mock_constants, mock_top_motor, mock_bottom_motor
     ):
         """Verify TalonFXConfigurator.apply() is called with the correct chained config."""
-        mock_motor.configurator.apply.assert_called_once()
+        mock_top_motor.configurator.apply.assert_called_once()
+        mock_bottom_motor.configurator.apply.assert_called_once()
 
-        config = mock_motor.configurator.apply.call_args[0][0]
-        assert isinstance(config, phoenix6.configs.TalonFXConfiguration)
+        top_config = mock_top_motor.configurator.apply.call_args[0][0]
+        bottom_config = mock_bottom_motor.configurator.apply.call_args[0][0]
+        assert isinstance(top_config, phoenix6.configs.TalonFXConfiguration)
+        assert isinstance(bottom_config, phoenix6.configs.TalonFXConfiguration)
 
         # Motor output inversion
         assert (
-            config.motor_output.inverted
-            == mock_constants.intake.roller_motor_inverted
+            top_config.motor_output.inverted
+            == mock_constants.intake.roller_top_motor_inverted
+        )
+        assert (
+            bottom_config.motor_output.inverted
+            == mock_constants.intake.roller_bottom_motor_inverted
         )
 
         # Slot 0 PID/FF gains
-        s0 = config.slot0
-        assert s0.k_s == mock_constants.intake.k_s
-        assert s0.k_v == mock_constants.intake.k_v
-        assert s0.k_a == mock_constants.intake.k_a
-        assert s0.k_p == mock_constants.intake.k_p
-        assert s0.k_i == mock_constants.intake.k_i
-        assert s0.k_d == mock_constants.intake.k_d
+        assert top_config.slot0.k_s == mock_constants.intake.k_s
+        assert top_config.slot0.k_v == mock_constants.intake.k_v
+        assert top_config.slot0.k_a == mock_constants.intake.k_a
+        assert top_config.slot0.k_p == mock_constants.intake.k_p
+        assert top_config.slot0.k_i == mock_constants.intake.k_i
+        assert top_config.slot0.k_d == mock_constants.intake.k_d
+        assert bottom_config.slot0.k_s == mock_constants.intake.k_s
+        assert bottom_config.slot0.k_v == mock_constants.intake.k_v
+        assert bottom_config.slot0.k_a == mock_constants.intake.k_a
+        assert bottom_config.slot0.k_p == mock_constants.intake.k_p
+        assert bottom_config.slot0.k_i == mock_constants.intake.k_i
+        assert bottom_config.slot0.k_d == mock_constants.intake.k_d
         assert (
-            config.current_limits.supply_current_limit
+            top_config.current_limits.supply_current_limit
+            == mock_constants.intake.roller_motor_supply_current_limit
+        )
+        assert (
+            bottom_config.current_limits.supply_current_limit
             == mock_constants.intake.roller_motor_supply_current_limit
         )
 
@@ -133,22 +166,32 @@ class TestIntake:
         intake.on_disable()
         assert intake._active is False
 
-    def test_execute_inactive_sets_zero_velocity(self, intake, mock_motor):
+    def test_execute_inactive_sets_zero_velocity(
+        self, intake, mock_top_motor, mock_bottom_motor
+    ):
         """When inactive, execute() must command 0 RPS."""
         intake.setActive(False)
         intake.execute()
 
-        mock_motor.set_control.assert_called_once()
-        request = mock_motor.set_control.call_args[0][0]
+        mock_top_motor.set_control.assert_called_once()
+        mock_bottom_motor.set_control.assert_called_once()
+        request = mock_top_motor.set_control.call_args[0][0]
         assert isinstance(request, phoenix6.controls.VelocityVoltage)
         assert request.velocity == 0.0
+        assert mock_bottom_motor.set_control.call_args[0][0].velocity == 0.0
 
-    def test_execute_active_sets_requested_velocity(self, intake, mock_motor):
+    def test_execute_active_sets_requested_velocity(
+        self, intake, mock_top_motor, mock_bottom_motor
+    ):
         """When active, execute() must command the current _active_roller_speed_rps."""
         intake.setActive(True)
         intake.setSpeed(67.0)
         intake.execute()
 
-        mock_motor.set_control.assert_called_once()
-        request = mock_motor.set_control.call_args[0][0]
+        mock_top_motor.set_control.assert_called_once()
+        mock_bottom_motor.set_control.assert_called_once()
+        request = mock_top_motor.set_control.call_args[0][0]
         assert request.velocity == pytest.approx(67.0)
+        assert mock_bottom_motor.set_control.call_args[0][0].velocity == pytest.approx(
+            67.0
+        )
