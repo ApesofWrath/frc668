@@ -1,5 +1,6 @@
 import magicbot
 import phoenix6
+import wpilib
 
 import constants
 from common import datalog
@@ -147,6 +148,9 @@ class Turret:
         if not result.is_ok():
             self.logger.error("Failed to set position on turret motor")
 
+        self._log_timer = wpilib.Timer()
+        self._log_timer.start()
+
     def execute(self) -> None:
         """Command the motors to the current speed.
 
@@ -252,6 +256,7 @@ class Turret:
         self.turret_encoder.set_position(0.0)
 
     def measuredAngleDegrees(self) -> phoenix6.units.degree:
+        """The angle of the turret measured by the external encoder, in degrees."""
         return (
             self._encoder_position_signal.value
             * self.ROTATIONS_TO_DEGREES
@@ -266,20 +271,26 @@ class Turret:
 
     def _logData(self) -> None:
         self.data_logger.logDouble(
-            "/components/turret/target_angle_degrees",
+            "/components/turret/target_position_degrees",
             self._turret_position_degrees,
             on_change=True,
         )
         self.data_logger.logDouble(
-            "/components/turret/measured_angle_degrees",
+            "/components/turret/measured_position_degrees",
             self.measuredAngleDegrees(),
         )
-        self.data_logger.logDouble(
-            "/components/turret/supply_current", self.supplyCurrent()
+        datalog.logPrimaryMotorData(
+            self.data_logger,
+            "/components/turret/motor",
+            self.turret_motor,
+            position=True,
         )
-        self.data_logger.logDouble(
-            "/components/turret/stator_current", self.statorCurrent()
-        )
+        if self._log_timer.advanceIfElapsed(1.0):
+            datalog.logSecondaryMotorData(
+                self.data_logger,
+                "/components/turret/motor",
+                self.turret_motor,
+            )
 
 
 class TurretTuner:

@@ -1,5 +1,6 @@
 import magicbot
 import phoenix6
+import wpilib
 
 import constants
 from common import datalog
@@ -104,6 +105,9 @@ class Hopper:
 
         self._request = phoenix6.controls.VelocityVoltage(0.0).with_slot(0)
 
+        self._log_timer = wpilib.Timer()
+        self._log_timer.start()
+
     def execute(self) -> None:
         """Command the motors to the current speed.
 
@@ -163,58 +167,43 @@ class Hopper:
         """
         self._enabled = value
 
-    def leftMeasuredSpeedRps(self) -> phoenix6.units.rotations_per_second:
-        return self.hopper_left_motor.get_velocity().value
-
-    def rightMeasuredSpeedRps(self) -> phoenix6.units.rotations_per_second:
-        return self.hopper_right_motor.get_velocity().value
-
-    def leftSupplyCurrent(self) -> phoenix6.units.ampere:
-        return self.hopper_left_motor.get_supply_current().value
-
-    def leftStatorCurrent(self) -> phoenix6.units.ampere:
-        return self.hopper_left_motor.get_stator_current().value
-
-    def rightSupplyCurrent(self) -> phoenix6.units.ampere:
-        return self.hopper_right_motor.get_supply_current().value
-
-    def rightStatorCurrent(self) -> phoenix6.units.ampere:
-        return self.hopper_right_motor.get_stator_current().value
-
     def _logData(self):
         self.data_logger.logBoolean(
             "/components/hopper/enabled", self._enabled, on_change=True
         )
         self.data_logger.logDouble(
-            "/components/hopper/left_target_speed_rps",
+            "/components/hopper/left_target_velocity_rotations_per_second",
             self._left_target_rps,
             on_change=True,
         )
         self.data_logger.logDouble(
-            "/components/hopper/right_target_speed_rps",
+            "/components/hopper/right_target_velocity_rotations_per_second",
             self._right_target_rps,
             on_change=True,
         )
-        self.data_logger.logDouble(
-            "/components/hopper/left_measured_speed_rps",
-            self.leftMeasuredSpeedRps(),
+        datalog.logPrimaryMotorData(
+            self.data_logger,
+            "/components/hopper/left_motor",
+            self.hopper_left_motor,
+            velocity=True,
         )
-        self.data_logger.logDouble(
-            "/components/hopper/right_measured_speed_rps",
-            self.rightMeasuredSpeedRps(),
+        datalog.logPrimaryMotorData(
+            self.data_logger,
+            "/components/hopper/right_motor",
+            self.hopper_right_motor,
+            velocity=True,
         )
-        self.data_logger.logDouble(
-            "/components/hopper/left_supply_current", self.leftSupplyCurrent()
-        )
-        self.data_logger.logDouble(
-            "/components/hopper/left_stator_current", self.leftStatorCurrent()
-        )
-        self.data_logger.logDouble(
-            "/components/hopper/right_supply_current", self.rightSupplyCurrent()
-        )
-        self.data_logger.logDouble(
-            "/components/hopper/right_stator_current", self.rightStatorCurrent()
-        )
+        if self._log_timer.advanceIfElapsed(1.0):
+            datalog.logSecondaryMotorData(
+                self.data_logger,
+                "/components/hopper/left_motor",
+                self.hopper_left_motor,
+            )
+            datalog.logSecondaryMotorData(
+                self.data_logger,
+                "/components/hopper/right_motor",
+                self.hopper_right_motor,
+            )
 
 
 class HopperTuner:
