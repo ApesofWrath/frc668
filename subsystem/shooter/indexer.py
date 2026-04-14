@@ -111,7 +111,7 @@ class Indexer:
                 self._request.with_velocity(0.0)
             )
 
-        self._logData()
+        self._log_data()
 
     def on_enable(self) -> None:
         """Reset to a "safe" state when the robot is enabled.
@@ -132,7 +132,7 @@ class Indexer:
         self._target_rps = 0.0
         self._enabled = False
 
-    def setTargetRps(self, target_rps: float) -> None:
+    def set_target_rps(self, target_rps: float) -> None:
         """Set the target speed for both indexer motors.
 
         Args:
@@ -140,7 +140,7 @@ class Indexer:
         """
         self._target_rps = target_rps
 
-    def setEnabled(self, value: bool) -> None:
+    def set_enabled(self, value: bool) -> None:
         """Enable or disable the indexer motors.
 
         Args:
@@ -148,34 +148,34 @@ class Indexer:
         """
         self._enabled = value
 
-    def _logData(self):
-        self.data_logger.logBoolean(
+    def _log_data(self):
+        self.data_logger.log_boolean(
             "/components/indexer/enabled", self._enabled, on_change=True
         )
-        self.data_logger.logDouble(
+        self.data_logger.log_double(
             "/components/indexer/target_velocity_rotations_per_second",
             self._target_rps,
             on_change=True,
         )
-        datalog.logPrimaryMotorData(
+        datalog.log_primary_motor_data(
             self.data_logger,
             "/components/indexer/back_motor",
             self.indexer_back_motor,
             velocity=True,
         )
-        datalog.logPrimaryMotorData(
+        datalog.log_primary_motor_data(
             self.data_logger,
             "/components/indexer/front_motor",
             self.indexer_front_motor,
             velocity=True,
         )
         if self._log_timer.advanceIfElapsed(1.0):
-            datalog.logSecondaryMotorData(
+            datalog.log_secondary_motor_data(
                 self.data_logger,
                 "/components/indexer/back_motor",
                 self.indexer_back_motor,
             )
-            datalog.logSecondaryMotorData(
+            datalog.log_secondary_motor_data(
                 self.data_logger,
                 "/components/indexer/front_motor",
                 self.indexer_front_motor,
@@ -254,17 +254,17 @@ class IndexerTuner:
         )
 
     def execute(self) -> None:
-        self.indexer.setTargetRps(self.target_rps)
-        self.indexer.setEnabled(self.enabled)
+        self.indexer.set_target_rps(self.target_rps)
+        self.indexer.set_enabled(self.enabled)
 
         # We only want to reapply the gains if they changed. The TalonFX motor
         # doesn't like being reconfigured constantly.
-        if self.backGainsChanged():
-            self.applyBackGains()
-        if self.frontGainsChanged():
-            self.applyFrontGains()
+        if self._back_gains_changed():
+            self._apply_back_gains()
+        if self._front_gains_changed():
+            self._apply_front_gains()
 
-    def backGainsChanged(self) -> bool:
+    def _back_gains_changed(self) -> bool:
         """Detect if any of the gains for the back motor changed.
 
         Returns:
@@ -280,7 +280,7 @@ class IndexerTuner:
             or self.back_k_d != self._current_back_gains.k_d
         )
 
-    def frontGainsChanged(self) -> bool:
+    def _front_gains_changed(self) -> bool:
         """Detect if any of the gains for the front motor changed.
 
         Returns:
@@ -295,7 +295,7 @@ class IndexerTuner:
             or self.front_k_d != self._current_front_gains.k_d
         )
 
-    def applyBackGains(self) -> None:
+    def _apply_back_gains(self) -> None:
         """Apply the current gains to the back motor."""
         result = self.indexer_back_motor.configurator.apply(
             self._current_back_gains.with_k_s(self.back_k_s)
@@ -310,7 +310,7 @@ class IndexerTuner:
                 f"Failed to apply new gains to indexer back motor: {result.name}: {result.description}"
             )
 
-    def applyFrontGains(self) -> None:
+    def _apply_front_gains(self) -> None:
         """Apply the current gains to the front motor."""
         result = self.indexer_front_motor.configurator.apply(
             self._current_front_gains.with_k_s(self.front_k_s)

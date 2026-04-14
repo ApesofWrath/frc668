@@ -158,7 +158,7 @@ class Drivetrain(commands2.Subsystem):
             )
         )
 
-        self.setOperatorPerspectiveForward()
+        self.set_operator_perspective_forward()
 
         self._log_timer = wpilib.Timer()
         self._log_timer.start()
@@ -168,7 +168,7 @@ class Drivetrain(commands2.Subsystem):
 
         This method is called at the end of the control loop.
         """
-        self.setOperatorPerspectiveForward()
+        self.set_operator_perspective_forward()
 
         if self._auto_enabled:
             self.swerve_drive.set_control(self._auto_request)
@@ -177,9 +177,9 @@ class Drivetrain(commands2.Subsystem):
         else:
             self.swerve_drive.set_control(self._drive_request)
 
-        self._logData()
+        self._log_data()
 
-    def setSpeeds(
+    def set_speeds(
         self,
         command: joystick.DriveCommand,
     ) -> None:
@@ -188,7 +188,7 @@ class Drivetrain(commands2.Subsystem):
             command.vy
         ).with_rotational_rate(command.omega)
 
-    def followTrajectorySample(self, sample: choreo.SwerveSample) -> None:
+    def follow_trajectory_sample(self, sample: choreo.SwerveSample) -> None:
         """Follow a Choreo trajectory sample.
 
         Add corrections to the sample's velocities to stay on track. Use field
@@ -218,20 +218,20 @@ class Drivetrain(commands2.Subsystem):
             0
         ).with_rotational_rate(0)
 
-    def setPose(self, pose: geometry.Pose2d) -> None:
+    def set_pose(self, pose: geometry.Pose2d) -> None:
         """Hard reset the robot's pose estimate."""
         self.swerve_drive.reset_pose(pose)
 
-    def setBrakeEnabled(self, value: bool) -> None:
+    def set_brake_enabled(self, value: bool) -> None:
         self._brake_enabled = value
 
-    def setAutoEnabled(self, value: bool) -> None:
+    def set_auto_enabled(self, value: bool) -> None:
         self._auto_enabled = value
 
-    def setOperatorPerspectiveForward(self) -> None:
+    def set_operator_perspective_forward(self) -> None:
         self.swerve_drive.set_operator_perspective_forward(
             drivetrain.constants.RED_ALLIANCE_PERSPECTIVE_ROTATION
-            if self.alliance_fetcher.isRedAlliance()
+            if self.alliance_fetcher.is_red_alliance()
             else drivetrain.constants.BLUE_ALLIANCE_PERSPECTIVE_ROTATION
         )
 
@@ -239,119 +239,119 @@ class Drivetrain(commands2.Subsystem):
     def get_robot_pose(self) -> geometry.Pose2d:
         return self.swerve_drive.get_state().pose
 
-    def robotSpeeds(self) -> kinematics.ChassisSpeeds:
+    def robot_speeds(self) -> kinematics.ChassisSpeeds:
         return self.swerve_drive.get_state().speeds
 
-    def rawYawDegrees(self) -> units.degree:
+    def raw_yaw_degrees(self) -> units.degree:
         return wpimath.inputModulus(
             self.swerve_drive.pigeon2.get_yaw().value, -180.0, 180.0
         )
 
-    def rawPitchDegrees(self) -> units.degree:
+    def raw_pitch_degrees(self) -> units.degree:
         return wpimath.inputModulus(
             self.swerve_drive.pigeon2.get_pitch().value, -180.0, 180.0
         )
 
-    def rawRollDegrees(self) -> units.degree:
+    def raw_roll_degrees(self) -> units.degree:
         return wpimath.inputModulus(
             self.swerve_drive.pigeon2.get_roll().value, -180.0, 180.0
         )
 
-    def estimatedYawDegrees(self) -> units.degree:
+    def estimated_yaw_degrees(self) -> units.degree:
         return self.swerve_drive.get_state().pose.rotation().degrees()
 
-    def _logData(self) -> None:
-        self.data_logger.logDouble(
+    def _log_data(self) -> None:
+        self.data_logger.log_double(
             "/components/drivetrain/yaw_degrees",
-            self.estimatedYawDegrees(),
+            self.estimated_yaw_degrees(),
         )
-        self.data_logger.logDouble(
-            "/components/drivetrain/pigeon/yaw_degrees", self.rawYawDegrees()
+        self.data_logger.log_double(
+            "/components/drivetrain/pigeon/yaw_degrees", self.raw_yaw_degrees()
         )
-        self.data_logger.logDouble(
+        self.data_logger.log_double(
             "/components/drivetrain/pigeon/pitch_degrees",
-            self.rawPitchDegrees(),
+            self.raw_pitch_degrees(),
         )
-        self.data_logger.logDouble(
-            "/components/drivetrain/pigeon/roll_degrees", self.rawRollDegrees()
+        self.data_logger.log_double(
+            "/components/drivetrain/pigeon/roll_degrees", self.raw_roll_degrees()
         )
-        datalog.logPrimaryMotorData(
+        datalog.log_primary_motor_data(
             self.data_logger,
             "/components/drivetrain/front_left_drive_motor",
             self.swerve_drive.get_module(0).drive_motor,
         )
-        datalog.logPrimaryMotorData(
+        datalog.log_primary_motor_data(
             self.data_logger,
             "/components/drivetrain/front_left_steer_motor",
             self.swerve_drive.get_module(0).steer_motor,
         )
-        datalog.logPrimaryMotorData(
+        datalog.log_primary_motor_data(
             self.data_logger,
             "/components/drivetrain/front_right_drive_motor",
             self.swerve_drive.get_module(1).drive_motor,
         )
-        datalog.logPrimaryMotorData(
+        datalog.log_primary_motor_data(
             self.data_logger,
             "/components/drivetrain/front_right_steer_motor",
             self.swerve_drive.get_module(1).steer_motor,
         )
-        datalog.logPrimaryMotorData(
+        datalog.log_primary_motor_data(
             self.data_logger,
             "/components/drivetrain/back_left_drive_motor",
             self.swerve_drive.get_module(2).drive_motor,
         )
-        datalog.logPrimaryMotorData(
+        datalog.log_primary_motor_data(
             self.data_logger,
             "/components/drivetrain/back_left_steer_motor",
             self.swerve_drive.get_module(2).steer_motor,
         )
-        datalog.logPrimaryMotorData(
+        datalog.log_primary_motor_data(
             self.data_logger,
             "/components/drivetrain/back_right_drive_motor",
             self.swerve_drive.get_module(3).drive_motor,
         )
-        datalog.logPrimaryMotorData(
+        datalog.log_primary_motor_data(
             self.data_logger,
             "/components/drivetrain/back_right_steer_motor",
             self.swerve_drive.get_module(3).steer_motor,
         )
         if self._log_timer.advanceIfElapsed(1.0):
-            datalog.logSecondaryMotorData(
+            datalog.log_secondary_motor_data(
                 self.data_logger,
                 "/components/drivetrain/front_left_drive_motor",
                 self.swerve_drive.get_module(0).drive_motor,
             )
-            datalog.logSecondaryMotorData(
+            datalog.log_secondary_motor_data(
                 self.data_logger,
                 "/components/drivetrain/front_left_steer_motor",
                 self.swerve_drive.get_module(0).steer_motor,
             )
-            datalog.logSecondaryMotorData(
+            datalog.log_secondary_motor_data(
                 self.data_logger,
                 "/components/drivetrain/front_right_drive_motor",
                 self.swerve_drive.get_module(1).drive_motor,
             )
-            datalog.logSecondaryMotorData(
+            datalog.log_secondary_motor_data(
                 self.data_logger,
                 "/components/drivetrain/front_right_steer_motor",
                 self.swerve_drive.get_module(1).steer_motor,
             )
-            datalog.logSecondaryMotorData(
+            datalog.log_secondary_motor_data(
                 self.data_logger,
                 "/components/drivetrain/back_left_drive_motor",
                 self.swerve_drive.get_module(2).drive_motor,
             )
-            datalog.logSecondaryMotorData(
+            datalog.log_secondary_motor_data(
                 self.data_logger,
                 "/components/drivetrain/back_left_steer_motor",
                 self.swerve_drive.get_module(2).steer_motor,
             )
-            datalog.logSecondaryMotorData(
+            datalog.log_secondary_motor_data(
                 self.data_logger,
                 "/components/drivetrain/back_right_drive_motor",
                 self.swerve_drive.get_module(3).drive_motor,
             )
-            datalog.logSecondaryMotorData(
+            datalog.log_secondary_motor_data(
                 self.data_logger,
                 "/components/drivetrain/back_right_steer_motor",
                 self.swerve_drive.get_module(3).steer_motor,
@@ -477,7 +477,7 @@ class DrivetrainTuner:
             self.logger.warning(
                 "Cannot apply multiple sysid routines simultaneously"
             )
-            self._updateState()
+            self._update_state()
             return
 
         direction = (
@@ -487,22 +487,22 @@ class DrivetrainTuner:
         )
         # Only schedule a sysid command on a rising edge.
         if self.translation_quasistatic and not self._last_tq:
-            self.sysIdTranslationQuasistatic(direction)
+            self._sys_id_translation_quasistatic(direction)
         if self.translation_dynamic and not self._last_td:
-            self.sysIdTranslationDynamic(direction)
+            self._sys_id_translation_dynamic(direction)
         if self.rotation_quasistatic and not self._last_rq:
-            self.sysIdRotationQuasistatic(direction)
+            self._sys_id_rotation_quasistatic(direction)
         if self.rotation_dynamic and not self._last_rd:
-            self.sysIdRotationDynamic(direction)
+            self._sys_id_rotation_dynamic(direction)
         if self.steer_quasistatic and not self._last_sq:
-            self.sysIdSteerQuasistatic(direction)
+            self._sys_id_steer_quasistatic(direction)
         if self.steer_dynamic and not self._last_sd:
-            self.sysIdSteerDynamic(direction)
+            self._sys_id_steer_dynamic(direction)
 
-        self._updateState()
+        self._update_state()
         self._scheduler.run()
 
-    def _updateState(self) -> None:
+    def _update_state(self) -> None:
         self._last_tq = self.translation_quasistatic
         self._last_td = self.translation_dynamic
         self._last_rq = self.rotation_quasistatic
@@ -510,37 +510,37 @@ class DrivetrainTuner:
         self._last_sq = self.steer_quasistatic
         self._last_sd = self.steer_dynamic
 
-    def sysIdTranslationQuasistatic(
+    def _sys_id_translation_quasistatic(
         self, direction: commands2_sysid.SysIdRoutine.Direction
     ) -> None:
         self._scheduler.cancelAll()
         self._scheduler.schedule(self._sysid_translation.quasistatic(direction))
 
-    def sysIdTranslationDynamic(
+    def _sys_id_translation_dynamic(
         self, direction: commands2_sysid.SysIdRoutine.Direction
     ) -> None:
         self._scheduler.cancelAll()
         self._scheduler.schedule(self._sysid_translation.dynamic(direction))
 
-    def sysIdRotationQuasistatic(
+    def _sys_id_rotation_quasistatic(
         self, direction: commands2_sysid.SysIdRoutine.Direction
     ) -> None:
         self._scheduler.cancelAll()
         self._scheduler.schedule(self._sysid_rotation.quasistatic(direction))
 
-    def sysIdRotationDynamic(
+    def _sys_id_rotation_dynamic(
         self, direction: commands2_sysid.SysIdRoutine.Direction
     ) -> None:
         self._scheduler.cancelAll()
         self._scheduler.schedule(self._sysid_rotation.dynamic(direction))
 
-    def sysIdSteerQuasistatic(
+    def _sys_id_steer_quasistatic(
         self, direction: commands2_sysid.SysIdRoutine.Direction
     ) -> None:
         self._scheduler.cancelAll()
         self._scheduler.schedule(self._sysid_steer.quasistatic(direction))
 
-    def sysIdSteerDynamic(
+    def _sys_id_steer_dynamic(
         self, direction: commands2_sysid.SysIdRoutine.Direction
     ) -> None:
         self._scheduler.cancelAll()

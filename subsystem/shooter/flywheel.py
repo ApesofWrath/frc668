@@ -92,7 +92,7 @@ class Flywheel:
             self._request.with_velocity(self._target_rps)
         )
 
-        self._logData()
+        self._log_data()
 
     def on_enable(self) -> None:
         """Reset to a "safe" state when the robot is enabled.
@@ -111,31 +111,31 @@ class Flywheel:
         """
         self._target_rps = 0.0
 
-    def setTargetRps(self, target_rps: float) -> None:
+    def set_target_rps(self, target_rps: float) -> None:
         self._target_rps = target_rps
 
-    def measuredSpeedRps(self) -> phoenix6.units.rotations_per_second:
+    def measured_speed_rps(self) -> phoenix6.units.rotations_per_second:
         """Flywheel speed measured by the external encoder, in rotations per second."""
         return self._velocity_signal.value
 
-    def _logData(self) -> None:
-        self.data_logger.logDouble(
+    def _log_data(self) -> None:
+        self.data_logger.log_double(
             "/components/flywheel/target_velocity_rotations_per_second",
             self._target_rps,
             on_change=True,
         )
-        self.data_logger.logDouble(
+        self.data_logger.log_double(
             "/components/flywheel/encoder/velocity_rotations_per_second",
-            self.measuredSpeedRps(),
+            self.measured_speed_rps(),
         )
-        datalog.logPrimaryMotorData(
+        datalog.log_primary_motor_data(
             self.data_logger,
             "/components/flywheel/motor",
             self.flywheel_motor,
             velocity=True,
         )
         if self._log_timer.advanceIfElapsed(1.0):
-            datalog.logSecondaryMotorData(
+            datalog.log_secondary_motor_data(
                 self.data_logger,
                 "/components/flywheel/motor",
                 self.flywheel_motor,
@@ -196,14 +196,14 @@ class FlywheelTuner:
 
         This method is called at the end of the control loop.
         """
-        self.flywheel.setTargetRps(self.target_rps)
+        self.flywheel.set_target_rps(self.target_rps)
 
         # We only want to reapply the gains if they changed. The TalonFX motor
         # doesn't like being reconfigured constantly.
-        if not self.gainsChanged():
+        if not self.gains_changed():
             return
 
-        self.applyGains()
+        self.apply_gains()
 
         self.last_k_s = self.k_s
         self.last_k_v = self.k_v
@@ -212,7 +212,7 @@ class FlywheelTuner:
         self.last_k_i = self.k_i
         self.last_k_d = self.k_d
 
-    def gainsChanged(self) -> bool:
+    def gains_changed(self) -> bool:
         """Detect if any of the gains changed.
 
         Returns:
@@ -227,7 +227,7 @@ class FlywheelTuner:
             or self.k_d != self.last_k_d
         )
 
-    def applyGains(self) -> None:
+    def apply_gains(self) -> None:
         """Apply the current gains to the motor."""
         result = self.flywheel_motor.configurator.apply(
             phoenix6.configs.config_groups.Slot0Configs()

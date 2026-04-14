@@ -42,7 +42,7 @@ class TestShouldResetOrientation:
 
         driver = joystick.DriverController(mock_controller, mock_options)
 
-        assert driver.resetOrientation() is True
+        assert driver.reset_orientation() is True
         mock_controller.getStartButtonReleased.assert_called_once()
 
     def test_returns_false_when_start_button_not_released(self, mocker):
@@ -53,7 +53,7 @@ class TestShouldResetOrientation:
 
         driver = joystick.DriverController(mock_controller, mock_options)
 
-        assert driver.resetOrientation() is False
+        assert driver.reset_orientation() is False
 
 
 class TestFilterInput:
@@ -63,7 +63,7 @@ class TestFilterInput:
         mock_options = mocker.Mock()
         driver = joystick.DriverController(mock_controller, mock_options)
 
-        result = driver._filterInput(0.0)
+        result = driver._filter_input(0.0)
         assert result == 0.0
 
     def test_positive_input_is_squared(self, mocker):
@@ -73,7 +73,7 @@ class TestFilterInput:
         driver = joystick.DriverController(mock_controller, mock_options)
 
         # 0.5 squared = 0.25, which is above deadband (0.0225)
-        result = driver._filterInput(0.5, apply_deadband=False)
+        result = driver._filter_input(0.5, apply_deadband=False)
         assert result == 0.25
 
     def test_negative_input_preserves_sign(self, mocker):
@@ -83,7 +83,7 @@ class TestFilterInput:
         driver = joystick.DriverController(mock_controller, mock_options)
 
         # -0.5 squared = -0.25 (sign preserved)
-        result = driver._filterInput(-0.5, apply_deadband=False)
+        result = driver._filter_input(-0.5, apply_deadband=False)
         assert result == -0.25
 
     def test_full_positive_input_returns_one(self, mocker):
@@ -92,7 +92,7 @@ class TestFilterInput:
         mock_options = mocker.Mock()
         driver = joystick.DriverController(mock_controller, mock_options)
 
-        result = driver._filterInput(1.0, apply_deadband=False)
+        result = driver._filter_input(1.0, apply_deadband=False)
         assert result == 1.0
 
     def test_full_negative_input_returns_negative_one(self, mocker):
@@ -101,7 +101,7 @@ class TestFilterInput:
         mock_options = mocker.Mock()
         driver = joystick.DriverController(mock_controller, mock_options)
 
-        result = driver._filterInput(-1.0, apply_deadband=False)
+        result = driver._filter_input(-1.0, apply_deadband=False)
         assert result == -1.0
 
     def test_small_input_filtered_by_deadband(self, mocker):
@@ -111,7 +111,7 @@ class TestFilterInput:
         driver = joystick.DriverController(mock_controller, mock_options)
 
         # 0.1 squared = 0.01, which is below deadband (0.15^2 = 0.0225)
-        result = driver._filterInput(0.1, apply_deadband=True)
+        result = driver._filter_input(0.1, apply_deadband=True)
         assert result == 0.0
 
     def test_input_above_deadband_passes_through(self, mocker):
@@ -121,7 +121,7 @@ class TestFilterInput:
         driver = joystick.DriverController(mock_controller, mock_options)
 
         # 0.5 squared = 0.25, above deadband
-        result = driver._filterInput(0.5, apply_deadband=True)
+        result = driver._filter_input(0.5, apply_deadband=True)
         assert result != 0.0
         assert result > 0.0
 
@@ -140,7 +140,7 @@ class TestGetDriveCommand:
         mock_options.max_angular_speed_radians_per_second = 6.0
 
         driver = joystick.DriverController(mock_controller, mock_options)
-        command = driver.getDriveCommand()
+        command = driver.get_drive_command()
 
         assert command.vx == 0.0
         assert command.vy == 0.0
@@ -160,7 +160,7 @@ class TestGetDriveCommand:
         mock_options.max_angular_speed_radians_per_second = 6.0
 
         driver = joystick.DriverController(mock_controller, mock_options)
-        command = driver.getDriveCommand()
+        command = driver.get_drive_command()
 
         assert command.vx == pytest.approx(6.0, rel=0.01)
         assert command.vy == 0.0
@@ -179,7 +179,7 @@ class TestGetDriveCommand:
         mock_options.max_angular_speed_radians_per_second = 6.0
 
         driver = joystick.DriverController(mock_controller, mock_options)
-        command = driver.getDriveCommand()
+        command = driver.get_drive_command()
 
         # Slow mode = 0.2 modifier, so max vx should be 1.2
         assert command.vx == pytest.approx(1.2, rel=0.01)
@@ -198,7 +198,7 @@ class TestGetDriveCommand:
         mock_options.max_angular_speed_radians_per_second = 6.0
 
         driver = joystick.DriverController(mock_controller, mock_options)
-        command = driver.getDriveCommand()
+        command = driver.get_drive_command()
 
         assert command.vx == 0.0
         assert command.vy == pytest.approx(6.0, rel=0.01)
@@ -218,14 +218,14 @@ class TestGetDriveCommand:
         mock_options.max_angular_speed_radians_per_second = 6.0
 
         driver = joystick.DriverController(mock_controller, mock_options)
-        command = driver.getDriveCommand()
+        command = driver.get_drive_command()
 
         assert command.vx == 0.0
         assert command.vy == 0.0
         assert command.omega == pytest.approx(6.0, rel=0.01)
 
     def test_reuses_command_object(self, mocker):
-        """getDriveCommand reuses the same DriveCommand object."""
+        """get_drive_command reuses the same DriveCommand object."""
         mock_controller = mocker.Mock()
         mock_controller.getLeftY.return_value = 0.0
         mock_controller.getLeftX.return_value = 0.0
@@ -237,7 +237,7 @@ class TestGetDriveCommand:
         mock_options.max_angular_speed_radians_per_second = 6.0
 
         driver = joystick.DriverController(mock_controller, mock_options)
-        command1 = driver.getDriveCommand()
-        command2 = driver.getDriveCommand()
+        command1 = driver.get_drive_command()
+        command2 = driver.get_drive_command()
 
         assert command1 is command2

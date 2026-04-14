@@ -93,7 +93,7 @@ def _make_tracker(
         )
     )
     tracker.alliance_fetcher = mocker.Mock()
-    tracker.alliance_fetcher.isRedAlliance.return_value = False
+    tracker.alliance_fetcher.is_red_alliance.return_value = False
     tracker.drivetrain = mocker.Mock()
     yaw_rate_signal = mocker.Mock()
     yaw_rate_signal.value = yaw_rate_degrees_per_second
@@ -269,8 +269,8 @@ def test_execute_updates_turret_pose_and_commands_angle(
     ).degrees()
 
     tracker._yaw_rate_signal.refresh.assert_called_once()
-    tracker.turret.setPosition.assert_called_once()
-    (commanded_angle,) = tracker.turret.setPosition.call_args.args
+    tracker.turret.set_position.assert_called_once()
+    (commanded_angle,) = tracker.turret.set_position.call_args.args
 
     assert commanded_angle == pytest.approx(expected_command_angle, abs=1e-9)
     assert translation_error.norm() == pytest.approx(0.0, abs=1e-9)
@@ -296,8 +296,8 @@ def test_execute_zero_yaw_rate_does_not_offset_target_angle(mocker) -> None:
     tracker.execute()
 
     tracker._yaw_rate_signal.refresh.assert_called_once()
-    tracker.turret.setPosition.assert_called_once()
-    (commanded_angle,) = tracker.turret.setPosition.call_args.args
+    tracker.turret.set_position.assert_called_once()
+    (commanded_angle,) = tracker.turret.set_position.call_args.args
     assert commanded_angle == pytest.approx(17.5)
 
 
@@ -338,8 +338,8 @@ def test_execute_clamps_target_angle_to_limits(
     tracker.execute()
 
     tracker._yaw_rate_signal.refresh.assert_called_once()
-    tracker.turret.setPosition.assert_called_once()
-    (commanded_angle,) = tracker.turret.setPosition.call_args.args
+    tracker.turret.set_position.assert_called_once()
+    (commanded_angle,) = tracker.turret.set_position.call_args.args
     assert commanded_angle == pytest.approx(expected_command)
 
 
@@ -380,8 +380,8 @@ def test_execute_compensation_applied_before_clamping(
     tracker.execute()
 
     tracker._yaw_rate_signal.refresh.assert_called_once()
-    tracker.turret.setPosition.assert_called_once()
-    (commanded_angle,) = tracker.turret.setPosition.call_args.args
+    tracker.turret.set_position.assert_called_once()
+    (commanded_angle,) = tracker.turret.set_position.call_args.args
     assert commanded_angle == pytest.approx(expected_command)
 
 
@@ -406,9 +406,9 @@ def test_execute_updates_compensation_across_control_loops(mocker) -> None:
     tracker.execute()
 
     assert tracker._yaw_rate_signal.refresh.call_count == 2
-    assert tracker.turret.setPosition.call_count == 2
-    first_commanded_angle = tracker.turret.setPosition.call_args_list[0].args[0]
-    second_commanded_angle = tracker.turret.setPosition.call_args_list[1].args[
+    assert tracker.turret.set_position.call_count == 2
+    first_commanded_angle = tracker.turret.set_position.call_args_list[0].args[0]
+    second_commanded_angle = tracker.turret.set_position.call_args_list[1].args[
         0
     ]
     assert first_commanded_angle == pytest.approx(9.0)
@@ -424,7 +424,7 @@ def test_current_turret_distance_from_hub_meters(mocker) -> None:
         geometry.Rotation2d(),
     )
 
-    assert tracker.currentTurretDistanceFromTargetMeters() == pytest.approx(5.0)
+    assert tracker.current_turret_distance_from_target_meters() == pytest.approx(5.0)
 
 
 def test_compute_stationary_target_turret_angle_degrees_is_relative_to_heading(
@@ -441,7 +441,7 @@ def test_compute_stationary_target_turret_angle_degrees_is_relative_to_heading(
     )
 
     assert (
-        tracker._computeStationaryTargetTurretAngleDegrees()
+        tracker._compute_stationary_target_turret_angle_degrees()
         == pytest.approx(-90.0)
     )
 
@@ -449,6 +449,6 @@ def test_compute_stationary_target_turret_angle_degrees_is_relative_to_heading(
 def test_set_target_turret_angle_degrees_updates_cached_value(mocker) -> None:
     """Setter updates cached turret target command value."""
     tracker = _make_tracker(mocker, geometry.Pose2d())
-    tracker.setTargetTurretAngleDegrees(12.34)
+    tracker.set_target_turret_angle_degrees(12.34)
 
     assert tracker._target_turret_angle_degrees == pytest.approx(12.34)

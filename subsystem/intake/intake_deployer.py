@@ -77,9 +77,9 @@ class IntakeDeployer(magicbot.StateMachine):
         if not self._deployed:
             self.engage()
 
-        self._logData()
+        self._log_data()
 
-    def hasDeployed(self) -> bool:
+    def has_deployed(self) -> bool:
         return self._deployed
 
     @magicbot.state(first=True)
@@ -93,7 +93,7 @@ class IntakeDeployer(magicbot.StateMachine):
         elif state_tm >= 10.0:
             self.next_state("timed_out")
 
-        self.intake.setActive(True)
+        self.intake.set_active(True)
         self.intake_deploy_motor.set(0.25)
 
     @magicbot.state
@@ -109,15 +109,15 @@ class IntakeDeployer(magicbot.StateMachine):
         self.intake_deploy_motor.set(0.0)
         self.done()
 
-    def encoderPositionRotations(self) -> phoenix6.units.rotation:
+    def encoder_position_rotations(self) -> phoenix6.units.rotation:
         return self.intake_deploy_encoder.get_position().value
 
-    def _logData(self) -> None:
-        self.data_logger.logDouble(
+    def _log_data(self) -> None:
+        self.data_logger.log_double(
             "/components/intake/deploy_encoder/position_rotations",
-            self.encoderPositionRotations(),
+            self.encoder_position_rotations(),
         )
-        datalog.logPrimaryMotorData(
+        datalog.log_primary_motor_data(
             self.data_logger,
             "/components/intake/deploy_motor",
             self.intake_deploy_motor,
@@ -125,7 +125,7 @@ class IntakeDeployer(magicbot.StateMachine):
         )
         # Log the rest of the data at a slower frequency.
         if self._log_timer.advanceIfElapsed(1.0):
-            datalog.logSecondaryMotorData(
+            datalog.log_secondary_motor_data(
                 self.data_logger,
                 "/components/intake/deploy_motor",
                 self.intake_deploy_motor,

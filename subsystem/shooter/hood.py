@@ -28,7 +28,7 @@ class Hood:
         robot class, and after all components have been created.
         """
         self._hood_speed = 0.0
-        self._target_position_degrees = self.measuredAngleDegrees()
+        self._target_position_degrees = self.measured_angle_degrees()
 
         self._is_speed_controlled = False
 
@@ -140,7 +140,7 @@ class Hood:
                 )
             )
 
-        self._logData()
+        self._log_data()
 
     def on_enable(self) -> None:
         """Reset to a "safe" state when the robot is enabled.
@@ -149,7 +149,7 @@ class Hood:
         test mode.
         """
         self._hood_speed = 0.0
-        self._target_position_degrees = self.measuredAngleDegrees()
+        self._target_position_degrees = self.measured_angle_degrees()
 
     def on_disable(self) -> None:
         """Reset state when the robot is disabled.
@@ -157,13 +157,13 @@ class Hood:
         This method is called when the robot enters disabled mode.
         """
         self._hood_speed = 0.0
-        self._target_position_degrees = self.measuredAngleDegrees()
+        self._target_position_degrees = self.measured_angle_degrees()
 
-    def setSpeed(self, speed: float) -> None:
+    def set_speed(self, speed: float) -> None:
         """Set the speed of the hood."""
         self._hood_speed = speed
 
-    def setPosition(self, target_position_deg: float) -> None:
+    def set_position(self, target_position_deg: float) -> None:
         """Set the position (in degrees) of the hood"""
         self._target_position_degrees = max(
             self.robot_constants.shooter.hood.min_angle_degrees,
@@ -173,7 +173,7 @@ class Hood:
             ),
         )
 
-    def setControlType(self, use_speed: bool) -> None:
+    def set_control_type(self, use_speed: bool) -> None:
         """Set the type of hood control to be used: position or speed
 
         Args:
@@ -183,16 +183,11 @@ class Hood:
         """
         self._is_speed_controlled = use_speed
 
-    def isControlTypeSpeed(self) -> bool:
+    def is_control_type_speed(self) -> bool:
         """Get the type of hood control being used: position or speed"""
         return self._is_speed_controlled
 
-    def zeroEncoder(self) -> None:
-        """Zeroes the encoder at its current position."""
-        self._target_position_degrees = 0.0
-        self.hood_encoder.set_position(0.0)
-
-    def measuredAngleDegrees(self) -> phoenix6.units.degree:
+    def measured_angle_degrees(self) -> phoenix6.units.degree:
         """The angle of the hood measured by the external encoder, in degrees."""
         return (
             self.hood_encoder.get_position().value
@@ -200,30 +195,24 @@ class Hood:
             / self.robot_constants.shooter.hood.sensor_to_mechanism_ratio
         )
 
-    def supplyCurrent(self) -> phoenix6.units.ampere:
-        return self.hood_motor.get_supply_current().value
-
-    def statorCurrent(self) -> phoenix6.units.ampere:
-        return self.hood_motor.get_stator_current().value
-
-    def _logData(self) -> None:
-        self.data_logger.logDouble(
+    def _log_data(self) -> None:
+        self.data_logger.log_double(
             "/components/hood/target_position_degrees",
             self._target_position_degrees,
             on_change=True,
         )
-        self.data_logger.logDouble(
+        self.data_logger.log_double(
             "/components/hood/measured_position_degrees",
-            self.measuredAngleDegrees(),
+            self.measured_angle_degrees(),
         )
-        datalog.logPrimaryMotorData(
+        datalog.log_primary_motor_data(
             self.data_logger,
             "/components/hood/motor",
             self.hood_motor,
             position=True,
         )
         if self._log_timer.advanceIfElapsed(1.0):
-            datalog.logSecondaryMotorData(
+            datalog.log_secondary_motor_data(
                 self.data_logger,
                 "/components/hood/motor",
                 self.hood_motor,
@@ -289,21 +278,21 @@ class HoodTuner:
         self.last_mm_acceleration = self.mm_acceleration
         self.last_mm_jerk = self.mm_jerk
 
-        self.target_angle_deg = self.hood.measuredAngleDegrees()
+        self.target_angle_deg = self.hood.measured_angle_degrees()
 
     def execute(self) -> None:
         """Update the hood speed and gains (if they changed).
 
         This method is called at the end of the control loop.
         """
-        self.hood.setPosition(self.target_angle_deg)
+        self.hood.set_position(self.target_angle_deg)
 
         # We only want to reapply the gains if they changed. The TalonFX motor
         # doesn't like being reconfigured constantly.
-        if not self.gainsChanged():
+        if not self._gains_changed():
             return
 
-        self.applyGains()
+        self._apply_gains()
 
         self.last_k_s = self.k_s
         self.last_k_v = self.k_v
@@ -316,7 +305,7 @@ class HoodTuner:
         self.last_mm_acceleration = self.mm_acceleration
         self.last_mm_jerk = self.mm_jerk
 
-    def gainsChanged(self) -> bool:
+    def _gains_changed(self) -> bool:
         """Detect if any of the gains changed.
 
         Returns:
@@ -335,7 +324,7 @@ class HoodTuner:
             or self.mm_jerk != self.last_mm_jerk
         )
 
-    def applyGains(self) -> None:
+    def _apply_gains(self) -> None:
         """Apply the current gains to the motor."""
         result = self.hood_motor.configurator.apply(
             self.hood.hood_motor_configs.with_slot0(

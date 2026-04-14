@@ -35,7 +35,7 @@ class DriverController:
         self._options: "subsystem.drivetrain.constants.DriveOptions" = options
         self._command: DriveCommand = DriveCommand()
 
-    def resetOrientation(self) -> bool:
+    def reset_orientation(self) -> bool:
         """Returns True if the robot's orientation should be reset.
 
         When the driver releases the start button, it is an indication that the
@@ -44,21 +44,21 @@ class DriverController:
         """
         return self._controller.getStartButtonReleased()
 
-    def toggleIntake(self) -> bool:
+    def toggle_intake(self) -> bool:
         """Returns True if the intake should be run.
 
         When the driver holds down the right bumper, we want to run the intake.
         """
         return self._controller.getRightBumperPressed()
 
-    def feedFuel(self) -> bool:
+    def feed_fuel(self) -> bool:
         """Returns True if fuel should be fed to the shooter.
 
         When the driver holds down the right trigger, we want to shoot.
         """
         return self._controller.getRightTriggerAxis()
 
-    def getDriveCommand(self) -> DriveCommand:
+    def get_drive_command(self) -> DriveCommand:
         """Returns the drivetrain commands corresponding to current user input.
 
         The raw inputs from the joystick are filtered and normalized to the
@@ -73,23 +73,23 @@ class DriverController:
             else self.FAST
         )
         self._command.vx = (
-            -self._filterInput(self._controller.getLeftY())
+            -self._filter_input(self._controller.getLeftY())
             * self._options.max_linear_speed_meters_per_second
             * modifier
         )
         self._command.vy = (
-            -self._filterInput(self._controller.getLeftX())
+            -self._filter_input(self._controller.getLeftX())
             * self._options.max_linear_speed_meters_per_second
             * modifier
         )
         self._command.omega = (
-            -self._filterInput(self._controller.getRightX())
+            -self._filter_input(self._controller.getRightX())
             * self._options.max_angular_speed_radians_per_second
             * modifier
         )
         return self._command
 
-    def shootFromLeftTrench(self) -> bool:
+    def shoot_from_left_trench(self) -> bool:
         """Indicates if the driver wants to shoot from the left trench.
 
         If this returns True, the robot should command its mechanisms to the
@@ -97,7 +97,7 @@ class DriverController:
         """
         return self._controller.getXButton()
 
-    def shootFromRightTrench(self) -> bool:
+    def shoot_from_right_trench(self) -> bool:
         """Indicates if the driver wants to shoot from the right trench.
 
         If this returns True, the robot should command its mechanisms to the
@@ -105,7 +105,7 @@ class DriverController:
         """
         return self._controller.getBButton()
 
-    def shootFromBehindTower(self) -> bool:
+    def shoot_from_behind_tower(self) -> bool:
         """Indicates if the driver wants to shoot from behind the tower.
 
         If this returns True, the robot should command its mechanisms to the
@@ -121,14 +121,14 @@ class DriverController:
         """
         return self._controller.getYButton()
 
-    def setRumble(self, rumble_value: float) -> None:
+    def set_rumble(self, rumble_value: float) -> None:
         """Set both rumble motors in the controller to the provided value."""
         rumble_value = max(0.0, min(1.0, rumble_value))
         self._controller.setRumble(
             wpilib.interfaces.GenericHID.RumbleType.kBothRumble, rumble_value
         )
 
-    def _filterInput(self, input: float, apply_deadband: bool = True) -> float:
+    def _filter_input(self, input: float, apply_deadband: bool = True) -> float:
         """Filter the joystick input with a squared scaling and deadband.
 
         This function squares the input while preserving its sign to provide
@@ -173,11 +173,11 @@ class DriverControllerRumble:
                     rumble_value = 0.5
                     break
 
-        self.driver_controller.setRumble(rumble_value)
+        self.driver_controller.set_rumble(rumble_value)
 
-        self.data_logger.logDouble(
+        self.data_logger.log_double(
             "/components/common/match_time", match_time, on_change=True
         )
-        self.data_logger.logDouble(
+        self.data_logger.log_double(
             "/components/driver_controller/rumble", rumble_value, on_change=True
         )

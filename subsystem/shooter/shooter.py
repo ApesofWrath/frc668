@@ -49,15 +49,15 @@ class Shooter(magicbot.StateMachine):
 
         # Idle the flywheel to save power, but have the turret and hood track
         # position.
-        self.target_tracker.trackPosition(self._auto)
-        self.target_tracker.trackSpeed(False)
-        self.target_tracker.setTargetFlywheelSpeedRps(
+        self.target_tracker.track_position(self._auto)
+        self.target_tracker.track_speed(False)
+        self.target_tracker.set_target_flywheel_speed_rps(
             self.robot_constants.shooter.flywheel.default_speed_rps
         )
 
         # Don't feed fuel.
-        self.hopper.setEnabled(False)
-        self.indexer.setEnabled(False)
+        self.hopper.set_enabled(False)
+        self.indexer.set_enabled(False)
 
     @magicbot.state
     def targeting(self):
@@ -71,16 +71,16 @@ class Shooter(magicbot.StateMachine):
             self.next_state("idling")
 
         # Then, check if we are ready to shoot.
-        if self._shooterIsReady():
+        if self._shooter_is_ready():
             self.next_state_now("shooting")
 
         # The driver wants to shoot but the shooter isn't ready or the robot is
         # moving. We want to continue tracking the target, but don't feed fuel.
-        self.target_tracker.trackPosition(self._auto)
-        self.target_tracker.trackSpeed(self._auto)
+        self.target_tracker.track_position(self._auto)
+        self.target_tracker.track_speed(self._auto)
 
-        self.hopper.setEnabled(False)
-        self.indexer.setEnabled(False)
+        self.hopper.set_enabled(False)
+        self.indexer.set_enabled(False)
 
     @magicbot.state
     def shooting(self):
@@ -91,33 +91,33 @@ class Shooter(magicbot.StateMachine):
         if not self._driver_wants_feed:
             self.next_state("idling")
 
-        if not self._shooterIsReady():
+        if not self._shooter_is_ready():
             self.next_state("targeting")
 
         # Fully track the target.
-        self.target_tracker.trackPosition(self._auto)
-        self.target_tracker.trackSpeed(self._auto)
+        self.target_tracker.track_position(self._auto)
+        self.target_tracker.track_speed(self._auto)
 
         # Feed fuel.
-        self.hopper.setEnabled(True)
-        self.indexer.setEnabled(True)
+        self.hopper.set_enabled(True)
+        self.indexer.set_enabled(True)
 
-    def setDriverWantsFeed(self, value: bool) -> None:
+    def set_driver_wants_feed(self, value: bool) -> None:
         self._driver_wants_feed = value
 
-    def setAuto(self, value: bool) -> None:
+    def set_auto(self, value: bool) -> None:
         self._auto = value
 
-    def _shooterIsReady(self) -> bool:
+    def _shooter_is_ready(self) -> bool:
         """Indicates if shooter components are close enough to their targets."""
         # These values were roughly tuned during drive testing.
-        return self._getShooterIsWithin(
+        return self._get_shooter_is_within(
             turret_tolerance_degrees=6.0,
             hood_tolerance_degrees=3.0,
             flywheel_tolerance_rotations_per_second=5.0,
         )
 
-    def _getShooterIsWithin(
+    def _get_shooter_is_within(
         self,
         turret_tolerance_degrees: float,
         hood_tolerance_degrees: float,
@@ -125,16 +125,16 @@ class Shooter(magicbot.StateMachine):
     ) -> bool:
         """Indicates if shooter is within provided tolerances."""
         turret_error = abs(
-            self.target_tracker.targetTurretAngleDegrees()
-            - self.turret.measuredAngleDegrees()
+            self.target_tracker.target_turret_angle_degrees()
+            - self.turret.measured_angle_degrees()
         )
         hood_error = abs(
-            self.target_tracker.targetHoodAngleDegrees()
-            - self.hood.measuredAngleDegrees()
+            self.target_tracker.target_hood_angle_degrees()
+            - self.hood.measured_angle_degrees()
         )
         flywheel_error = abs(
-            self.target_tracker.targetFlywheelSpeedRps()
-            - self.flywheel.measuredSpeedRps()
+            self.target_tracker.target_flywheel_speed_rps()
+            - self.flywheel.measured_speed_rps()
         )
         return (
             (turret_error <= turret_tolerance_degrees)
@@ -142,19 +142,19 @@ class Shooter(magicbot.StateMachine):
             and (flywheel_error <= flywheel_tolerance_rotations_per_second)
         )
 
-    def _robotIsMoving(self, speed_threshold_mps: float = 0.1) -> bool:
+    def _robot_is_moving(self, speed_threshold_mps: float = 0.1) -> bool:
         """Indicates if the robot's linear speed is over the threshold."""
-        chassis_speeds: kinematics.ChassisSpeeds = self.drivetrain.robotSpeeds()
+        chassis_speeds: kinematics.ChassisSpeeds = self.drivetrain.robot_speeds()
         robot_speed_mps = math.sqrt(
             (chassis_speeds.vx**2) + (chassis_speeds.vy**2)
         )
         return robot_speed_mps > speed_threshold_mps
 
-    def _logData(self) -> None:
-        self.data_logger.logBoolean(
+    def _log_data(self) -> None:
+        self.data_logger.log_boolean(
             "/components/shooter/auto", self._auto, on_change=True
         )
-        self.data_logger.logBoolean(
+        self.data_logger.log_boolean(
             "/components/shooter/driver_wants_feed",
             self._driver_wants_feed,
             on_change=True,

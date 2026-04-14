@@ -131,38 +131,38 @@ class TestIntake:
 
     def test_set_active_and_toggle(self, intake):
         """State control methods should work as expected."""
-        intake.setActive(True)
+        intake.set_active(True)
         assert intake._active is True
 
-        intake.toggleActive()
+        intake.toggle_active()
         assert intake._active is False
 
-        intake.toggleActive()
+        intake.toggle_active()
         assert intake._active is True
 
-        intake.toggleActive()
+        intake.toggle_active()
         assert intake._active is False
 
-        intake.setActive(False)
+        intake.set_active(False)
         assert intake._active is False
 
     def test_set_speed(self, intake):
-        """setSpeed should update the target roller speed (including None default)."""
-        intake.setSpeed(55.5)
+        """set_speed should update the target roller speed (including None default)."""
+        intake.set_speed(55.5)
         assert intake._active_roller_speed_rps == 55.5
 
         # As-written behavior (no guard against None)
-        intake.setSpeed()
+        intake.set_speed()
         assert intake._active_roller_speed_rps is None
 
     def test_on_enable_on_disable_reset_active(self, intake):
         """Lifecycle hooks must force the intake to a safe (stopped) state."""
-        intake.setActive(True)
+        intake.set_active(True)
 
         intake.on_enable()
         assert intake._active is False
 
-        intake.setActive(True)
+        intake.set_active(True)
         intake.on_disable()
         assert intake._active is False
 
@@ -170,7 +170,7 @@ class TestIntake:
         self, intake, mock_top_motor, mock_bottom_motor
     ):
         """When inactive, execute() must command 0 RPS."""
-        intake.setActive(False)
+        intake.set_active(False)
         intake.execute()
 
         mock_top_motor.set_control.assert_called_once()
@@ -184,8 +184,8 @@ class TestIntake:
         self, intake, mock_top_motor, mock_bottom_motor
     ):
         """When active, execute() must command the current _active_roller_speed_rps."""
-        intake.setActive(True)
-        intake.setSpeed(67.0)
+        intake.set_active(True)
+        intake.set_speed(67.0)
         intake.execute()
 
         mock_top_motor.set_control.assert_called_once()
