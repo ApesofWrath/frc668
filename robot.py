@@ -132,23 +132,23 @@ class MyRobot(magicbot.MagicRobot):
             #
             # We were seeing very slow convergence on IMU mode 4.
             # TODO: Try playing with the alpha values.
-            self.vision.setImuMode(1)
+            self.vision.set_imu_mode(1)
         else:
             # Hard reset each lime light's yaw to the external IMU when disabled.
-            self.vision.setImuMode(1)
+            self.vision.set_imu_mode(1)
             # We call this here because the Vision component's execute method
             # does not get called when disabled.
-            self.vision.setRobotOrientation()
-            self.drivetrain.setOperatorPerspectiveForward()
+            self.vision.set_robot_orientation()
+            self.drivetrain.set_operator_perspective_forward()
 
         if not self._tuning_mode:
             self.shooter_state_machine.engage()
         else:
             # In tuning mode, have target tracker actively track, but don't command
             # the mechanisms.
-            self.target_tracker.trackPosition(True)
-            self.target_tracker.trackSpeed(True)
-            self.target_tracker.setEnabled(False)
+            self.target_tracker.track_position(True)
+            self.target_tracker.track_speed(True)
+            self.target_tracker.set_enabled(False)
 
         super().robotPeriodic()
 
@@ -159,7 +159,7 @@ class MyRobot(magicbot.MagicRobot):
         the selected autonomous routine.
         """
         self.logger.info("Entering autonomous mode")
-        self.drivetrain.setAutoEnabled(True)
+        self.drivetrain.set_auto_enabled(True)
         self._auto_done = True
 
     def disabledInit(self) -> None:
@@ -170,10 +170,10 @@ class MyRobot(magicbot.MagicRobot):
         called.
         """
         self.logger.info("Robot disabled")
-        self.drivetrain.setAutoEnabled(False)
+        self.drivetrain.set_auto_enabled(False)
         # This starts the log manager if it wasn't already started.
         self.data_logger.flush()
-        self.driver_controller.setRumble(0.0)
+        self.driver_controller.set_rumble(0.0)
 
     def disabledPeriodic(self) -> None:
         """Run during disabled mode.
@@ -187,7 +187,7 @@ class MyRobot(magicbot.MagicRobot):
         if not self._auto_done and self._automodes is not None:
             auto_mode = self._automodes.chooser.getSelected()
             if auto_mode is not None:
-                self.drivetrain.setPose(auto_mode.getInitialPose())
+                self.drivetrain.set_pose(auto_mode.get_initial_pose())
 
     def teleopInit(self) -> None:
         """Initialize teleoperated mode.
@@ -209,17 +209,17 @@ class MyRobot(magicbot.MagicRobot):
         `use_teleop_in_autonomous=True` in this class' instance.
         """
         # TODO: Handle exceptions so robot code doesn't crash.
-        if self.driver_controller.resetOrientation():
+        if self.driver_controller.reset_orientation():
             # TODO: Reset our pose from MT1 vision instead.
-            if self.alliance_fetcher.isRedAlliance():
+            if self.alliance_fetcher.is_red_alliance():
                 # Robot's front touching the hub wall in the red alliance zone.
-                self.drivetrain.setPose(
+                self.drivetrain.set_pose(
                     wpimath.geometry.Pose2d(12.8556, 4.0136, math.pi)
                 )
                 self.logger.info(f"Reset pose for red alliance")
             else:
                 # Robot's front touching the hub wall in the blue alliance zone.
-                self.drivetrain.setPose(
+                self.drivetrain.set_pose(
                     wpimath.geometry.Pose2d(3.6854, 4.0136, 0)
                 )
                 self.logger.info(f"Reset pose for blue alliance")
@@ -229,39 +229,39 @@ class MyRobot(magicbot.MagicRobot):
 
     def driveWithJoysicks(self) -> None:
         """Use the main controller joystick inputs to drive the robot base."""
-        command = self.driver_controller.getDriveCommand()
-        self.drivetrain.setSpeeds(command)
-        self.drivetrain.setBrakeEnabled(self.driver_controller.brake())
+        command = self.driver_controller.get_drive_command()
+        self.drivetrain.set_speeds(command)
+        self.drivetrain.set_brake_enabled(self.driver_controller.brake())
 
     def controlShooter(self) -> None:
         """Takes button inputs to control the shooter state machine."""
-        if self.driver_controller.shootFromLeftTrench():
-            self.shooter_state_machine.setAuto(False)
-            self.shooter_state_machine.setDriverWantsFeed(True)
-            self.target_tracker.setTargetTurretAngleDegrees(4.268)
-            self.target_tracker.setTargetHoodAngleDegrees(4.8)
-            self.target_tracker.setTargetFlywheelSpeedRps(30.8)
-        elif self.driver_controller.shootFromRightTrench():
-            self.shooter_state_machine.setAuto(False)
-            self.shooter_state_machine.setDriverWantsFeed(True)
-            self.target_tracker.setTargetTurretAngleDegrees(-4.268)
-            self.target_tracker.setTargetHoodAngleDegrees(4.8)
-            self.target_tracker.setTargetFlywheelSpeedRps(30.8)
-        elif self.driver_controller.shootFromBehindTower():
-            self.shooter_state_machine.setAuto(False)
-            self.shooter_state_machine.setDriverWantsFeed(True)
-            self.target_tracker.setTargetTurretAngleDegrees(94.85)
-            self.target_tracker.setTargetHoodAngleDegrees(6.9)
-            self.target_tracker.setTargetFlywheelSpeedRps(33.8)
+        if self.driver_controller.shoot_from_left_trench():
+            self.shooter_state_machine.set_auto(False)
+            self.shooter_state_machine.set_driver_wants_feed(True)
+            self.target_tracker.set_target_turret_angle_degrees(4.268)
+            self.target_tracker.set_target_hood_angle_degrees(4.8)
+            self.target_tracker.set_target_flywheel_speed_rps(30.8)
+        elif self.driver_controller.shoot_from_right_trench():
+            self.shooter_state_machine.set_auto(False)
+            self.shooter_state_machine.set_driver_wants_feed(True)
+            self.target_tracker.set_target_turret_angle_degrees(-4.268)
+            self.target_tracker.set_target_hood_angle_degrees(4.8)
+            self.target_tracker.set_target_flywheel_speed_rps(30.8)
+        elif self.driver_controller.shoot_from_behind_tower():
+            self.shooter_state_machine.set_auto(False)
+            self.shooter_state_machine.set_driver_wants_feed(True)
+            self.target_tracker.set_target_turret_angle_degrees(94.85)
+            self.target_tracker.set_target_hood_angle_degrees(6.9)
+            self.target_tracker.set_target_flywheel_speed_rps(33.8)
         else:
-            self.shooter_state_machine.setAuto(True)
-            if self.driver_controller.feedFuel():
-                self.shooter_state_machine.setDriverWantsFeed(True)
+            self.shooter_state_machine.set_auto(True)
+            if self.driver_controller.feed_fuel():
+                self.shooter_state_machine.set_driver_wants_feed(True)
             else:
-                self.shooter_state_machine.setDriverWantsFeed(False)
-                self.target_tracker.setTargetFlywheelSpeedRps(0.0)
+                self.shooter_state_machine.set_driver_wants_feed(False)
+                self.target_tracker.set_target_flywheel_speed_rps(0.0)
 
     def controlIntake(self) -> None:
         """Drive the intake motors."""
-        if self.driver_controller.toggleIntake():
-            self.intake.toggleActive()
+        if self.driver_controller.toggle_intake():
+            self.intake.toggle_active()

@@ -188,7 +188,7 @@ class Turret:
                 )
             )
 
-        self._logData()
+        self._log_data()
 
     def on_enable(self) -> None:
         """Reset to a "safe" state when the robot is enabled.
@@ -207,7 +207,7 @@ class Turret:
         self._turret_position_degrees = 0.0
         self._turret_velocity_degrees_per_second = 0.0
 
-    def setPosition(self, pos_degrees: float) -> None:
+    def set_position(self, pos_degrees: float) -> None:
         """Set the target position of the turret.
 
         Args:
@@ -216,7 +216,7 @@ class Turret:
         """
         self._turret_position_degrees = pos_degrees
 
-    def setVelocity(self, vel_degrees_per_second) -> None:
+    def set_velocity(self, vel_degrees_per_second) -> None:
         """Set the target speed of the turret.
 
         Args:
@@ -225,7 +225,7 @@ class Turret:
         """
         self._turret_velocity_degrees_per_second = vel_degrees_per_second
 
-    def setControlType(self, use_velocity: bool) -> None:
+    def set_control_type(self, use_velocity: bool) -> None:
         """Set the type of turret control to be used: position or velocity
 
         Args:
@@ -234,7 +234,7 @@ class Turret:
         """
         self._is_velocity_controlled = use_velocity
 
-    def setMotionMagicFeedForward(self, feed_forward: float) -> None:
+    def set_motion_magic_feed_forward(self, feed_forward: float) -> None:
         """Set the motion magic feed forward constant.
 
         Args:
@@ -242,20 +242,12 @@ class Turret:
         """
         self._motion_magic_feed_forward = feed_forward
 
-    def setFeedForwardControl(
+    def set_feed_forward_control(
         self, feed_forward_mvt_value: phoenix6.units.volt
     ) -> None:
         self.feed_forward_movement = feed_forward_mvt_value
 
-    def isControlTypeVelocity(self) -> bool:
-        """Get the type of turret control being used used: position or velocity"""
-        return self._is_velocity_controlled
-
-    def zeroEncoder(self) -> None:
-        """Zeroes the encoder at its current position."""
-        self.turret_encoder.set_position(0.0)
-
-    def measuredAngleDegrees(self) -> phoenix6.units.degree:
+    def measured_angle_degrees(self) -> phoenix6.units.degree:
         """The angle of the turret measured by the external encoder, in degrees."""
         return (
             self._encoder_position_signal.value
@@ -263,30 +255,24 @@ class Turret:
             / self.robot_constants.shooter.turret.sensor_to_mechanism_ratio
         )
 
-    def supplyCurrent(self) -> phoenix6.units.ampere:
-        return self.turret_motor.get_supply_current().value
-
-    def statorCurrent(self) -> phoenix6.units.ampere:
-        return self.turret_motor.get_stator_current().value
-
-    def _logData(self) -> None:
-        self.data_logger.logDouble(
+    def _log_data(self) -> None:
+        self.data_logger.log_double(
             "/components/turret/target_position_degrees",
             self._turret_position_degrees,
             on_change=True,
         )
-        self.data_logger.logDouble(
+        self.data_logger.log_double(
             "/components/turret/measured_position_degrees",
-            self.measuredAngleDegrees(),
+            self.measured_angle_degrees(),
         )
-        datalog.logPrimaryMotorData(
+        datalog.log_primary_motor_data(
             self.data_logger,
             "/components/turret/motor",
             self.turret_motor,
             position=True,
         )
         if self._log_timer.advanceIfElapsed(1.0):
-            datalog.logSecondaryMotorData(
+            datalog.log_secondary_motor_data(
                 self.data_logger,
                 "/components/turret/motor",
                 self.turret_motor,
@@ -401,22 +387,22 @@ class TurretTuner:
 
         This method is called at the end of the control loop.
         """
-        self.turret.setPosition(self.target_position)
-        self.turret.setVelocity(self.target_velocity)
-        self.turret.setControlType(self.use_velocity)
-        self.turret.setMotionMagicFeedForward(self.mm_feed_forward)
-        self.target_tracker.trackPosition(self.auto_track)
-        self.target_tracker.trackSpeed(self.auto_track)
-        self.target_tracker.setTurretFeedForwardMultiplier(
+        self.turret.set_position(self.target_position)
+        self.turret.set_velocity(self.target_velocity)
+        self.turret.set_control_type(self.use_velocity)
+        self.turret.set_motion_magic_feed_forward(self.mm_feed_forward)
+        self.target_tracker.track_position(self.auto_track)
+        self.target_tracker.track_speed(self.auto_track)
+        self.target_tracker.set_turret_feed_forward_multiplier(
             self.mvt_feed_forward
         )
 
         # We only want to reapply the gains if they changed. The TalonFX motor
         # doesn't like being reconfigured constantly.
-        if not self.gainsChanged():
+        if not self._gains_changed():
             return
 
-        self.applyGains()
+        self._apply_gains()
 
         self.last_use_velocity = self.use_velocity
 
@@ -438,7 +424,7 @@ class TurretTuner:
         self.last_mm_acceleration = self.mm_acceleration
         self.last_mm_jerk = self.mm_jerk
 
-    def gainsChanged(self) -> bool:
+    def _gains_changed(self) -> bool:
         """Detect if any of the gains changed.
 
         Returns:
@@ -462,7 +448,7 @@ class TurretTuner:
             or self.mm_jerk != self.last_mm_jerk
         )
 
-    def applyGains(self) -> None:
+    def _apply_gains(self) -> None:
         """Apply the current gains to the motor."""
         self.logger.info("Applying turret gains...")
         slot1_configs = (

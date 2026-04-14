@@ -4,14 +4,14 @@ import wpilib
 class AllianceFetcher:
     """Fetches the current alliance and provides some helpers."""
 
-    def isBlueAlliance(self) -> bool:
+    def is_blue_alliance(self) -> bool:
         """Returns True if we are the blue alliance."""
-        return self.getAlliance() == wpilib.DriverStation.Alliance.kBlue
+        return self.get_alliance() == wpilib.DriverStation.Alliance.kBlue
 
-    def isRedAlliance(self) -> bool:
+    def is_red_alliance(self) -> bool:
         """Returns True if we are the red alliance."""
-        return self.getAlliance() == wpilib.DriverStation.Alliance.kRed
+        return self.get_alliance() == wpilib.DriverStation.Alliance.kRed
 
-    def getAlliance(self) -> wpilib.DriverStation.Alliance:
+    def get_alliance(self) -> wpilib.DriverStation.Alliance:
         """Returns our alliance as reported by the DriverStation."""
         return wpilib.DriverStation.getAlliance()

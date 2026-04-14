@@ -52,11 +52,11 @@ class AutoBase(magicbot.AutonomousStateMachine):
                 "deploy/choreo/"
             )
 
-    def getInitialPose(self) -> geometry.Pose2d:
+    def get_initial_pose(self) -> geometry.Pose2d:
         """Returns the starting pose of the robot for this trajectory."""
         return (
             self._trajectory.get_initial_pose(
-                self.alliance_fetcher.isRedAlliance()
+                self.alliance_fetcher.is_red_alliance()
             )
             if self._trajectory
             else geometry.Pose2d()
@@ -64,7 +64,7 @@ class AutoBase(magicbot.AutonomousStateMachine):
 
     def on_enable(self) -> None:
         # The intake can remain active for the entire duration of auto.
-        self.intake.setActive(True)
+        self.intake.set_active(True)
         super().on_enable()
 
     @magicbot.state(first=True)
@@ -78,7 +78,7 @@ class AutoBase(magicbot.AutonomousStateMachine):
             return
 
         sample: choreo.SwerveSample = self._trajectory.sample_at(
-            state_tm, self.alliance_fetcher.isRedAlliance()
+            state_tm, self.alliance_fetcher.is_red_alliance()
         )
 
         if sample is None:
@@ -88,31 +88,31 @@ class AutoBase(magicbot.AutonomousStateMachine):
             )
             return
 
-        self.drivetrain.followTrajectorySample(sample)
+        self.drivetrain.follow_trajectory_sample(sample)
 
         if state_tm < 1.0 or not self.SHOOT_ON_THE_MOVE:
             return
 
         # Shoot on the move, when in the alliance zone.
         pose = self.drivetrain.get_robot_pose()
-        if self.alliance_fetcher.isRedAlliance():
+        if self.alliance_fetcher.is_red_alliance():
             if pose.X() > self.RED_ZONE_END_X_METERS:
                 # We're in the red alliance zone, shoot at the hub.
-                self.shooter_state_machine.setAuto(True)
-                self.shooter_state_machine.setDriverWantsFeed(True)
+                self.shooter_state_machine.set_auto(True)
+                self.shooter_state_machine.set_driver_wants_feed(True)
             else:
                 # We're in the neutral zone, don't shoot.
-                self.shooter_state_machine.setAuto(True)
-                self.shooter_state_machine.setDriverWantsFeed(False)
+                self.shooter_state_machine.set_auto(True)
+                self.shooter_state_machine.set_driver_wants_feed(False)
         else:
             if pose.X() < self.BLUE_ZONE_END_X_METERS:
                 # We're in the blue alliance zone, shoot at the hub.
-                self.shooter_state_machine.setAuto(True)
-                self.shooter_state_machine.setDriverWantsFeed(True)
+                self.shooter_state_machine.set_auto(True)
+                self.shooter_state_machine.set_driver_wants_feed(True)
             else:
                 # We're in the neutral zone, don't shoot.
-                self.shooter_state_machine.setAuto(True)
-                self.shooter_state_machine.setDriverWantsFeed(False)
+                self.shooter_state_machine.set_auto(True)
+                self.shooter_state_machine.set_driver_wants_feed(False)
 
     @magicbot.state
     def shooting_fuel(self, state_tm) -> None:
@@ -121,14 +121,14 @@ class AutoBase(magicbot.AutonomousStateMachine):
             self.next_state("finished")
 
         self.drivetrain.stop()
-        self.shooter_state_machine.setAuto(True)
-        self.shooter_state_machine.setDriverWantsFeed(True)
+        self.shooter_state_machine.set_auto(True)
+        self.shooter_state_machine.set_driver_wants_feed(True)
 
     @magicbot.state
     def finished(self) -> None:
         """Stops the fuel feed and ends the state machine."""
         self.drivetrain.stop()
-        self.intake.setActive(False)
-        self.shooter_state_machine.setAuto(True)
-        self.shooter_state_machine.setDriverWantsFeed(False)
+        self.intake.set_active(False)
+        self.shooter_state_machine.set_auto(True)
+        self.shooter_state_machine.set_driver_wants_feed(False)
         self.done()

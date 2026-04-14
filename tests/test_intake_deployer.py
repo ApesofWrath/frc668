@@ -123,7 +123,7 @@ class TestDeployingState:
         self._step(deployer, 0.0)
 
         mock_deploy_motor.set.assert_called_with(0.25)
-        mock_intake.setActive.assert_called_with(True)
+        mock_intake.set_active.assert_called_with(True)
 
     def test_transitions_to_deployed_at_threshold(
         self, deployer, mock_deploy_encoder
@@ -217,4 +217,4 @@ class TestGetEncoderRotation:
     def test_returns_encoder_position(self, deployer, mock_deploy_encoder):
         """Feedback method returns the raw encoder position value."""
         mock_deploy_encoder.get_position.return_value.value = 0.42
-        assert deployer.encoderPositionRotations() == pytest.approx(0.42)
+        assert deployer.encoder_position_rotations() == pytest.approx(0.42)

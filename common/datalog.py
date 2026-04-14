@@ -12,16 +12,16 @@ class DataLogger:
         # Map of topic name to LogEntry object.
         self._entries: Dict[str, Any] = {}
 
-    def _getLog(self) -> log.DataLog:
+    def _get_log(self) -> log.DataLog:
         """Get the DataLog instance, initializing it if needed."""
         if self._log is None:
             self._log = wpilib.DataLogManager.getLog()
         return self._log
 
     def flush(self) -> None:
-        self._getLog().flush()
+        self._get_log().flush()
 
-    def logStruct(
+    def log_struct(
         self,
         topic_name: str,
         value: T,
@@ -39,14 +39,14 @@ class DataLogger:
         """
         if topic_name not in self._entries:
             self._entries[topic_name] = log.StructLogEntry(
-                self._getLog(), topic_name, struct_type
+                self._get_log(), topic_name, struct_type
             )
         if on_change:
             self._entries[topic_name].update(value)
         else:
             self._entries[topic_name].append(value)
 
-    def logStructArray(
+    def log_struct_array(
         self,
         topic_name: str,
         values: list[T],
@@ -64,14 +64,14 @@ class DataLogger:
         """
         if topic_name not in self._entries:
             self._entries[topic_name] = log.StructArrayLogEntry(
-                self._getLog(), topic_name, struct_type
+                self._get_log(), topic_name, struct_type
             )
         if on_change:
             self._entries[topic_name].update(values)
         else:
             self._entries[topic_name].append(values)
 
-    def logString(
+    def log_string(
         self, topic_name: str, value: str, on_change: bool = False
     ) -> None:
         """Log a string value.
@@ -84,14 +84,14 @@ class DataLogger:
         """
         if topic_name not in self._entries:
             self._entries[topic_name] = log.StringLogEntry(
-                self._getLog(), topic_name
+                self._get_log(), topic_name
             )
         if on_change:
             self._entries[topic_name].update(value)
         else:
             self._entries[topic_name].append(value)
 
-    def logStringArray(
+    def log_string_array(
         self, topic_name: str, values: list[str], on_change: bool = False
     ) -> None:
         """Log an array of strings.
@@ -104,14 +104,14 @@ class DataLogger:
         """
         if topic_name not in self._entries:
             self._entries[topic_name] = log.StringArrayLogEntry(
-                self._getLog(), topic_name
+                self._get_log(), topic_name
             )
         if on_change:
             self._entries[topic_name].update(values)
         else:
             self._entries[topic_name].append(values)
 
-    def logDouble(
+    def log_double(
         self, topic_name: str, value: float, on_change: bool = True
     ) -> None:
         """Log a double value.
@@ -124,14 +124,14 @@ class DataLogger:
         """
         if topic_name not in self._entries:
             self._entries[topic_name] = log.DoubleLogEntry(
-                self._getLog(), topic_name
+                self._get_log(), topic_name
             )
         if on_change:
             self._entries[topic_name].update(value)
         else:
             self._entries[topic_name].append(value)
 
-    def logBoolean(
+    def log_boolean(
         self, topic_name: str, value: bool, on_change: bool = True
     ) -> None:
         """Log a boolean value.
@@ -144,7 +144,7 @@ class DataLogger:
         """
         if topic_name not in self._entries:
             self._entries[topic_name] = log.BooleanLogEntry(
-                self._getLog(), topic_name
+                self._get_log(), topic_name
             )
         if on_change:
             self._entries[topic_name].update(value)
@@ -152,7 +152,7 @@ class DataLogger:
             self._entries[topic_name].append(value)
 
 
-def logPrimaryMotorData(
+def log_primary_motor_data(
     data_logger: DataLogger,
     topic_prefix: str,
     motor: phoenix6.hardware.TalonFX,
@@ -176,32 +176,32 @@ def logPrimaryMotorData(
         velocity:
             If True, log velocity data. Defaults to False.
     """
-    data_logger.logDouble(
+    data_logger.log_double(
         f"{topic_prefix}/supply_current", motor.get_supply_current().value
     )
-    data_logger.logDouble(
+    data_logger.log_double(
         f"{topic_prefix}/stator_current", motor.get_stator_current().value
     )
     if position:
-        data_logger.logDouble(
+        data_logger.log_double(
             f"{topic_prefix}/position_rotations", motor.get_position().value
         )
-        data_logger.logDouble(
+        data_logger.log_double(
             f"{topic_prefix}/rotor_position_rotations",
             motor.get_rotor_position().value,
         )
     if velocity:
-        data_logger.logDouble(
+        data_logger.log_double(
             f"{topic_prefix}/velocity_rotations_per_second",
             motor.get_velocity().value,
         )
-        data_logger.logDouble(
+        data_logger.log_double(
             f"{topic_prefix}/rotor_velocity_rotations_per_second",
             motor.get_rotor_velocity().value,
         )
 
 
-def logSecondaryMotorData(
+def log_secondary_motor_data(
     data_logger: DataLogger,
     topic_prefix: str,
     motor: phoenix6.hardware.TalonFX,
@@ -216,25 +216,25 @@ def logSecondaryMotorData(
         topic_prefix: The prefix for the channel names.
         motor: The motor to log data for.
     """
-    data_logger.logDouble(
+    data_logger.log_double(
         f"{topic_prefix}/device_temp", motor.get_device_temp().value
     )
-    data_logger.logDouble(
+    data_logger.log_double(
         f"{topic_prefix}/processor_temp", motor.get_processor_temp().value
     )
-    data_logger.logBoolean(
+    data_logger.log_boolean(
         f"{topic_prefix}/device_temp_fault",
         motor.get_fault_device_temp().value,
     )
-    data_logger.logBoolean(
+    data_logger.log_boolean(
         f"{topic_prefix}/processor_temp_fault",
         motor.get_fault_proc_temp().value,
     )
-    data_logger.logBoolean(
+    data_logger.log_boolean(
         f"{topic_prefix}/supply_current_limit_fault",
         motor.get_fault_supply_curr_limit().value,
     )
-    data_logger.logBoolean(
+    data_logger.log_boolean(
         f"{topic_prefix}/stator_current_limit_fault",
         motor.get_fault_stator_curr_limit().value,
     )

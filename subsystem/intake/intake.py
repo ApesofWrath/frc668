@@ -113,7 +113,7 @@ class Intake:
         self.intake_roller_top_motor.set_control(self._request)
         self.intake_roller_bottom_motor.set_control(self._request)
 
-        self._logData()
+        self._log_data()
 
     def on_enable(self) -> None:
         """Reset to a "safe" state when the robot is enabled.
@@ -130,36 +130,36 @@ class Intake:
         """
         self._active = False
 
-    def setSpeed(self, speed_rps: float = None) -> None:
+    def set_speed(self, speed_rps: float = None) -> None:
         """Set the intake roller motor's speed."""
         self._active_roller_speed_rps = speed_rps
 
-    def setActive(self, active: bool) -> None:
+    def set_active(self, active: bool) -> None:
         """Set whether or not the intake roller is active."""
         self._active = active
 
-    def toggleActive(self) -> None:
+    def toggle_active(self) -> None:
         """Toggle the intake roller between active and inactive."""
         self._active = not self._active
 
-    def _logData(self) -> None:
+    def _log_data(self) -> None:
         """Writes useful data to the log."""
-        self.data_logger.logBoolean(
+        self.data_logger.log_boolean(
             "/components/intake/active", self._active, on_change=True
         )
-        self.data_logger.logDouble(
+        self.data_logger.log_double(
             "/components/intake/target_speed_rps",
             self._active_roller_speed_rps,
             on_change=True,
         )
 
-        datalog.logPrimaryMotorData(
+        datalog.log_primary_motor_data(
             self.data_logger,
             "/components/intake/roller_top_motor",
             self.intake_roller_top_motor,
             velocity=True,
         )
-        datalog.logPrimaryMotorData(
+        datalog.log_primary_motor_data(
             self.data_logger,
             "/components/intake/roller_bottom_motor",
             self.intake_roller_bottom_motor,
@@ -167,12 +167,12 @@ class Intake:
         )
         # Log the rest of the data at a slower frequency.
         if self._log_timer.advanceIfElapsed(1.0):
-            datalog.logSecondaryMotorData(
+            datalog.log_secondary_motor_data(
                 self.data_logger,
                 "/components/intake/roller_top_motor",
                 self.intake_roller_top_motor,
             )
-            datalog.logSecondaryMotorData(
+            datalog.log_secondary_motor_data(
                 self.data_logger,
                 "/components/intake/roller_bottom_motor",
                 self.intake_roller_bottom_motor,
@@ -229,15 +229,15 @@ class IntakeTuner:
 
         This method is called at the end of the control loop.
         """
-        self.intake.setActive(self.active)
-        self.intake.setSpeed(self.target_speed_rps)
+        self.intake.set_active(self.active)
+        self.intake.set_speed(self.target_speed_rps)
 
         # We only want to reapply the gains if they changed. The TalonFX motor
         # doesn't like being reconfigured constantly.
-        if not self.gainsChanged():
+        if not self._gains_changed():
             return
 
-        self.applyGains()
+        self._apply_gains()
 
         self.last_k_s = self.k_s
         self.last_k_v = self.k_v
@@ -246,7 +246,7 @@ class IntakeTuner:
         self.last_k_i = self.k_i
         self.last_k_d = self.k_d
 
-    def gainsChanged(self) -> bool:
+    def _gains_changed(self) -> bool:
         """Detect if any of the gains changed.
 
         Returns:
@@ -261,7 +261,7 @@ class IntakeTuner:
             or self.k_d != self.last_k_d
         )
 
-    def applyGains(self) -> None:
+    def _apply_gains(self) -> None:
         """Apply the current gains to the motor."""
         result = self.intake_roller_top_motor.configurator.apply(
             configs.config_groups.Slot0Configs()

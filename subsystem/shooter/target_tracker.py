@@ -160,18 +160,18 @@ class TargetTracker:
         )
 
         self.turret_moving_target_angle = (
-            self._computeMovingTargetTurretAngleDegrees()
+            self._compute_moving_target_turret_angle_degrees()
         )
 
         # Set the flywheel and hood targets based on future turret-to-target
         # distance.
         target_hood_angle_degrees, target_flywheel_speed_rps = ShotTable.get(
-            self.futureTurretDistanceFromTargetMeters()
+            self.future_turret_distance_from_target_meters()
         )
 
         self.turret_mvt_feed_forward = (
             self.turret_moving_target_angle
-            - self._computeStationaryTargetTurretAngleDegrees()
+            - self._compute_stationary_target_turret_angle_degrees()
         ) * self.turret_mvt_feed_forward_multiplier
 
         if self._track_position:
@@ -182,50 +182,50 @@ class TargetTracker:
             self._target_flywheel_speed_rps = target_flywheel_speed_rps
 
         if self._enabled:
-            self.turret.setFeedForwardControl(self.turret_mvt_feed_forward)
-            self.turret.setPosition(self._target_turret_angle_degrees)
-            self.hood.setPosition(self._target_hood_angle_degrees)
-            self.flywheel.setTargetRps(self._target_flywheel_speed_rps)
+            self.turret.set_feed_forward_control(self.turret_mvt_feed_forward)
+            self.turret.set_position(self._target_turret_angle_degrees)
+            self.hood.set_position(self._target_hood_angle_degrees)
+            self.flywheel.set_target_rps(self._target_flywheel_speed_rps)
 
-        self._logData()
+        self._log_data()
 
-    def trackPosition(self, value: bool) -> None:
+    def track_position(self, value: bool) -> None:
         """If True, the turret and hood angles will be re-calculated each loop."""
         self._track_position = value
 
-    def trackSpeed(self, value: bool) -> None:
+    def track_speed(self, value: bool) -> None:
         """If True, the flywheel speed will be re-calculated each loop."""
         self._track_speed = value
 
-    def setTargetHoodAngleDegrees(self, value: float) -> None:
+    def set_target_hood_angle_degrees(self, value: float) -> None:
         """Set the target angle for the hood, in degrees."""
         self._target_hood_angle_degrees = value
 
-    def setTargetTurretAngleDegrees(self, value: float) -> None:
+    def set_target_turret_angle_degrees(self, value: float) -> None:
         """Set the target angle for the turret, in degrees."""
         self._target_turret_angle_degrees = value
 
-    def setTargetFlywheelSpeedRps(self, value: float) -> None:
+    def set_target_flywheel_speed_rps(self, value: float) -> None:
         """Set the target speed for the flywheel, in rotations per second."""
         self._target_flywheel_speed_rps = value
 
-    def setEnabled(self, value: bool) -> None:
+    def set_enabled(self, value: bool) -> None:
         """If True, the mechanisms will be commanded to the current targets."""
         self._enabled = value
 
-    def setTurretFeedForwardMultiplier(self, multiplier) -> None:
+    def set_turret_feed_forward_multiplier(self, multiplier: float) -> None:
         self.turret_mvt_feed_forward_multiplier = multiplier
 
-    def targetTurretAngleDegrees(self) -> float:
+    def target_turret_angle_degrees(self) -> float:
         return self._target_turret_angle_degrees
 
-    def targetHoodAngleDegrees(self) -> float:
+    def target_hood_angle_degrees(self) -> float:
         return self._target_hood_angle_degrees
 
-    def targetFlywheelSpeedRps(self) -> float:
+    def target_flywheel_speed_rps(self) -> float:
         return self._target_flywheel_speed_rps
 
-    def _computeMovingTargetTurretAngleDegrees(
+    def _compute_moving_target_turret_angle_degrees(
         self,
     ) -> phoenix6.units.degree:
         """Computes turret angle to hit the target while moving.
@@ -234,13 +234,13 @@ class TargetTracker:
         compensates for them.
         """
         # Vector from field origin to the target.
-        self._target_position = self._getTargetPosition(
+        self._target_position = self._get_target_position(
             self.drivetrain.get_robot_pose()
         )
 
         # Vector from center of turret to the target.
         self.future_turret_to_target = self._target_position - (
-            self._turret_field_pose.translation() + self._getMovementVector()
+            self._turret_field_pose.translation() + self._get_movement_vector()
         )
         # Heading of the turret_field_pose is same as the robot's heading.
         target_angle_degrees = (
@@ -260,11 +260,11 @@ class TargetTracker:
             ),
         )
 
-    def _getTargetPosition(
+    def _get_target_position(
         self, robot_pose: geometry.Pose2d
     ) -> geometry.Translation2d:
         """Returns the position of our target based on alliance and robot pose."""
-        if self.alliance_fetcher.isRedAlliance():
+        if self.alliance_fetcher.is_red_alliance():
             if robot_pose.X() > self.RED_ZONE_END_X_METERS:
                 return geometry.Translation2d(
                     RED_HUB_TO_FIELD_X, RED_HUB_TO_FIELD_Y
@@ -293,7 +293,7 @@ class TargetTracker:
                     self.BLUE_OUTPOST_PASS_Y_METERS,
                 )
 
-    def _computeStationaryTargetTurretAngleDegrees(
+    def _compute_stationary_target_turret_angle_degrees(
         self,
     ) -> phoenix6.units.degree:
         """Computes turret angle to hit the target while stationary.
@@ -302,7 +302,7 @@ class TargetTracker:
         robot's linear velocity is zero.
         """
         # Vector from field origin to center of the target.
-        self._target_position = self._getTargetPosition(
+        self._target_position = self._get_target_position(
             self.drivetrain.get_robot_pose()
         )
 
@@ -328,7 +328,7 @@ class TargetTracker:
             ),
         )
 
-    def _getMovementVector(self) -> geometry.Translation2d:
+    def _get_movement_vector(self) -> geometry.Translation2d:
         """Computes distance vector of robot's movement.
 
         Uses a fixed time period (average time-of-flight of fuel) and the the
@@ -363,7 +363,7 @@ class TargetTracker:
             geometry.Translation2d(turret_vx, turret_vy)
         ) * self.robot_constants.shooter.turret.time_of_flight
 
-    def currentTurretDistanceFromTargetMeters(self) -> phoenix6.units.meter:
+    def current_turret_distance_from_target_meters(self) -> phoenix6.units.meter:
         """Returns the current absolute distance of the turret from the target."""
         # Vector from center of turret to center of target.
         current_turret_to_target = (
@@ -371,47 +371,47 @@ class TargetTracker:
         )
         return current_turret_to_target.norm()
 
-    def futureTurretDistanceFromTargetMeters(self) -> phoenix6.units.meter:
+    def future_turret_distance_from_target_meters(self) -> phoenix6.units.meter:
         return self.future_turret_to_target.norm()
 
-    def futureTurretAngleToTarget(self) -> phoenix6.units.degree:
+    def future_turret_angle_to_target(self) -> phoenix6.units.degree:
         return self.future_turret_to_target.angle().degrees()
 
-    def _logData(self) -> None:
-        self.data_logger.logBoolean(
+    def _log_data(self) -> None:
+        self.data_logger.log_boolean(
             "/components/target_tracker/enabled", self._enabled, on_change=True
         )
-        self.data_logger.logBoolean(
+        self.data_logger.log_boolean(
             "/components/target_tracker/track_position",
             self._track_position,
             on_change=True,
         )
-        self.data_logger.logBoolean(
+        self.data_logger.log_boolean(
             "/components/target_tracker/track_speed",
             self._track_speed,
             on_change=True,
         )
-        self.data_logger.logDouble(
+        self.data_logger.log_double(
             "/components/target_tracker/current_turret_distance_from_target_meters",
-            self.currentTurretDistanceFromTargetMeters(),
+            self.current_turret_distance_from_target_meters(),
         )
-        self.data_logger.logDouble(
+        self.data_logger.log_double(
             "/components/target_tracker/future_turret_distance_from_target_meters",
-            self.futureTurretDistanceFromTargetMeters(),
+            self.future_turret_distance_from_target_meters(),
         )
-        self.data_logger.logDouble(
+        self.data_logger.log_double(
             "/components/target_tracker/future_turret_to_target_angle",
-            self.futureTurretAngleToTarget(),
+            self.future_turret_angle_to_target(),
         )
-        self.data_logger.logDouble(
+        self.data_logger.log_double(
             "/components/target_tracker/target_turret_position_degrees",
             self._target_turret_angle_degrees,
         )
-        self.data_logger.logDouble(
+        self.data_logger.log_double(
             "/components/target_tracker/target_hood_position_degrees",
             self._target_hood_angle_degrees,
         )
-        self.data_logger.logDouble(
+        self.data_logger.log_double(
             "/components/target_tracker/target_flywheel_velocity_rotations_per_second",
             self._target_flywheel_speed_rps,
         )

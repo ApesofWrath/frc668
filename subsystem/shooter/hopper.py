@@ -126,7 +126,7 @@ class Hopper:
                 self._request.with_velocity(0.0)
             )
 
-        self._logData()
+        self._log_data()
 
     def on_enable(self) -> None:
         """Reset to a "safe" state when the robot is enabled.
@@ -143,7 +143,7 @@ class Hopper:
         """
         self._enabled = False
 
-    def setLeftTargetRps(self, target_rps: float) -> None:
+    def set_left_target_rps(self, target_rps: float) -> None:
         """Set the target speed for the left hopper motor.
 
         Args:
@@ -151,7 +151,7 @@ class Hopper:
         """
         self._left_target_rps = target_rps
 
-    def setRightTargetRps(self, target_rps: float) -> None:
+    def set_right_target_rps(self, target_rps: float) -> None:
         """Set the target speed for the right hopper motor.
 
         Args:
@@ -159,7 +159,7 @@ class Hopper:
         """
         self._right_target_rps = target_rps
 
-    def setEnabled(self, value: bool) -> None:
+    def set_enabled(self, value: bool) -> None:
         """Enable or disable the hopper motors.
 
         Args:
@@ -167,39 +167,39 @@ class Hopper:
         """
         self._enabled = value
 
-    def _logData(self):
-        self.data_logger.logBoolean(
+    def _log_data(self):
+        self.data_logger.log_boolean(
             "/components/hopper/enabled", self._enabled, on_change=True
         )
-        self.data_logger.logDouble(
+        self.data_logger.log_double(
             "/components/hopper/left_target_velocity_rotations_per_second",
             self._left_target_rps,
             on_change=True,
         )
-        self.data_logger.logDouble(
+        self.data_logger.log_double(
             "/components/hopper/right_target_velocity_rotations_per_second",
             self._right_target_rps,
             on_change=True,
         )
-        datalog.logPrimaryMotorData(
+        datalog.log_primary_motor_data(
             self.data_logger,
             "/components/hopper/left_motor",
             self.hopper_left_motor,
             velocity=True,
         )
-        datalog.logPrimaryMotorData(
+        datalog.log_primary_motor_data(
             self.data_logger,
             "/components/hopper/right_motor",
             self.hopper_right_motor,
             velocity=True,
         )
         if self._log_timer.advanceIfElapsed(1.0):
-            datalog.logSecondaryMotorData(
+            datalog.log_secondary_motor_data(
                 self.data_logger,
                 "/components/hopper/left_motor",
                 self.hopper_left_motor,
             )
-            datalog.logSecondaryMotorData(
+            datalog.log_secondary_motor_data(
                 self.data_logger,
                 "/components/hopper/right_motor",
                 self.hopper_right_motor,
@@ -279,18 +279,18 @@ class HopperTuner:
         )
 
     def execute(self) -> None:
-        self.hopper.setLeftTargetRps(self.left_target_rps)
-        self.hopper.setRightTargetRps(self.right_target_rps)
-        self.hopper.setEnabled(self.enabled)
+        self.hopper.set_left_target_rps(self.left_target_rps)
+        self.hopper.set_right_target_rps(self.right_target_rps)
+        self.hopper.set_enabled(self.enabled)
 
         # We only want to reapply the gains if they changed. The TalonFX motor
         # doesn't like being reconfigured constantly.
-        if self.leftGainsChanged():
-            self.applyLeftGains()
-        if self.rightGainsChanged():
-            self.applyRightGains()
+        if self._left_gains_changed():
+            self._apply_left_gains()
+        if self._right_gains_changed():
+            self._apply_right_gains()
 
-    def leftGainsChanged(self) -> bool:
+    def _left_gains_changed(self) -> bool:
         """Detect if any of the gains for the left motor changed.
 
         Returns:
@@ -305,7 +305,7 @@ class HopperTuner:
             or self.left_k_d != self._current_left_gains.k_d
         )
 
-    def rightGainsChanged(self) -> bool:
+    def _right_gains_changed(self) -> bool:
         """Detect if any of the gains for the right motor changed.
 
         Returns:
@@ -320,7 +320,7 @@ class HopperTuner:
             or self.right_k_d != self._current_right_gains.k_d
         )
 
-    def applyLeftGains(self) -> None:
+    def _apply_left_gains(self) -> None:
         """Apply the current gains to the left motor."""
         result = self.hopper_left_motor.configurator.apply(
             self._current_left_gains.with_k_s(self.left_k_s)
@@ -338,7 +338,7 @@ class HopperTuner:
                 )
             )
 
-    def applyRightGains(self) -> None:
+    def _apply_right_gains(self) -> None:
         """Apply the current gains to the right motor."""
         result = self.hopper_right_motor.configurator.apply(
             self._current_right_gains.with_k_s(self.right_k_s)

@@ -56,10 +56,10 @@ class Vision:
         ).publish()
 
     def execute(self) -> None:
-        self.setRobotOrientation()
-        self._updateRobotPose()
+        self.set_robot_orientation()
+        self._update_robot_pose()
 
-    def setImuMode(self, value: int) -> None:
+    def set_imu_mode(self, value: int) -> None:
         if not isinstance(value, int) or value < 0 or value > 4:
             self.logger.warning(
                 f"IMU mode must be an integer in the range [0, 4], got: {value}."
@@ -68,7 +68,7 @@ class Vision:
         for ll in self._limelights:
             limelight.LimelightHelpers.set_imu_mode(ll, value)
 
-    def setRobotOrientation(self) -> None:
+    def set_robot_orientation(self) -> None:
         """Updates each Limelight with the robot's current orientation.
 
         Limelight's MegaTag2 localizer requires that we update it with our
@@ -77,7 +77,7 @@ class Vision:
         for ll in self._limelights:
             limelight.LimelightHelpers.set_robot_orientation(
                 ll,
-                self.drivetrain.estimatedYawDegrees(),
+                self.drivetrain.estimated_yaw_degrees(),
                 0.0,
                 0.0,
                 0.0,
@@ -85,7 +85,7 @@ class Vision:
                 0.0,
             )
 
-    def _updateRobotPose(self) -> None:
+    def _update_robot_pose(self) -> None:
         """Updates our robot pose estimate with the latest vision measurements."""
         rejected_poses: list[wpimath.geometry.Pose2d] = []
         rejected_limelights: list[str] = []
@@ -151,18 +151,18 @@ class Vision:
             )
 
         self._accepted_pose_publisher.set(accepted_poses)
-        self.data_logger.logStringArray(
+        self.data_logger.log_string_array(
             "/components/vision/accepted_limelights", accepted_limelights
         )
         self._rejected_pose_publisher.set(rejected_poses)
-        self.data_logger.logStringArray(
+        self.data_logger.log_string_array(
             "/components/vision/rejected_limelights", rejected_limelights
         )
-        self.data_logger.logStringArray(
+        self.data_logger.log_string_array(
             "/components/vision/rejected_reasons", rejected_reasons
         )
 
-    def setStdDevs(self, xy_std_dev, theta_std_dev) -> None:
+    def set_std_devs(self, xy_std_dev, theta_std_dev) -> None:
         self._xy_std_dev = xy_std_dev
         self._theta_std_dev = theta_std_dev
 
@@ -187,14 +187,14 @@ class VisionTuner:
         self._nt = ntcore.NetworkTableInstance.getDefault()
 
     def execute(self) -> None:
-        self.vision.setStdDevs(self.xy_std_dev, self.theta_std_dev)
+        self.vision.set_std_devs(self.xy_std_dev, self.theta_std_dev)
 
         if wpilib.DriverStation.isDisabled():
-            self.throttleLimelights(True)
+            self.throttle_limelights(True)
         else:
-            self.throttleLimelights(False)
+            self.throttle_limelights(False)
 
-    def throttleLimelights(self, value: bool) -> None:
+    def throttle_limelights(self, value: bool) -> None:
         """Throttle the limelights so they don't overheat."""
         if value:
             for ll in self._limelights:
