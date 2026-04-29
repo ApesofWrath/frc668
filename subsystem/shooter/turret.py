@@ -132,19 +132,46 @@ class Turret:
             phoenix6.units.rotation
         ] = self.turret_encoder.get_position()
 
-        # Our sensor to mechanism ratio is 10. This means if our turret starts
-        # anywhere in the position range [-18, 18) degrees (assuming 0 is
-        # straight ahead), we can use the absolute offset from the encoder to
-        # set both the encoder's and motor's position to it so both of their
-        # zeros also point straight ahead.
+        # Say our sensor to mechanism ratio is 10. Then, within any 36 degree
+        # window of turret position, if we assume an arbitrary zero in that
+        # window, we can use the absolute position of the encoder to set the
+        # zero for the mechanism.
+        #
+        # We use this property to zero the turret. As long as the turret is
+        # within +/- 18 degrees of our desired zero position when the robot
+        # program starts up, we can do this.
         absolute_position = self.turret_encoder.get_absolute_position().value
+
+        # On Juno, to stay within frame perimeter, the turret needs to start
+        # pointed sideways. If we set the magnet offset so that +90 degrees
+        # corresponds to absolute zero in that window, we can use the absolute
+        # position on the encoder to set the positions of the mechanism and
+        # the encoder.
+        #
+        # phoenix6's set_position API for CANcoder does not take into account
+        # any gear ratio between the sensor and the mechanism, so we do that
+        # manually.
+        # https://api.ctr-electronics.com/phoenix6/stable/python/autoapi/phoenix6/hardware/core/core_cancoder/index.html#phoenix6.hardware.core.core_cancoder.CoreCANcoder.set_position
+        turret_encoder_position = (
+            0.25 * turret_constants.sensor_to_mechanism_ratio
+        ) - absolute_position
         self.logger.info(
-            f"Setting turret position to {absolute_position} rotations"
+            f"Setting turret encoder position to {turret_encoder_position} rotations"
         )
-        result = self.turret_encoder.set_position(absolute_position)
+        result = self.turret_encoder.set_position(turret_encoder_position)
         if not result.is_ok():
             self.logger.error("Failed to set position on turret encoder")
-        result = self.turret_motor.set_position(absolute_position)
+
+        # phoenix6's set_position API for TalonFX does take gear ratios into
+        # account, so we need to provide it the mechanism position.
+        # https://api.ctr-electronics.com/phoenix6/stable/python/autoapi/phoenix6/hardware/core/core_talon_fx/index.html#phoenix6.hardware.core.core_talon_fx.CoreTalonFX.set_position
+        turret_position = (
+            turret_encoder_position / turret_constants.sensor_to_mechanism_ratio
+        )
+        self.logger.info(
+            f"Setting turret position to {turret_position} rotations"
+        )
+        result = self.turret_motor.set_position(turret_position)
         if not result.is_ok():
             self.logger.error("Failed to set position on turret motor")
 
