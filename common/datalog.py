@@ -182,6 +182,9 @@ def log_primary_motor_data(
     data_logger.log_double(
         f"{topic_prefix}/stator_current", motor.get_stator_current().value
     )
+    data_logger.log_double(
+        f"{topic_prefix}/supply_voltage", motor.get_supply_voltage().value
+    )
     if position:
         data_logger.log_double(
             f"{topic_prefix}/position_rotations", motor.get_position().value

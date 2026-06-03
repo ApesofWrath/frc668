@@ -123,6 +123,15 @@ class MyRobot(magicbot.MagicRobot):
         self._auto_done = False
 
     def robotPeriodic(self) -> None:
+        self.data_logger.log_double(
+            "/robot/battery_voltage",
+            wpilib.RobotController.getBatteryVoltage(),
+            on_change=False
+        )
+        self.data_logger.log_boolean(
+            "/robot/brownout",
+            wpilib.RobotController.isBrownedOut(),
+        )
         if wpilib.DriverStation.isEnabled():
             # Deploy the intake.
             self.intake_deployer.deploy()
