@@ -144,7 +144,9 @@ class Shooter(magicbot.StateMachine):
 
     def _robot_is_moving(self, speed_threshold_mps: float = 0.1) -> bool:
         """Indicates if the robot's linear speed is over the threshold."""
-        chassis_speeds: kinematics.ChassisSpeeds = self.drivetrain.robot_speeds()
+        chassis_speeds: kinematics.ChassisSpeeds = (
+            self.drivetrain.robot_speeds()
+        )
         robot_speed_mps = math.sqrt(
             (chassis_speeds.vx**2) + (chassis_speeds.vy**2)
         )

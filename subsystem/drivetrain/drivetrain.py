@@ -273,7 +273,8 @@ class Drivetrain(commands2.Subsystem):
             self.raw_pitch_degrees(),
         )
         self.data_logger.log_double(
-            "/components/drivetrain/pigeon/roll_degrees", self.raw_roll_degrees()
+            "/components/drivetrain/pigeon/roll_degrees",
+            self.raw_roll_degrees(),
         )
         datalog.log_primary_motor_data(
             self.data_logger,

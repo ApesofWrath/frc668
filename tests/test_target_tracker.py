@@ -407,7 +407,9 @@ def test_execute_updates_compensation_across_control_loops(mocker) -> None:
 
     assert tracker._yaw_rate_signal.refresh.call_count == 2
     assert tracker.turret.set_position.call_count == 2
-    first_commanded_angle = tracker.turret.set_position.call_args_list[0].args[0]
+    first_commanded_angle = tracker.turret.set_position.call_args_list[0].args[
+        0
+    ]
     second_commanded_angle = tracker.turret.set_position.call_args_list[1].args[
         0
     ]
@@ -424,7 +426,10 @@ def test_current_turret_distance_from_hub_meters(mocker) -> None:
         geometry.Rotation2d(),
     )
 
-    assert tracker.current_turret_distance_from_target_meters() == pytest.approx(5.0)
+    assert (
+        tracker.current_turret_distance_from_target_meters()
+        == pytest.approx(5.0)
+    )
 
 
 def test_compute_stationary_target_turret_angle_degrees_is_relative_to_heading(

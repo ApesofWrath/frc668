@@ -192,6 +192,6 @@ class TestIntake:
         mock_bottom_motor.set_control.assert_called_once()
         request = mock_top_motor.set_control.call_args[0][0]
         assert request.velocity == pytest.approx(67.0)
-        assert mock_bottom_motor.set_control.call_args[0][0].velocity == pytest.approx(
-            67.0
-        )
+        assert mock_bottom_motor.set_control.call_args[0][
+            0
+        ].velocity == pytest.approx(67.0)

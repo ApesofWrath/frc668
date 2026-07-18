@@ -222,7 +222,9 @@ class TestShooter:
         """When shooter is ready and robot is stationary, should transition to shooting."""
         # Set up conditions for shooter to be ready
         mock_hub_tracker.target_turret_angle_degrees.return_value = 0.0
-        mock_turret.measured_angle_degrees.return_value = 0.0  # Within tolerance
+        mock_turret.measured_angle_degrees.return_value = (
+            0.0  # Within tolerance
+        )
         mock_hub_tracker.target_hood_angle_degrees.return_value = 0.0
         mock_hood.measured_angle_degrees.return_value = 0.0  # Within tolerance
         mock_hub_tracker.target_flywheel_speed_rps.return_value = 20.0
