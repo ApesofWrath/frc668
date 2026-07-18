@@ -11,9 +11,6 @@ class Turret:
     DEGREES_TO_ROTATIONS = 1.0 / 360.0
     ROTATIONS_TO_DEGREES = 360.0
 
-    DEGREES_TO_ROTATIONS = 1.0 / 360.0
-    ROTATIONS_TO_DEGREES = 360.0
-
     robot_constants: constants.RobotConstants
     turret_motor: phoenix6.hardware.TalonFX
     turret_encoder: phoenix6.hardware.CANcoder
