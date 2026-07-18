@@ -363,7 +363,9 @@ class TargetTracker:
             geometry.Translation2d(turret_vx, turret_vy)
         ) * self.robot_constants.shooter.turret.time_of_flight
 
-    def current_turret_distance_from_target_meters(self) -> phoenix6.units.meter:
+    def current_turret_distance_from_target_meters(
+        self,
+    ) -> phoenix6.units.meter:
         """Returns the current absolute distance of the turret from the target."""
         # Vector from center of turret to center of target.
         current_turret_to_target = (
