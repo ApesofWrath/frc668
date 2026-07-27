@@ -184,9 +184,16 @@ class Drivetrain(commands2.Subsystem):
         command: joystick.DriveCommand,
     ) -> None:
         """Set the drivetrain's target speeds."""
-        self._drive_request.with_velocity_x(command.vx).with_velocity_y(
-            command.vy
-        ).with_rotational_rate(command.omega)
+        if command.auto_angle:
+            current_angle = self.swerve_drive.get_state().pose.rotation().radians()
+            target_angle = math.atan2(command.vy,command.vx)
+
+            self._drive_request.with_velocity_x(command.vx).with_velocity_y(command.vy).with_rotational_rate(
+                self._heading_controller.calculate(current_angle,target_angle))
+        else:
+            self._drive_request.with_velocity_x(command.vx).with_velocity_y(
+                command.vy
+            ).with_rotational_rate(command.omega)
 
     def follow_trajectory_sample(self, sample: choreo.SwerveSample) -> None:
         """Follow a Choreo trajectory sample.
