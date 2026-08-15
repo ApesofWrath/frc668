@@ -1,42 +1,29 @@
-# frc668
+###FRC Team 668 Robot System Overview
+##Our robot is divided into three core subsystems: Drivetrain, Intake, and Shooter. Below is a detailed ##breakdown of the components that make up each subsystem.
 
+#Drivetrain
+Responsible for field mobility and robot positioning. It consists of two main components:
 
-Our robot is broken into three subsystems: drivetrain, intake, and shooter.
+Drive Mechanics: Provides direct translation and rotational control over the robot, including speed management and orientation adjustments.
 
-Within each subsystem there are components
+Vision System: Utilizes four Limelight cameras to scan AprilTags around the field. It processes this data through a Kalman filter to accurately calculate the robot's real-time position relative to the field.
 
-Drivetrain:
+#Intake
+Responsible for acquiring game pieces (fuel/balls) and loading them into the hopper. It consists of two main components:
 
-This subsystem is responsible for the movement of the robot on the field
-It is made up of mainly two components being the drivetrain and vision
+Intake Mechanism: Manages the active intake roller, driving it at calibrated speeds when commanded.
 
-The drivetrain gives direct control over what the drivetrain does such as setting speeds and changing orientation
+Intake Deployer: Actuates the intake assembly, lowering it from inside the hopper frame to the ground level.
 
-Vision uses four Limelights to scan Apriltags around the field and using a Kalman filter take this data to accurately  determine the position of the robot relative to the field.  
+#Shooter
+Responsible for feeding, aiming, and launching game pieces into the hub. It consists of five main components:
 
+Hopper: Funnels incoming game pieces from the intake into the indexer mechanism.
 
-Intake:
+Indexer: Elevates game pieces from the hopper up toward the turret assembly.
 
-This subsystem is responsible for picking up fuels into the hopper
-It is made up of two components being the intake and the intake deployer
+Turret: Controls horizontal targeting angle, enabling the robot to score in the hub from anywhere on the alliance side of the field.
 
-The intake controls the intake roller when commanded will run the roller at a certain speed
+Flywheel: Accelerates game pieces to control shot velocity and adjust distance/range.
 
-The intake deployer is responsible for dropping the intake from inside the hopper to touching the ground
-
-
-Shooter:
-
-This subsystem is responsible for shooting the balls from the hopper into hub primarily
-It is made up of five components
-
-The flywheel is responsible shooting the balls at varying ranges.
-
-The hood is responsible for adjusting the angle at which the balls are shot
-
-The hopper is responsible for funneling the balls to the indexer which through there gets shot
-
-The indexer is responsible for moving the balls up to the turret where it eventually gets shot.
-
-The turret is responsible for changing the angle at which the balls are shot at so the robot can shoot at the hub from any where on the alliance side of the field.
-
+Hood: Controls vertical trajectory and launch angle for accurate scoring.
