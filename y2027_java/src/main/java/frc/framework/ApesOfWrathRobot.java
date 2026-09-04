@@ -1,6 +1,8 @@
 package frc.framework;
 
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.XboxController;
+import frc.framework.controls.XInputController;
 
 public abstract class ApesOfWrathRobot extends TimedRobot {
     public NodePool pool;
@@ -63,5 +65,7 @@ public abstract class ApesOfWrathRobot extends TimedRobot {
         producers = pool.getAll(Producer.class);
         executors = pool.getAll(Executor.class);
         productionManager = new ProductionManager();
+
+        pool.addNode(new XInputController(new XboxController(0)));
     }
 }

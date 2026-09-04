@@ -21,6 +21,14 @@ public class DriveSubsystem implements DataPoller, Executor {
     private TunerSwerveDrivetrain drivetrain = new TunerConstants.TunerSwerveDrivetrain(TunerConstants.DrivetrainConstants, TunerConstants.FrontLeft, TunerConstants.FrontRight, TunerConstants.BackLeft, TunerConstants.BackRight);
     private SwerveRequest.ApplyRobotSpeeds robotSpeedRequest = new SwerveRequest.ApplyRobotSpeeds();
 
+    public float getDesiredTranslationSpeed() {
+        return 15f; // 15 meters per second, shhh, this is just example code
+    }
+
+    public float getDesiredRotationSpeed() {
+        return 3.14f; // 1 rotation per second, again, example code
+    }
+
     @Override
     public void execute(ProductionManager manager) {
         Translation2d translationSpeed = manager.getValue(CHASSIS_TRANSLATION_SPEED_RELROBOT);
