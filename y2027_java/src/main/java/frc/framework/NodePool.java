@@ -13,6 +13,9 @@ public class NodePool {
 	private ArrayList<NodeCollection> collections = new ArrayList<>();
 	private ArrayList<Object> hydratedNodes = new ArrayList<>();
 
+	/**
+	 * Invoke the hydrate methods and process the hydration attributes on all nodes, effectively linking all the nodes together
+	 */
 	public void hydrateAll() {
 		hydratedNodes.removeIf(it -> !nodes.contains(it));
 
@@ -52,6 +55,10 @@ public class NodePool {
 		}
 	}
 
+	/**
+	 * Add a node to the node pool, so that it can be found 
+	 * @param object The node to be added
+	 */
 	public void addNode(Object object) {
 		nodes.add(object);
 
@@ -60,6 +67,10 @@ public class NodePool {
 		}
 	}
 
+	/**
+	 * Remove a node from the node pool, so that it can no longer be found
+	 * @param object The node to be removed
+	 */
 	public void removeNode(Object object) {
 		nodes.remove(object);
 
@@ -68,6 +79,12 @@ public class NodePool {
 		}
 	}
 
+	/**
+	 * Find all the nodes of a given class or interface
+	 * @param <T> The class or interface to search for
+	 * @param spec The reflection type of the class, e.g, `ShooterSubsystem.class`
+	 * @return A NodeCollection containing the nodes of the given type, which will be automatically kept in sync
+	 */
 	@SuppressWarnings({"unchecked", "rawtypes"})
 	public <T> NodeCollection<T> getAll(Class<T> spec) {
 		for (NodeCollection collection : collections) {
@@ -87,6 +104,12 @@ public class NodePool {
 		return collection;
 	}
 
+	/**
+	 * Find any instance of a node of a given class or interface
+	 * @param <T> The class or interface to search for
+	 * @param spec The reflection type of the class, e.g, `ShooterSubsystem.class`
+	 * @return An Optional containing either nothing, or the node
+	 */
 	public <T> Optional<T> locate(Class<T> spec) {
 		ArrayList<T> nodes = getAll(spec).nodes;
 

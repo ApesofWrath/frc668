@@ -2,6 +2,9 @@ package frc.framework;
 
 import java.util.Comparator;
 
+/**
+ * Internal comparator that allows productions to be sorted by priority.
+ */
 public class ProductionComparator implements Comparator<Production> {
 
 	@Override

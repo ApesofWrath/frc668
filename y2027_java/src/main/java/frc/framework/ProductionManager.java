@@ -4,14 +4,27 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
+/**
+ * Manages the evaluation of several productions.
+ */
 public class ProductionManager {
     public ArrayList<Production> productions = new ArrayList<>();
     public HashMap<Object, Object> values = new HashMap<>();
 
+    /**
+     * Add a production to influence the behavior of Executors
+     * @param prod The production to add
+     */
     public void addProduction(Production prod) {
         productions.add(prod);
     }
 
+    /**
+     * Return the value of field, falling back to the default value if no productions produce it
+     * @param <T> The value type of the field
+     * @param field The field reference to query for
+     * @return
+     */
     @SuppressWarnings("unchecked")
     public <T> T getValue(FieldReference<T> field) {
         if (values.containsKey(field)) {
@@ -20,10 +33,10 @@ public class ProductionManager {
         return field.defaultValue;
     }
 
-    public <T> void setValue(FieldReference<T> field, T value) {
-        values.put(field, value);
-    }
-
+    /**
+     * Apply the highest priority productions first, skipping productions that conflict with others.
+     * @see Production
+     */
     public void resolve() {
         values.clear();
 

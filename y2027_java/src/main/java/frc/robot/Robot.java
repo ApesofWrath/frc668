@@ -9,6 +9,8 @@ public class Robot extends ApesOfWrathRobot {
 	@Override
 	public void setup() {
 		pool.addNode(new DriveSubsystem());
-		pool.addNode(new TeleopDriveController());
+		pool.addNode(new TeleopDriveControlManager());
+		pool.addNode(new ShooterSubsystem());
+		pool.addNode(new ManualController());
 	}
 }

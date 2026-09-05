@@ -1,7 +1,6 @@
 package frc.robot;
 
 
-import com.ctre.phoenix6.swerve.SwerveDrivetrain;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Translation2d;

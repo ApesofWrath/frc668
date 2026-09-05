@@ -4,6 +4,9 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
 import frc.framework.controls.XInputController;
 
+/**
+ * A helper class that manages the poller, producer, and executor architecture.
+ */
 public abstract class ApesOfWrathRobot extends TimedRobot {
     public NodePool pool;
 

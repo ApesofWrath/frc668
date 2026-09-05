@@ -9,7 +9,7 @@ import frc.framework.ProductionPriority;
 import frc.framework.controls.Axis;
 import frc.framework.controls.Controller;
 
-public class TeleopDriveController implements Producer {
+public class TeleopDriveControlManager implements Producer {
     @AutoHydrate(FieldType = Controller.class)
     private Controller controller;
     @AutoHydrate(FieldType = DriveSubsystem.class)

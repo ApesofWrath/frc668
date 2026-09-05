@@ -13,6 +13,10 @@ public class NodeCollection<T> {
 		this.spec = spec;
 	}
 
+	/**
+	 * Internal to framework - Adds a node if it is of the spec type
+	 * @param node The node to add
+	 */
 	@SuppressWarnings("unchecked")
 	public void tryAddNode(Object node) {
 		if (spec.isInstance(node)) {
@@ -20,6 +24,10 @@ public class NodeCollection<T> {
 		}
 	}
 
+	/**
+	 * Internal to framework - Removes a node if it is in the collection
+	 * @param node The node to remove
+	 */
 	public void tryRemoveNode(Object node) {
 		if (nodes.contains(node)) {
 			nodes.remove(node);
