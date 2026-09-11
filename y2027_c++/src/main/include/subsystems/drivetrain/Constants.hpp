@@ -17,6 +17,8 @@ namespace Apes668 {
     struct SwerveModuleCommonConstants final {
         float drive_motor_gear_ratio = 4.67;
         float steer_motor_gear_ratio = 25.9;
+        float coupling_gear_ration = 0.0;
+        units::meter_t wheel_radius = 0.04445_m;
 
         configs::Slot0Configs steer_motor_gains = configs::Slot0Configs();
         configs::Slot0Configs drive_motor_gains = configs::Slot0Configs();
@@ -90,6 +92,15 @@ namespace Apes668 {
     };
 
     struct TrajectoryFollowingConstants final {
+        float x_kp = 0.0;
+        float x_ki = 0.0;
+        float x_kd = 0.0;
+        float y_kp = 0.0;
+        float y_ki = 0.0;
+        float y_kd = 0.0;
+        float heading_kp = 0.0;
+        float heading_ki = 0.0;
+        float heading_kd = 0.0;
 
         auto operator<=>(const TrajectoryFollowingConstants&) const = delete;
     };
@@ -100,6 +111,7 @@ namespace Apes668 {
         SwerveModuleConstants front_right = SwerveModuleConstants();
         SwerveModuleConstants back_left = SwerveModuleConstants();
         SwerveModuleConstants back_right = SwerveModuleConstants();
+        SwerveDrivetrainConstants drivetrain = SwerveDrivetrainConstants();
         DriveOptions drive_options = DriveOptions();
         VisionConstants vision = VisionConstants();
         TrajectoryFollowingConstants trajectory_following = TrajectoryFollowingConstants();

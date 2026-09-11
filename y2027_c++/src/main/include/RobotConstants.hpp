@@ -9,10 +9,10 @@ namespace Apes668 {
     inline const std::string DEFAULT_ROBOT_SERIAL = "0323CA4B";
 
     struct RobotConstants final {
-        inline static std::string serial = "Unknown";
-        inline static std::optional<DrivetrainConstants> drivetrain = std::nullopt;
-        inline static std::optional<IntakeConstants> intake = std::nullopt;
-        inline static std::optional<ShooterConstants> shooter = std::nullopt;
+        std::string serial = "Unknown";
+        std::optional<DrivetrainConstants> drivetrain = std::nullopt;
+        std::optional<IntakeConstants> intake = std::nullopt;
+        std::optional<ShooterConstants> shooter = std::nullopt;
     };
     
     inline RobotConstants get_robot_constants();
