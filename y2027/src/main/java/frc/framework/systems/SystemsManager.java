@@ -33,6 +33,7 @@ public class SystemsManager {
 		rebuildExecutionPlan();
 
 		manager.plan = executionPlan;
+
 		manager.execute(time);
 	}
 
