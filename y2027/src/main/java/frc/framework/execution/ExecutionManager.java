@@ -1,0 +1,66 @@
+package frc.framework.execution;
+
+import java.util.HashMap;
+import frc.framework.commonrobot.RobotInformation;
+import frc.framework.systems.System;
+import frc.framework.systems.SystemInformation;
+import frc.framework.systems.SystemUpdateHelper;
+import frc.framework.systems.ValueIdentifier;
+
+public class ExecutionManager {
+	public ExecutionPlan plan;
+	private HashMap<String, Object> values = new HashMap<>();
+	private HashMap<String, Integer> valuePriorities = new HashMap<>();
+	private HashMap<System, SystemCachableResult> cachedResults = new HashMap<>();
+
+	public void trySetValue(String key, Object value, int priority) {
+		int currentPriority = valuePriorities.getOrDefault(key, Integer.MIN_VALUE);
+
+		if (priority > currentPriority) {
+			values.put(key, value);
+			valuePriorities.put(key, priority);
+		}
+	}
+
+	public void execute(long time) {
+		// reset values
+		values.clear();
+		valuePriorities.clear();
+
+		for (@SuppressWarnings("rawtypes") ValueIdentifier ident :
+				plan.valueIdToIdentifier.values()) {
+			values.put(ident.getId(), ident.getDefaultValue());
+		}
+
+		values.put(RobotInformation.TIMESTAMP_VALUE.getId(), time);
+		// run plan
+		for (System system : plan.systemExecutionOrder) {
+			SystemCachableResult previousResult =
+					cachedResults.getOrDefault(system, null);
+			SystemInformation info = plan.systemToInformation.get(system);
+
+			if (previousResult != null
+					&& info.cacheStrategy.isCacheValid(time, this, previousResult)) {
+				previousResult.apply(this);
+				continue;
+			}
+
+			SystemCachableResult result = new SystemCachableResult(time);
+			SystemUpdateHelper helper = new SystemUpdateHelper(
+					system,
+					plan.systemToInformation.get(system),
+					this,
+					result
+			);
+
+			system.update(helper);
+
+			cachedResults.put(system, result);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> T getValue(String id) {
+		return (T) values.get(id);
+	}
+}

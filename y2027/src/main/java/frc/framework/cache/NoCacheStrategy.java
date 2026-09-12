@@ -1,13 +1,15 @@
 package frc.framework.cache;
 
-import frc.framework.ExecutionManager;
-import frc.framework.SystemCachableResult;
+import frc.framework.execution.ExecutionManager;
+import frc.framework.execution.SystemCachableResult;
 
 public class NoCacheStrategy implements CacheStrategy {
-
-    @Override
-    public boolean isCacheValid(long time, ExecutionManager manager, SystemCachableResult previousResult) {
-        return false;
-    }
-    
+	@Override
+	public boolean isCacheValid(
+			long time,
+			ExecutionManager manager,
+			SystemCachableResult previousResult
+	) {
+		return false;
+	}
 }
