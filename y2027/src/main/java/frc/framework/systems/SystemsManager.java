@@ -6,7 +6,7 @@ import frc.framework.execution.ExecutionPlan;
 
 public class SystemsManager {
 	private ArrayList<System> systems = new ArrayList<>();
-	private boolean isExecutionPlanDirty = false;
+	private boolean isExecutionPlanDirty = true;
 	private ExecutionPlan executionPlan;
 	private ExecutionManager manager = new ExecutionManager();
 

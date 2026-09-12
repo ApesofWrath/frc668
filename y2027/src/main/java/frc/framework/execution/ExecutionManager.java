@@ -55,6 +55,8 @@ public class ExecutionManager {
 
 			system.update(helper);
 
+			result.apply(this);
+
 			cachedResults.put(system, result);
 		}
 	}
