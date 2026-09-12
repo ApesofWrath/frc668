@@ -35,4 +35,8 @@ public class SystemsManager {
 		manager.plan = executionPlan;
 		manager.execute(time);
 	}
+
+	public void publishValuesToNetworkTables() {
+		manager.publishValuesToNetworkTables();
+	}
 }

@@ -85,4 +85,11 @@ public class ExecutionPlan {
 			}
 		}
 	}
+
+	public void debug() {
+		java.lang.System.out.println("EXECUTION ORDER:");
+		for (System sys : systemExecutionOrder) {
+			java.lang.System.out.println("-- " + sys.getId());
+		}
+	}
 }

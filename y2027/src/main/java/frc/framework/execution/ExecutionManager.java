@@ -22,6 +22,32 @@ public class ExecutionManager {
 		}
 	}
 
+	public void publishValuesToNetworkTables() {
+		NetworkTableInstance nt = NetworkTableInstance.getDefault();
+
+		for (java.util.Map.Entry<String, Object> pair : values.entrySet()) {
+			String key = pair.getKey();
+
+			if (key.startsWith("/")) {
+				key = key.substring(1);
+			}
+
+			key = "Systems/" + key;
+
+			Object value = pair.getValue();
+
+			if (value instanceof Integer integerValue) {
+				nt.getEntry(key).setInteger(integerValue);
+			} else if (value instanceof Long longValue) {
+				nt.getEntry(key).setInteger(longValue);
+			} else if (value instanceof String stringValue) {
+				nt.getEntry(key).setString(stringValue);
+			}  else if (value instanceof Boolean booleanValue) {
+				nt.getEntry(key).setBoolean(booleanValue);
+			}
+		}
+	}
+
 	public void execute(long time) {
 		// reset values
 		values.clear();
