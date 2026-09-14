@@ -6,7 +6,7 @@ import frc.framework.systems.SystemUpdateHelper;
 import frc.framework.systems.ValueIdentifier;
 
 public class HelloSpeakerSystem implements System {
-	public static ValueIdentifier<String> NAME_VALUE = new ValueIdentifier<String>("/hello/name", "World");
+	public static ValueIdentifier<String> NAME_VALUE = ValueIdentifier.get("/hello/name", "World");
 	
 	@Override
 	public void configure(SystemInformation information) {

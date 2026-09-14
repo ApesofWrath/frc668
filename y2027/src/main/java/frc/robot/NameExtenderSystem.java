@@ -7,7 +7,7 @@ import frc.framework.systems.SystemUpdateHelper;
 import frc.framework.systems.ValueIdentifier;
 
 public class NameExtenderSystem implements System {
-	public static ValueIdentifier<String> NAME_TO_EXTEND_VALUE = new ValueIdentifier<String>(
+	public static ValueIdentifier<String> NAME_TO_EXTEND_VALUE = ValueIdentifier.get(
 		"/name_extender/name_to_extend",
 		"World"
 	);

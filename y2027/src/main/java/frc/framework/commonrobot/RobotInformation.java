@@ -7,12 +7,12 @@ public class RobotInformation {
 	/**
 	 * The current robot operating mode
 	 */
-	public static ValueIdentifier<OpMode> OPMODE_VALUE = new ValueIdentifier<OpMode>("/hal/opmode", OpMode.Disabled);
+	public static ValueIdentifier<OpMode> OPMODE_VALUE = ValueIdentifier.get("/hal/opmode", OpMode.Disabled);
 	/**
 	 * The current timestamp
 	 *
 	 * This is a delicate API, as although this is a UNIX timestamp in the real world, in tests it will typically tick
 	 * up from 0
 	 */
-	public static ValueIdentifier<Long> TIMESTAMP_VALUE = new ValueIdentifier<Long>("/hal/timestamp", 0L);
+	public static ValueIdentifier<Long> TIMESTAMP_VALUE = ValueIdentifier.get("/hal/timestamp", 0L);
 }

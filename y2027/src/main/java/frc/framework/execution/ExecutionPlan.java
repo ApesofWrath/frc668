@@ -2,13 +2,11 @@ package frc.framework.execution;
 
 import frc.framework.systems.System;
 import frc.framework.systems.SystemInformation;
-import frc.framework.systems.ValueIdentifier;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class ExecutionPlan {
-	public HashMap<String, ValueIdentifier<?>> valueIdToIdentifier = new HashMap<>();
 	public ArrayList<String> evaluatedValues = new ArrayList<>();
 	public ArrayList<System> systemExecutionOrder = new ArrayList<>();
 	public HashMap<System, SystemInformation> systemToInformation = new HashMap<>();
@@ -60,10 +58,6 @@ public class ExecutionPlan {
 			SystemInformation information = new SystemInformation();
 			
 			system.configure(information);
-			
-			for (ValueIdentifier<?> value : information.values) {
-				valueIdToIdentifier.put(value.getId(), value);
-			}
 			
 			systemToInformation.put(system, information);
 		}

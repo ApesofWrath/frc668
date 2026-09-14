@@ -10,19 +10,15 @@ import frc.framework.systems.ValueIdentifier;
 import java.util.HashMap;
 
 public class ExecutionManager {
-	public ExecutionPlan plan;
 	private final HashMap<String, Object> values = new HashMap<>();
 	private final HashMap<String, Integer> valuePriorities = new HashMap<>();
 	private final HashMap<System, SystemCachableResult> cachedResults = new HashMap<>();
+	public ExecutionPlan plan;
 	
 	public void execute(long time) {
 		// reset values
 		values.clear();
 		valuePriorities.clear();
-		
-		for (ValueIdentifier<?> ident : plan.valueIdToIdentifier.values()) {
-			values.put(ident.getId(), ident.getDefaultValue());
-		}
 		
 		values.put(RobotInformation.TIMESTAMP_VALUE.getId(), time);
 		// run plan
@@ -55,6 +51,10 @@ public class ExecutionManager {
 		"unchecked"
 	)
 	public <T> T getValue(String id) {
+		if (!values.containsKey(id)) {
+			values.put(id, ValueIdentifier.get(id).getDefaultValue());
+		}
+		
 		return (T) values.get(id);
 	}
 	
