@@ -7,10 +7,11 @@ public enum Priority {
 	DriverAssistanceOverridesDriver(3),
 	DriverInput(2),
 	DriverAssistance(1),
-	Default(0),;
+	Default(0);
+	
 	public final int value;
-
-	private Priority(int value) {
+	
+	Priority(int value) {
 		this.value = value;
 	}
 }

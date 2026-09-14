@@ -5,11 +5,7 @@ import frc.framework.execution.SystemCachableResult;
 
 public class NoCacheStrategy implements CacheStrategy {
 	@Override
-	public boolean isCacheValid(
-			long time,
-			ExecutionManager manager,
-			SystemCachableResult previousResult
-	) {
+	public boolean isCacheValid(long time, ExecutionManager manager, SystemCachableResult previousResult) {
 		return false;
 	}
 }

@@ -9,12 +9,12 @@ import frc.framework.systems.SystemUpdateHelper;
 
 public class HALRobotInformationSystem implements System {
 	public OpMode opMode;
-
+	
 	@Override
 	public void configure(SystemInformation information) {
 		information.createsOutput(RobotInformation.OPMODE_VALUE);
 	}
-
+	
 	@Override
 	public void update(SystemUpdateHelper update) {
 		update.setValue(RobotInformation.OPMODE_VALUE, opMode, Priority.Safety);

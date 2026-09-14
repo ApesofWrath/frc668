@@ -124,14 +124,7 @@ spotless {
 	}
 	java {
 		removeUnusedImports()
-		princeOfSpace('2.2.0')
-				.indentStyle('TABS')
-				.indentSize(1)
-				.lineLength(80)
-				.wrapStyle('BALANCED')
-				.closingParenOnNewLine(true)
-				.trailingCommas(true)
-				.javaLanguageLevel(17)
+		eclipse('4.41').configFile('eclipse-prefs.xml').sortMembersEnabled(true)
 		cleanthat()
 	}
 	groovyGradle {

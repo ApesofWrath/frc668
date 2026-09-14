@@ -9,7 +9,7 @@ public class ControllerState {
 		RightThumbstickX,
 		RightThumbstickY,
 	}
-
+	
 	public enum Button {
 		A,
 		B,
@@ -23,28 +23,28 @@ public class ControllerState {
 		R3,
 		Start,
 	}
-
-	private HashMap<Axis, Double> axisData = new HashMap<>();
-	private HashMap<Button, Boolean> buttonStates = new HashMap<>();
-
-    @Override
-    public String toString() {
-        return axisData.toString() + " " + buttonStates.toString();
-    }
-
+	
+	private final HashMap<Axis, Double> axisData = new HashMap<>();
+	private final HashMap<Button, Boolean> buttonStates = new HashMap<>();
+	
 	public double getAxis(Axis axis) {
 		return axisData.getOrDefault(axis, 0.0);
 	}
-
-	public void setAxis(Axis axis, double value) {
-		axisData.put(axis, value);
-	}
-
+	
 	public boolean getButtonState(Button button) {
 		return buttonStates.getOrDefault(button, false);
 	}
-
+	
+	public void setAxis(Axis axis, double value) {
+		axisData.put(axis, value);
+	}
+	
 	public void setButtonState(Button button, boolean value) {
 		buttonStates.put(button, value);
+	}
+	
+	@Override
+	public String toString() {
+		return axisData.toString() + " " + buttonStates.toString();
 	}
 }

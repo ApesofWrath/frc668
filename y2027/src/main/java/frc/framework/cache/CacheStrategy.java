@@ -4,9 +4,5 @@ import frc.framework.execution.ExecutionManager;
 import frc.framework.execution.SystemCachableResult;
 
 public interface CacheStrategy {
-	boolean isCacheValid(
-			long time,
-			ExecutionManager manager,
-			SystemCachableResult previousResult
-	);
+	boolean isCacheValid(long time, ExecutionManager manager, SystemCachableResult previousResult);
 }
