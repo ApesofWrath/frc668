@@ -9,12 +9,23 @@ import frc.framework.systems.ValueIdentifier;
 
 import java.util.HashMap;
 
+/**
+ * Manages the execution of and caching of systems
+ */
 public class ExecutionManager {
 	private final HashMap<String, Object> values = new HashMap<>();
 	private final HashMap<String, Integer> valuePriorities = new HashMap<>();
 	private final HashMap<System, SystemCachableResult> cachedResults = new HashMap<>();
+	/**
+	 * The plan to use for execution, containing the order that systems should be evaluated
+	 */
 	public ExecutionPlan plan;
 	
+	/**
+	 * Evaluate the systems
+	 *
+	 * @param time The current time, used for caching
+	 */
 	public void execute(long time) {
 		// reset values
 		values.clear();
@@ -47,6 +58,14 @@ public class ExecutionManager {
 		}
 	}
 	
+	/**
+	 * Get the current value in a given slot
+	 *
+	 * @param id  The string identifier of the slot
+	 * @param <T> The type of data contained in the slot
+	 *
+	 * @return The value contained within the slot
+	 */
 	@SuppressWarnings(
 		"unchecked"
 	)
@@ -58,6 +77,9 @@ public class ExecutionManager {
 		return (T) values.get(id);
 	}
 	
+	/**
+	 * Write all value data to NetworkTables for debugging purposes.
+	 */
 	public void publishValuesToNetworkTables() {
 		NetworkTableInstance nt = NetworkTableInstance.getDefault();
 		
@@ -84,6 +106,14 @@ public class ExecutionManager {
 		}
 	}
 	
+	/**
+	 * Try to assign a value to a given slot, with a certain priority
+	 *
+	 * @param key      The string identifer of the slot to assign to
+	 * @param value    The value to put in the slot
+	 * @param priority The priority to write to the slot, typically gotten by accessing
+	 *                 {@link frc.framework.systems.Priority#value}
+	 */
 	public void trySetValue(String key, Object value, int priority) {
 		int currentPriority = valuePriorities.getOrDefault(key, Integer.MIN_VALUE);
 		

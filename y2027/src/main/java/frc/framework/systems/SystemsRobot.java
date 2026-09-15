@@ -6,9 +6,15 @@ import frc.framework.builtinsystems.HALRobotInformationSystem;
 
 import java.util.Date;
 
+/**
+ * A utility class that manages the HAL information bridge and framework management for an FRC robot.
+ */
 public abstract class SystemsRobot extends TimedRobot {
+	private final HALRobotInformationSystem robotInformationSystem = new HALRobotInformationSystem();
+	/**
+	 * The current systems framework manager
+	 */
 	public SystemsManager systemsManager = new SystemsManager();
-	public HALRobotInformationSystem robotInformationSystem = new HALRobotInformationSystem();
 	private boolean isConfigured = false;
 	
 	@Override
@@ -16,6 +22,9 @@ public abstract class SystemsRobot extends TimedRobot {
 		update(OpMode.Autonomous);
 	}
 	
+	/**
+	 * The method that adds the systems for a given robot
+	 */
 	public abstract void configure();
 	
 	@Override
@@ -33,6 +42,11 @@ public abstract class SystemsRobot extends TimedRobot {
 		update(OpMode.Test);
 	}
 	
+	/**
+	 * Tick a robot
+	 *
+	 * @param mode The mode of the robot
+	 */
 	public void update(OpMode mode) {
 		if (!isConfigured) {
 			configure();

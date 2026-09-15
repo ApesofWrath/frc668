@@ -6,6 +6,9 @@ import frc.framework.systems.System;
 import frc.framework.systems.SystemInformation;
 import frc.framework.systems.SystemUpdateHelper;
 
+/**
+ * Writes the name Ansh or LeftAnsh to {@link NameExtenderSystem#NAME_TO_EXTEND_VALUE}
+ */
 public class AnshSystem implements System {
 	@Override
 	public void configure(SystemInformation information) {

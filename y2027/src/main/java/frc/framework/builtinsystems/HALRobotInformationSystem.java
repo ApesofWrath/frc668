@@ -7,7 +7,13 @@ import frc.framework.systems.System;
 import frc.framework.systems.SystemInformation;
 import frc.framework.systems.SystemUpdateHelper;
 
+/**
+ * A system that outputs HAL information about a robot, namely the opmode.
+ */
 public class HALRobotInformationSystem implements System {
+	/**
+	 * The current operating mode of the robot
+	 */
 	public OpMode opMode;
 	
 	@Override

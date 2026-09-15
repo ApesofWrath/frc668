@@ -6,13 +6,27 @@ import frc.framework.systems.SystemInformation;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+/**
+ * Represents the evaluation order of various systems
+ */
 public class ExecutionPlan {
-	public ArrayList<String> evaluatedValues = new ArrayList<>();
+	private final ArrayList<System> allSystems = new ArrayList<>();
+	private final ArrayList<System> systemsBeingPlanned = new ArrayList<>();
+	private final ArrayList<String> evaluatedValues = new ArrayList<>();
+	/**
+	 * The order in which systems are to be evaluated
+	 */
 	public ArrayList<System> systemExecutionOrder = new ArrayList<>();
+	/**
+	 * A mapping of systems to a reused SystemInformation class configured by the system
+	 */
 	public HashMap<System, SystemInformation> systemToInformation = new HashMap<>();
-	public ArrayList<System> allSystems = new ArrayList<>();
-	public ArrayList<System> systemsBeingPlanned = new ArrayList<>();
 	
+	/**
+	 * Add various systems to be planned
+	 *
+	 * @param systems The systems to be planned
+	 */
 	public void addSystems(ArrayList<System> systems) {
 		allSystems.addAll(systems);
 	}
@@ -63,18 +77,22 @@ public class ExecutionPlan {
 		}
 	}
 	
+	/**
+	 * Construct an execution order from all the currently stored systems
+	 */
 	public void build() {
 		analyze();
 		
 		for (System system : allSystems) {
 			SystemInformation info = systemToInformation.get(system);
 			
-			if (info.getOutputIds().isEmpty()) {
-				addSystemToExecutionPlan(system, info);
-			}
+			addSystemToExecutionPlan(system, info);
 		}
 	}
 	
+	/**
+	 * Print the current execution plan to the console for debugging purposes
+	 */
 	public void debug() {
 		java.lang.System.out.println("EXECUTION ORDER:");
 		for (System sys : systemExecutionOrder) {

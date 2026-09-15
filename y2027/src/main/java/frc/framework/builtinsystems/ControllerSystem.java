@@ -9,9 +9,12 @@ import frc.framework.systems.System;
 import frc.framework.systems.SystemInformation;
 import frc.framework.systems.SystemUpdateHelper;
 
+/**
+ * A system that outputs controller data to process user input
+ */
 public class ControllerSystem implements System {
-	public XboxController xbox = new XboxController(0);
-	public Joystick joystick = new Joystick(0);
+	private final XboxController xbox = new XboxController(0);
+	private final Joystick joystick = new Joystick(0);
 	
 	@Override
 	public void configure(SystemInformation information) {
