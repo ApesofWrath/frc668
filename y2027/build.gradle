@@ -1,7 +1,10 @@
+//file:noinspection DependencyNotationArgument
+import edu.wpi.first.gradlerio.GradleRIOPlugin
+
 plugins {
-    id "java"
-    id "edu.wpi.first.GradleRIO" version "2026.2.1"
-    id "com.diffplug.spotless" version "8.10.1"
+    id 'java'
+    id 'edu.wpi.first.GradleRIO' version '2026.2.1'
+    id 'com.diffplug.spotless' version '8.10.1'
     id 'org.jetbrains.dokka' version '2.2.0'
 }
 
@@ -10,7 +13,7 @@ java {
     targetCompatibility = JavaVersion.VERSION_17
 }
 
-def ROBOT_MAIN_CLASS = "frc.robot.Main"
+def ROBOT_MAIN_CLASS = 'frc.robot.Main'
 
 // Define my targets (RoboRIO) and artifacts (deployable files)
 // This is added by GradleRIO's backing project DeployUtils.
@@ -100,7 +103,7 @@ jar {
     from('src') { into 'backup/src' }
     from('vendordeps') { into 'backup/vendordeps' }
     from('build.gradle') { into 'backup' }
-    manifest edu.wpi.first.gradlerio.GradleRIOPlugin.javaManifest(ROBOT_MAIN_CLASS)
+    manifest GradleRIOPlugin.javaManifest(ROBOT_MAIN_CLASS)
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
@@ -132,6 +135,6 @@ spotless {
     }
     groovyGradle {
         target '*.gradle' // default target of groovyGradle
-        greclipse()
+        greclipse().configFile('eclipse-prefs.xml')
     }
 }
