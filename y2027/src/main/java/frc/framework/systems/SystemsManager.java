@@ -4,6 +4,7 @@ import frc.framework.execution.ExecutionManager;
 import frc.framework.execution.ExecutionPlan;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * An object that delegates the planning and execution of a value graph, represented by various systems.
@@ -11,6 +12,10 @@ import java.util.ArrayList;
 public class SystemsManager {
 	private final ArrayList<System> systems = new ArrayList<>();
 	private final ExecutionManager manager = new ExecutionManager();
+	/**
+	 * The values controlled by unit tests
+	 */
+	public HashMap<String, Object> testInputs = new HashMap<>();
 	private boolean isExecutionPlanDirty = true;
 	private ExecutionPlan executionPlan;
 	
@@ -23,6 +28,18 @@ public class SystemsManager {
 		systems.add(system);
 		
 		isExecutionPlanDirty = true;
+	}
+	
+	/**
+	 * Get the value in the slot of an identifier
+	 *
+	 * @param ident The identifier of the slot
+	 * @param <T>   The type of data contained within the slot
+	 *
+	 * @return The value contained within the slot
+	 */
+	public <T> T getValue(ValueIdentifier<T> ident) {
+		return manager.getValue(ident.getId());
 	}
 	
 	/**
@@ -56,6 +73,6 @@ public class SystemsManager {
 		
 		manager.plan = executionPlan;
 		
-		manager.execute(time);
+		manager.execute(time, testInputs);
 	}
 }

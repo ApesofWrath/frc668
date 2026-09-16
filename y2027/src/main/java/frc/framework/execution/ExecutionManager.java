@@ -2,12 +2,11 @@ package frc.framework.execution;
 
 import edu.wpi.first.networktables.NetworkTableInstance;
 import frc.framework.commonrobot.RobotInformation;
+import frc.framework.systems.*;
 import frc.framework.systems.System;
-import frc.framework.systems.SystemInformation;
-import frc.framework.systems.SystemUpdateHelper;
-import frc.framework.systems.ValueIdentifier;
 
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Manages the execution of and caching of systems
@@ -24,12 +23,18 @@ public class ExecutionManager {
 	/**
 	 * Evaluate the systems
 	 *
-	 * @param time The current time, used for caching
+	 * @param time       The current time, used for caching
+	 * @param testInputs The inputs assigned by unit tests
 	 */
-	public void execute(long time) {
+	public void execute(long time, HashMap<String, Object> testInputs) {
 		// reset values
 		values.clear();
 		valuePriorities.clear();
+		
+		for (Map.Entry<String, ?> data : testInputs.entrySet()) {
+			values.put(data.getKey(), data.getValue());
+			valuePriorities.put(data.getKey(), Priority.TestingData.value);
+		}
 		
 		values.put(RobotInformation.TIMESTAMP_VALUE.getId(), time);
 		// run plan
