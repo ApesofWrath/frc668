@@ -4,7 +4,7 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.RobotBase;
-import frc.framework.logging.LogReader;
+import frc.framework.testengine.Testing;
 
 /**
  * Do NOT add any static variables to this class, or any initialization at all. Unless you know what you are doing, do
@@ -19,12 +19,8 @@ public final class Main {
 	 * @param args The command line arguments of the robot program
 	 */
 	public static void main(String... args) {
-		if (true) {
-			LogReader reader = LogReader.open("D:\\Programming\\frc668\\y2027\\logs\\2026-9-22-1790129794406.slog");
-			
-			reader.decode();
-			
-			System.out.println(reader.frames.size());
+		if (Testing.isTestingEnvironment()) {
+			Testing.runTests();
 			return;
 		}
 		
