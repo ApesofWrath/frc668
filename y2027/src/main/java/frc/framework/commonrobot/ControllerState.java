@@ -1,6 +1,8 @@
 package frc.framework.commonrobot;
 
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents the inputs of a controller at a given instant
@@ -25,7 +27,11 @@ public class ControllerState {
 		/**
 		 * The vertical position of the right thumbstick
 		 */
-		RightThumbstickY,
+		RightThumbstickY,;
+		
+		public static Axis fromOrdinal(int ordinal) {
+			return values()[ordinal];
+		}
 	}
 	
 	/**
@@ -75,12 +81,24 @@ public class ControllerState {
 		/**
 		 * The Xbox button
 		 */
-		Start,
+		Start,;
+		
+		public static Button fromOrdinal(int ordinal) {
+			return values()[ordinal];
+		}
 	}
 	
 	private final HashMap<Axis, Double> axisData = new HashMap<>();
 	
 	private final HashMap<Button, Boolean> buttonStates = new HashMap<>();
+	
+	public Set<Map.Entry<Axis, Double>> getAllAxes() {
+		return axisData.entrySet();
+	}
+	
+	public Set<Map.Entry<Button, Boolean>> getAllButtons() {
+		return buttonStates.entrySet();
+	}
 	
 	/**
 	 * Return the value of an analog input

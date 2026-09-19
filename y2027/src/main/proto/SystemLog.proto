@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package frc.framework.logging;
+
+message LogEntry {
+  oneof entry {
+    DefineStringLogEntry defineString = 1;
+    SetKeyLogEntry setKey = 2;
+    DeleteKeyEntry deleteKey = 3;
+    FinishFrameEntry finishFrame = 4;
+  }
+}
+
+message DefineStringLogEntry {
+  int32 index = 1;
+  string message = 2;
+}
+
+message SetKeyLogEntry {
+  int32 keyIndex = 1;
+  bytes buffer = 2;
+}
+
+message DeleteKeyEntry {
+  int32 key = 1;
+}
+
+message FinishFrameEntry {
+  
+}

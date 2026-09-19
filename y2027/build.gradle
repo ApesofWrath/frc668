@@ -6,6 +6,7 @@ plugins {
 	id 'edu.wpi.first.GradleRIO' version '2026.2.1'
 	id 'com.diffplug.spotless' version '8.10.1'
 	id 'org.jetbrains.dokka' version '2.2.0'
+	id 'com.google.protobuf' version '0.10.0'
 }
 
 java {
@@ -80,6 +81,8 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
 	dokkaPlugin 'org.jetbrains.dokka:kotlin-as-java-plugin:2.2.0'
+
+	implementation 'com.google.protobuf:protobuf-java:4.36.1'
 }
 
 test {
