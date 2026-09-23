@@ -38,6 +38,13 @@ message Value {
     int64 long = 5;
     double double = 6;
     ControllerState controllerState = 7;
+    Pose2D pose2d = 8;
+    Translation2D translation2d = 9;
+    Rotation2D rotation2d = 10;
+    Pose3D pose3d = 11;
+    Translation3D translation3d = 12;
+    Rotation3D rotation3d = 13;
+    Quaternion quaternion = 14;
   }
 }
 
@@ -52,4 +59,47 @@ message Array {
 
 message StringReference {
   int32 index = 1;
+}
+
+message Pose2D {
+  double x = 1;
+  double y = 2;
+  double rotation = 3;
+}
+
+message Pose3D {
+  double x = 1;
+  double y = 2;
+  double z = 3;
+  double radiansX = 4;
+  double radiansY = 5;
+  double radiansZ = 6;
+}
+
+message Translation2D {
+  double x = 1;
+  double y = 2;
+}
+
+message Translation3D {
+  double x = 1;
+  double y = 2;
+  double z = 3;
+}
+
+message Rotation2D {
+  double radians = 1;
+}
+
+message Rotation3D {
+  double radiansX = 1;
+  double radiansY = 2;
+  double radiansZ = 3;
+}
+
+message Quaternion {
+  double w = 1;
+  double x = 2;
+  double y = 3;
+  double z = 4;
 }
