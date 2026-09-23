@@ -77,17 +77,11 @@ dependencies {
 	nativeRelease wpi.java.vendor.jniRelease(wpi.platforms.desktop)
 	simulationRelease wpi.sim.enableRelease()
 
-	testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	implementation 'io.github.classgraph:classgraph:4.8.195'
 
 	dokkaPlugin 'org.jetbrains.dokka:kotlin-as-java-plugin:2.2.0'
 
 	implementation 'com.google.protobuf:protobuf-java:4.36.1'
-}
-
-test {
-	useJUnitPlatform()
-	systemProperty 'junit.jupiter.extensions.autodetection.enabled', 'true'
 }
 
 // Simulation configuration (e.g. environment variables).
