@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package frc.framework.logging;
+
+message LogEntry {
+  oneof entry {
+    DefineStringLogEntry defineString = 1;
+    SetKeyLogEntry setKey = 2;
+    DeleteKeyEntry deleteKey = 3;
+    FinishFrameEntry finishFrame = 4;
+  }
+}
+
+message DefineStringLogEntry {
+  int32 index = 1;
+  string message = 2;
+}
+
+message SetKeyLogEntry {
+  int32 keyIndex = 1;
+  Value value = 3;
+}
+
+message DeleteKeyEntry {
+  int32 key = 1;
+}
+
+message FinishFrameEntry {
+
+}
+
+message Value {
+  oneof value {
+    int32 integer = 1;
+    float float = 2;
+    Array array = 3;
+    StringReference str = 4;
+    int64 long = 5;
+    double double = 6;
+    ControllerState controllerState = 7;
+  }
+}
+
+message ControllerState {
+  map<int32, double> axes = 1;
+  map<int32, bool> buttons = 2;
+}
+
+message Array {
+  repeated Value items = 1;
+}
+
+message StringReference {
+  int32 index = 1;
+}

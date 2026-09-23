@@ -2,6 +2,7 @@ package frc.framework.execution;
 
 import edu.wpi.first.networktables.NetworkTableInstance;
 import frc.framework.commonrobot.RobotInformation;
+import frc.framework.logging.LogFrame;
 import frc.framework.systems.System;
 import frc.framework.systems.SystemInformation;
 import frc.framework.systems.SystemUpdateHelper;
@@ -24,9 +25,10 @@ public class ExecutionManager {
 	/**
 	 * Evaluate the systems
 	 *
-	 * @param time The current time, used for caching
+	 * @param time  The current time, used for caching
+	 * @param frame The logging frame, used to capture the internal computations of the robot
 	 */
-	public void execute(long time) {
+	public void execute(long time, LogFrame frame) {
 		// reset values
 		values.clear();
 		valuePriorities.clear();
@@ -53,6 +55,7 @@ public class ExecutionManager {
 			system.update(helper);
 			
 			result.apply(this);
+			result.storeToLog(system.getId(), frame);
 			
 			cachedResults.put(system, result);
 		}
