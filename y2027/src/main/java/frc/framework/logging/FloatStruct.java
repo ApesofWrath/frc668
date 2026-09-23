@@ -1,27 +1,25 @@
 package frc.framework.logging;
 
-import java.nio.ByteBuffer;
-
-public class FloatStruct implements CustomStruct<Float> {
+public class FloatStruct implements CustomStruct<Float, Float> {
 	public static FloatStruct instance = new FloatStruct();
 	
 	@Override
-	public Float deserialize(ByteBuffer bb, LogReader logReader) {
-		return bb.getFloat();
+	public Float deserialize(Float value, LogReader reader) {
+		return value;
 	}
 	
 	@Override
-	public Class<Float> getDataClass() {
+	public int getFieldIndex() {
+		return SystemLog.Value.FLOAT_FIELD_NUMBER;
+	}
+	
+	@Override
+	public Class<Float> getUnserializedClass() {
 		return Float.class;
 	}
 	
 	@Override
-	public String getTypeId() {
-		return "float";
-	}
-	
-	@Override
-	public void serialize(Float value, LogWriter writer, ByteBuffer buffer) {
-		buffer.putFloat(value);
+	public SystemLog.Value serialize(Float value, LogWriter writer) {
+		return SystemLog.Value.newBuilder().setFloat(value).build();
 	}
 }

@@ -1,27 +1,25 @@
 package frc.framework.logging;
 
-import java.nio.ByteBuffer;
-
-public class LongStruct implements CustomStruct<Long> {
+public class LongStruct implements CustomStruct<Long, Long> {
 	public static LongStruct instance = new LongStruct();
 	
 	@Override
-	public Long deserialize(ByteBuffer bb, LogReader logReader) {
-		return bb.getLong();
+	public Long deserialize(Long value, LogReader reader) {
+		return value;
 	}
 	
 	@Override
-	public Class<Long> getDataClass() {
+	public int getFieldIndex() {
+		return SystemLog.Value.LONG_FIELD_NUMBER;
+	}
+	
+	@Override
+	public Class<Long> getUnserializedClass() {
 		return Long.class;
 	}
 	
 	@Override
-	public String getTypeId() {
-		return "long";
-	}
-	
-	@Override
-	public void serialize(Long value, LogWriter writer, ByteBuffer buffer) {
-		buffer.putLong(value);
+	public SystemLog.Value serialize(Long value, LogWriter writer) {
+		return SystemLog.Value.newBuilder().setLong(value).build();
 	}
 }
