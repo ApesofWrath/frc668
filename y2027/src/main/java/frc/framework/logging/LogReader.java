@@ -1,14 +1,13 @@
 package frc.framework.logging;
 
+import com.google.protobuf.Descriptors;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Objects;
-
-import static frc.framework.logging.Logging.customStructs;
 
 public class LogReader {
 	public static LogReader open(String path) {
@@ -41,8 +40,6 @@ public class LogReader {
 		while (primaryBuffer.hasRemaining()) {
 			SystemLog.LogEntry entry = readEntry();
 			
-			System.out.println(entry.toString());
-			
 			if (entry.hasDefineString()) {
 				SystemLog.DefineStringLogEntry defString = entry.getDefineString();
 				while (stringTable.size() <= defString.getIndex()) {
@@ -64,22 +61,19 @@ public class LogReader {
 			if (entry.hasSetKey()) {
 				SystemLog.SetKeyLogEntry setKey = entry.getSetKey();
 				
-				data.put(stringTable.get(setKey.getKeyIndex()), decodeValue(setKey.getBuffer().asReadOnlyByteBuffer()));
+				data.put(stringTable.get(setKey.getKeyIndex()), decodeValue(setKey.getValue()));
 			}
 		}
 	}
 	
-	public Object decodeValue(ByteBuffer bb) {
-		int typeId = bb.getInt();
-		String typeIdStr = stringTable.get(typeId);
-		
-		for (CustomStruct<?> customStruct : customStructs) {
-			if (!Objects.equals(customStruct.getTypeId(), typeIdStr)) { continue; }
+	public Object decodeValue(SystemLog.Value value) {
+		for (CustomStruct<?, ?> customStruct : Logging.customStructs) {
+			Object decoded = tryDeserializeStruct(value, customStruct);
 			
-			return customStruct.deserialize(bb, this);
+			if (decoded != null) { return decoded; }
 		}
 		
-		throw new RuntimeException("Cannot decode unknown type id " + typeIdStr);
+		throw new RuntimeException("Failed to decode value " + value);
 	}
 	
 	private SystemLog.LogEntry readEntry() {
@@ -106,8 +100,18 @@ public class LogReader {
 		int length = primaryBuffer.getInt();
 		byte[] bytes = new byte[length];
 		primaryBuffer.get(bytes);
-		String str = new String(bytes, StandardCharsets.UTF_8);
 		
-		return str;
+		return new String(bytes, StandardCharsets.UTF_8);
+	}
+	
+	private <TMessage, TValue> TValue tryDeserializeStruct(
+		SystemLog.Value value, CustomStruct<TValue, TMessage> struct
+	) {
+		Descriptors.FieldDescriptor descriptor = SystemLog.Value.getDescriptor().getField(struct.getFieldIndex() - 1); // Java is zero-indexed, whilst protobuf is one-indexed
+		if (value.hasField(descriptor)) {
+			//noinspection unchecked
+			return struct.deserialize((TMessage) value.getField(descriptor), this);
+		}
+		return null;
 	}
 }

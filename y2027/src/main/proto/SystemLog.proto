@@ -18,7 +18,7 @@ message DefineStringLogEntry {
 
 message SetKeyLogEntry {
   int32 keyIndex = 1;
-  bytes buffer = 2;
+  Value value = 3;
 }
 
 message DeleteKeyEntry {
@@ -26,5 +26,30 @@ message DeleteKeyEntry {
 }
 
 message FinishFrameEntry {
-  
+
+}
+
+message Value {
+  oneof value {
+    int32 integer = 1;
+    float float = 2;
+    Array array = 3;
+    StringReference str = 4;
+    int64 long = 5;
+    double double = 6;
+    ControllerState controllerState = 7;
+  }
+}
+
+message ControllerState {
+  map<int32, double> axes = 1;
+  map<int32, bool> buttons = 2;
+}
+
+message Array {
+  repeated Value items = 1;
+}
+
+message StringReference {
+  int32 index = 1;
 }

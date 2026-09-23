@@ -1,13 +1,11 @@
 package frc.framework.logging;
 
-import java.nio.ByteBuffer;
-
-public interface CustomStruct<T> {
-	T deserialize(ByteBuffer bb, LogReader logReader);
+public interface CustomStruct<TData, TMessage> {
+	TData deserialize(TMessage message, LogReader reader);
 	
-	Class<T> getDataClass();
+	int getFieldIndex();
 	
-	String getTypeId();
+	Class<TData> getUnserializedClass();
 	
-	void serialize(T value, LogWriter writer, ByteBuffer buffer);
+	SystemLog.Value serialize(TData value, LogWriter writer);
 }

@@ -1,6 +1,5 @@
 package frc.framework.logging;
 
-import com.google.protobuf.ByteString;
 import com.google.protobuf.CodedOutputStream;
 import edu.wpi.first.wpilibj.RobotBase;
 
@@ -8,7 +7,6 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -16,7 +14,6 @@ import java.util.Calendar;
 import java.util.Objects;
 import java.util.Set;
 
-import static frc.framework.logging.Logging.customStructs;
 import static frc.framework.logging.SystemLog.*;
 
 public class LogWriter {
@@ -58,13 +55,14 @@ public class LogWriter {
 		outputStream = new DataOutputStream(stream);
 	}
 	
-	private byte[] encodeValue(Object obj) {
-		ByteBuffer bb = ByteBuffer.allocate(1024);
-		writeValueToBB(obj, bb);
-		byte[] result = new byte[bb.position()];
-		bb.position(0);
-		bb.get(result);
-		return result;
+	public Value encodeValue(Object obj) {
+		for (CustomStruct<?, ?> struct : Logging.customStructs) {
+			Value serialized = tryEncodeStruct(obj, struct);
+			
+			if (serialized != null) { return serialized; }
+		}
+		
+		throw new RuntimeException("Cannot serialize value " + obj);
 	}
 	
 	public int getStringId(String str) {
@@ -83,20 +81,13 @@ public class LogWriter {
 		return index;
 	}
 	
-	private <T> boolean tryWriteStruct(Object obj, ByteBuffer buffer, CustomStruct<T> struct) {
-		if (struct.getDataClass().isInstance(obj)) {
-			String id = struct.getTypeId();
-			int typeIdIdx = getStringId(id);
-			
-			buffer.putInt(typeIdIdx);
-			
+	private <T, TOut> Value tryEncodeStruct(Object obj, CustomStruct<T, TOut> struct) {
+		if (struct.getUnserializedClass().isInstance(obj)) {
 			//noinspection unchecked
-			struct.serialize((T) obj, this, buffer);
-			
-			return true;
+			return struct.serialize((T) obj, this);
 		}
 		
-		return false;
+		return null;
 	}
 	
 	private void write(LogEntry entry) {
@@ -112,7 +103,7 @@ public class LogWriter {
 		}
 	}
 	
-	public void writeFrame(LogFrame frame) {
+	public synchronized void writeFrame(LogFrame frame) {
 		Set<String> removedKeys = previouslyWrittenLogFrame.data.keySet();
 		
 		removedKeys.removeAll(frame.data.keySet());
@@ -132,7 +123,9 @@ public class LogWriter {
 				try {
 					write(
 						LogEntry.newBuilder()
-							.setSetKey(SetKeyLogEntry.newBuilder().setBuffer(ByteString.copyFrom(encodeValue(value))))
+							.setSetKey(
+								SetKeyLogEntry.newBuilder().setKeyIndex(getStringId(key)).setValue(encodeValue(value))
+							)
 							.build()
 					);
 				} catch (Exception e) {
@@ -166,13 +159,5 @@ public class LogWriter {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-	}
-	
-	public void writeValueToBB(Object obj, ByteBuffer buffer) {
-		for (CustomStruct<?> struct : customStructs) {
-			if (tryWriteStruct(obj, buffer, struct)) { return; }
-		}
-		
-		throw new RuntimeException("Aw shucks! We couldn't serialize the value " + obj);
 	}
 }

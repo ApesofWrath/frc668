@@ -1,27 +1,25 @@
 package frc.framework.logging;
 
-import java.nio.ByteBuffer;
-
-public class DoubleStruct implements CustomStruct<Double> {
+public class DoubleStruct implements CustomStruct<Double, Double> {
 	public static DoubleStruct instance = new DoubleStruct();
 	
 	@Override
-	public Double deserialize(ByteBuffer bb, LogReader logReader) {
-		return bb.getDouble();
+	public Double deserialize(Double value, LogReader reader) {
+		return value;
 	}
 	
 	@Override
-	public Class<Double> getDataClass() {
+	public int getFieldIndex() {
+		return SystemLog.Value.DOUBLE_FIELD_NUMBER;
+	}
+	
+	@Override
+	public Class<Double> getUnserializedClass() {
 		return Double.class;
 	}
 	
 	@Override
-	public String getTypeId() {
-		return "double";
-	}
-	
-	@Override
-	public void serialize(Double value, LogWriter writer, ByteBuffer buffer) {
-		buffer.putDouble(value);
+	public SystemLog.Value serialize(Double value, LogWriter writer) {
+		return SystemLog.Value.newBuilder().setDouble(value).build();
 	}
 }

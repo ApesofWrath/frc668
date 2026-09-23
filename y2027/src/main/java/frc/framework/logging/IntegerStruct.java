@@ -1,27 +1,25 @@
 package frc.framework.logging;
 
-import java.nio.ByteBuffer;
-
-public class IntegerStruct implements CustomStruct<Integer> {
+public class IntegerStruct implements CustomStruct<Integer, Integer> {
 	public static IntegerStruct instance = new IntegerStruct();
 	
 	@Override
-	public Integer deserialize(ByteBuffer bb, LogReader logReader) {
-		return bb.getInt();
+	public Integer deserialize(Integer value, LogReader reader) {
+		return value;
 	}
 	
 	@Override
-	public Class<Integer> getDataClass() {
+	public int getFieldIndex() {
+		return SystemLog.Value.INTEGER_FIELD_NUMBER;
+	}
+	
+	@Override
+	public Class<Integer> getUnserializedClass() {
 		return Integer.class;
 	}
 	
 	@Override
-	public String getTypeId() {
-		return "int";
-	}
-	
-	@Override
-	public void serialize(Integer value, LogWriter writer, ByteBuffer buffer) {
-		buffer.putInt(value);
+	public SystemLog.Value serialize(Integer value, LogWriter writer) {
+		return SystemLog.Value.newBuilder().setInteger(value).build();
 	}
 }

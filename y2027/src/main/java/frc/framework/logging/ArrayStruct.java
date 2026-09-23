@@ -1,40 +1,36 @@
 package frc.framework.logging;
 
-import java.nio.ByteBuffer;
-
-public class ArrayStruct implements CustomStruct<Object[]> {
+public class ArrayStruct implements CustomStruct<Object[], SystemLog.Array> {
 	public static ArrayStruct instance = new ArrayStruct();
 	
 	@Override
-	public Object[] deserialize(ByteBuffer bb, LogReader logReader) {
-		int length = bb.getInt();
-		
-		Object[] result = new Object[length];
-		
-		for (int i = 0; i < length; i++) {
-			result[i] = logReader.decodeValue(bb);
+	public Object[] deserialize(SystemLog.Array array, LogReader reader) {
+		Object[] result = new Object[array.getItemsCount()];
+		for (int i = 0; i < result.length; i++) {
+			result[i] = reader.decodeValue(array.getItems(i));
 		}
-		
 		return result;
 	}
 	
 	@Override
-	public Class<Object[]> getDataClass() {
+	public int getFieldIndex() {
+		return SystemLog.Value.ARRAY_FIELD_NUMBER;
+	}
+	
+	@Override
+	public Class<Object[]> getUnserializedClass() {
 		//noinspection unchecked
 		return (Class<Object[]>) Object.class.arrayType();
 	}
 	
 	@Override
-	public String getTypeId() {
-		return "array";
-	}
-	
-	@Override
-	public void serialize(Object[] value, LogWriter writer, ByteBuffer buffer) {
-		buffer.putInt(value.length);
+	public SystemLog.Value serialize(Object[] value, LogWriter writer) {
+		SystemLog.Array.Builder builder = SystemLog.Array.newBuilder();
 		
-		for (Object o : value) {
-			writer.writeValueToBB(o, buffer);
+		for (Object item : value) {
+			builder.addItems(writer.encodeValue(item));
 		}
+		
+		return SystemLog.Value.newBuilder().setArray(builder).build();
 	}
 }

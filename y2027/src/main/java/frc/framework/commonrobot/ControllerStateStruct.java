@@ -3,53 +3,50 @@ package frc.framework.commonrobot;
 import frc.framework.logging.CustomStruct;
 import frc.framework.logging.LogReader;
 import frc.framework.logging.LogWriter;
+import frc.framework.logging.SystemLog;
 
-import java.nio.ByteBuffer;
 import java.util.Map;
 
-public class ControllerStateStruct implements CustomStruct<ControllerState> {
+public class ControllerStateStruct implements CustomStruct<ControllerState, SystemLog.ControllerState> {
 	public static ControllerStateStruct instance = new ControllerStateStruct();
 	
 	@Override
-	public ControllerState deserialize(ByteBuffer bb, LogReader logReader) {
+	public ControllerState deserialize(SystemLog.ControllerState message, LogReader reader) {
 		ControllerState result = new ControllerState();
 		
-		int axesCount = bb.getInt();
-		
-		for (int i = 0; i < axesCount; i++) {
-			result.setAxis(ControllerState.Axis.fromOrdinal(bb.getInt()), bb.getDouble());
+		for (Map.Entry<Integer, Double> pair : message.getAxesMap().entrySet()) {
+			result.setAxis(ControllerState.Axis.fromOrdinal(pair.getKey()), pair.getValue());
 		}
 		
-		int buttonsCount = bb.getInt();
-		
-		for (int i = 0; i < buttonsCount; i++) {
-			result.setButtonState(ControllerState.Button.fromOrdinal(bb.getInt()), bb.get() != 0);
+		for (Map.Entry<Integer, Boolean> pair : message.getButtonsMap().entrySet()) {
+			result.setButtonState(ControllerState.Button.fromOrdinal(pair.getKey()), pair.getValue());
 		}
 		
 		return result;
 	}
 	
 	@Override
-	public Class<ControllerState> getDataClass() {
+	public int getFieldIndex() {
+		return SystemLog.Value.CONTROLLERSTATE_FIELD_NUMBER;
+	}
+	
+	@Override
+	public Class<ControllerState> getUnserializedClass() {
 		return ControllerState.class;
 	}
 	
-	@Override
-	public String getTypeId() {
-		return "ControllerState";
-	}
 	
 	@Override
-	public void serialize(ControllerState value, LogWriter writer, ByteBuffer buffer) {
-		buffer.putInt(value.getAllAxes().size());
-		for (Map.Entry<ControllerState.Axis, Double> entry : value.getAllAxes()) {
-			buffer.putInt(entry.getKey().ordinal());
-			buffer.putDouble(entry.getValue());
+	public SystemLog.Value serialize(ControllerState value, LogWriter writer) {
+		var builder = SystemLog.ControllerState.newBuilder();
+		
+		for (Map.Entry<ControllerState.Axis, Double> pair : value.getAllAxes()) {
+			builder.putAxes(pair.getKey().ordinal(), pair.getValue());
 		}
-		buffer.putInt(value.getAllButtons().size());
-		for (Map.Entry<ControllerState.Button, Boolean> entry : value.getAllButtons()) {
-			buffer.putInt(entry.getKey().ordinal());
-			buffer.put(entry.getValue() ? (byte) 1 : (byte) 0);
+		for (Map.Entry<ControllerState.Button, Boolean> pair : value.getAllButtons()) {
+			builder.putButtons(pair.getKey().ordinal(), pair.getValue());
 		}
+		
+		return SystemLog.Value.newBuilder().setControllerState(builder).build();
 	}
 }
