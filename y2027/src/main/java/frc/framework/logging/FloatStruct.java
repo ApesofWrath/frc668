@@ -1,6 +1,12 @@
 package frc.framework.logging;
 
+/**
+ * Handles protobuf serialization &amp; deserialization for floats
+ */
 public class FloatStruct implements CustomStruct<Float, Float> {
+	/**
+	 * Singleton
+	 */
 	public static FloatStruct instance = new FloatStruct();
 	
 	@Override

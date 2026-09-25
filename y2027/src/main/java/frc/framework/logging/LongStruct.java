@@ -1,6 +1,12 @@
 package frc.framework.logging;
 
+/**
+ * Handles protobuf serialization &amp; deserialization for longs
+ */
 public class LongStruct implements CustomStruct<Long, Long> {
+	/**
+	 * Singleton
+	 */
 	public static LongStruct instance = new LongStruct();
 	
 	@Override

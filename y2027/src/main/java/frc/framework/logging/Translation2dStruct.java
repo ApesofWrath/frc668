@@ -2,7 +2,13 @@ package frc.framework.logging;
 
 import edu.wpi.first.math.geometry.Translation2d;
 
+/**
+ * Handles protobuf serialization &amp; deserialization for Translation2ds
+ */
 public class Translation2dStruct implements CustomStruct<Translation2d, SystemLog.Translation2D> {
+	/**
+	 * Singleton
+	 */
 	public static final Translation2dStruct instance = new Translation2dStruct();
 	
 	@Override

@@ -2,7 +2,13 @@ package frc.framework.logging;
 
 import edu.wpi.first.math.geometry.Rotation3d;
 
+/**
+ * Handles protobuf serialization &amp; deserialization for Rotation3ds
+ */
 public class Rotation3dStruct implements CustomStruct<Rotation3d, SystemLog.Rotation3D> {
+	/**
+	 * Singleton
+	 */
 	public static final Rotation3dStruct instance = new Rotation3dStruct();
 	
 	@Override

@@ -9,7 +9,17 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+/**
+ * Reads log files
+ */
 public class LogReader {
+	/**
+	 * Open a log reader for a given path, and reads the header
+	 *
+	 * @param path The path to the log file
+	 *
+	 * @return The log reader
+	 */
 	public static LogReader open(String path) {
 		try {
 			LogReader reader = new LogReader(new FileInputStream(path));
@@ -22,12 +32,23 @@ public class LogReader {
 		}
 	}
 	
+	/**
+	 * A list of strings, such that they can be stored between frames and reused
+	 */
 	public final ArrayList<String> stringTable = new ArrayList<>();
 	private final ByteBuffer primaryBuffer;
 	private final HashMap<String, Object> data = new HashMap<>();
 	
+	/**
+	 * A list of decoded frames
+	 */
 	public ArrayList<LogFrame> frames = new ArrayList<>();
 	
+	/**
+	 * Creates a LogReader
+	 *
+	 * @param stream The file stream to read from
+	 */
 	public LogReader(FileInputStream stream) {
 		try {
 			primaryBuffer = ByteBuffer.wrap(stream.readAllBytes());
@@ -36,6 +57,9 @@ public class LogReader {
 		}
 	}
 	
+	/**
+	 * Read a message and handle it, may add frames to the frame list.
+	 */
 	public void decode() {
 		while (primaryBuffer.hasRemaining()) {
 			SystemLog.LogEntry entry = readEntry();
@@ -66,6 +90,13 @@ public class LogReader {
 		}
 	}
 	
+	/**
+	 * Turn a protobuf value message into a decoded value
+	 *
+	 * @param value The message to decode
+	 *
+	 * @return The decoded value
+	 */
 	public Object decodeValue(SystemLog.Value value) {
 		for (CustomStruct<?, ?> customStruct : Logging.customStructs) {
 			Object decoded = tryDeserializeStruct(value, customStruct);
@@ -96,6 +127,11 @@ public class LogReader {
 		}
 	}
 	
+	/**
+	 * Read a length-prefixed UTF-8 string
+	 *
+	 * @return The string that was read
+	 */
 	public String readUtfString() {
 		int length = primaryBuffer.getInt();
 		byte[] bytes = new byte[length];

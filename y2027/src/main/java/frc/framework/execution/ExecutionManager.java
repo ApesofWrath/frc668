@@ -78,7 +78,8 @@ public class ExecutionManager {
 	 */
 	@SuppressWarnings(
 		"unchecked"
-	) public <T> T getValue(String id) {
+	)
+	public <T> T getValue(String id) {
 		if (!values.containsKey(id)) {
 			values.put(id, ValueIdentifier.get(id).getDefaultValue());
 		}

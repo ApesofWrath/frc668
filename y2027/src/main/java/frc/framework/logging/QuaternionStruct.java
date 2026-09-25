@@ -2,7 +2,13 @@ package frc.framework.logging;
 
 import edu.wpi.first.math.geometry.Quaternion;
 
+/**
+ * Handles protobuf serialization &amp; deserialization for quaternions
+ */
 public class QuaternionStruct implements CustomStruct<Quaternion, SystemLog.Quaternion> {
+	/**
+	 * Singleton
+	 */
 	public static final QuaternionStruct instance = new QuaternionStruct();
 	
 	@Override

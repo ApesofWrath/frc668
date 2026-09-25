@@ -1,6 +1,12 @@
 package frc.framework.logging;
 
+/**
+ * Handles protobuf serialization &amp; deserialization for strings
+ */
 public class StringStruct implements CustomStruct<String, SystemLog.StringReference> {
+	/**
+	 * Singleton
+	 */
 	public static StringStruct instance = new StringStruct();
 	
 	@Override

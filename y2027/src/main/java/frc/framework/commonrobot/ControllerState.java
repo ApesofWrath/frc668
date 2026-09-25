@@ -27,8 +27,15 @@ public class ControllerState {
 		/**
 		 * The vertical position of the right thumbstick
 		 */
-		RightThumbstickY,;
+		RightThumbstickY;
 		
+		/**
+		 * Turn an ordinal into the representative axis ID
+		 *
+		 * @param ordinal The integer ordinal
+		 *
+		 * @return The axis ID
+		 */
 		public static Axis fromOrdinal(int ordinal) {
 			return values()[ordinal];
 		}
@@ -81,8 +88,15 @@ public class ControllerState {
 		/**
 		 * The Xbox button
 		 */
-		Start,;
+		Start;
 		
+		/**
+		 * Turn an ordinal into the representative button ID
+		 *
+		 * @param ordinal The integer ordinal
+		 *
+		 * @return The button ID
+		 */
 		public static Button fromOrdinal(int ordinal) {
 			return values()[ordinal];
 		}
@@ -92,10 +106,20 @@ public class ControllerState {
 	
 	private final HashMap<Button, Boolean> buttonStates = new HashMap<>();
 	
+	/**
+	 * Get the hashmap of axis ID to axis value
+	 *
+	 * @return The axis hashmap
+	 */
 	public Set<Map.Entry<Axis, Double>> getAllAxes() {
 		return axisData.entrySet();
 	}
 	
+	/**
+	 * Get the hashmap of button ID to button state
+	 *
+	 * @return The button hashmap
+	 */
 	public Set<Map.Entry<Button, Boolean>> getAllButtons() {
 		return buttonStates.entrySet();
 	}

@@ -1,6 +1,12 @@
 package frc.framework.logging;
 
+/**
+ * Handles protobuf serialization &amp; deserialization for arrays
+ */
 public class ArrayStruct implements CustomStruct<Object[], SystemLog.Array> {
+	/**
+	 * Singleton
+	 */
 	public static ArrayStruct instance = new ArrayStruct();
 	
 	@Override

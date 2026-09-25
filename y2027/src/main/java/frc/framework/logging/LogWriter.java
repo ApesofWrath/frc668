@@ -16,7 +16,15 @@ import java.util.Set;
 
 import static frc.framework.logging.SystemLog.*;
 
+/**
+ * Handles serialization of log data
+ */
 public class LogWriter {
+	/**
+	 * Get the primary logging directory
+	 *
+	 * @return The logging directory to use
+	 */
 	public static String getLogPath() {
 		Calendar calendar = Calendar.getInstance();
 		String fileName = calendar.get(Calendar.YEAR) + "-" + (calendar.get(Calendar.MONTH) + 1) + "-" + calendar.get(
@@ -33,6 +41,13 @@ public class LogWriter {
 		return Paths.get(baseDir, fileName).toAbsolutePath().toString();
 	}
 	
+	/**
+	 * Create a log writer and write the header
+	 *
+	 * @param path The path to write the log to
+	 *
+	 * @return The log writer
+	 */
 	public static LogWriter open(String path) {
 		try {
 			LogWriter writer = new LogWriter(new FileOutputStream(path));
@@ -51,10 +66,22 @@ public class LogWriter {
 	
 	private LogFrame previouslyWrittenLogFrame = new LogFrame();
 	
+	/**
+	 * Create a log serializer
+	 *
+	 * @param stream The stream to write output data to
+	 */
 	public LogWriter(FileOutputStream stream) {
 		outputStream = new DataOutputStream(stream);
 	}
 	
+	/**
+	 * Convert a raw value into a protobuf message representing the value
+	 *
+	 * @param obj The value to encode
+	 *
+	 * @return The protobuf message
+	 */
 	public Value encodeValue(Object obj) {
 		for (CustomStruct<?, ?> struct : Logging.customStructs) {
 			Value serialized = tryEncodeStruct(obj, struct);
@@ -65,6 +92,13 @@ public class LogWriter {
 		throw new RuntimeException("Cannot serialize value " + obj);
 	}
 	
+	/**
+	 * Get a string index in the string table, writing an entry to add it to the table if it is not part of the table.
+	 *
+	 * @param str The string to search for and add to in the string table
+	 *
+	 * @return The index of the string
+	 */
 	public int getStringId(String str) {
 		int index = stringTable.indexOf(str);
 		
@@ -103,6 +137,12 @@ public class LogWriter {
 		}
 	}
 	
+	/**
+	 * Given a log frame, create the requisite delta entries and then add an entry to create a new log frame. Also known
+	 * as, serialize a log frame.
+	 *
+	 * @param frame The log frame to serialize.
+	 */
 	public synchronized void writeFrame(LogFrame frame) {
 		Set<String> removedKeys = previouslyWrittenLogFrame.data.keySet();
 		
