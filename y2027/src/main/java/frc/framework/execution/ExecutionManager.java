@@ -41,6 +41,7 @@ public class ExecutionManager {
 			
 			if (previousResult != null && info.cacheStrategy.isCacheValid(time, this, previousResult)) {
 				previousResult.apply(this);
+				previousResult.storeToLog(system.getId(), frame);
 				continue;
 			}
 			
@@ -71,8 +72,7 @@ public class ExecutionManager {
 	 */
 	@SuppressWarnings(
 		"unchecked"
-	)
-	public <T> T getValue(String id) {
+	) public <T> T getValue(String id) {
 		if (!values.containsKey(id)) {
 			values.put(id, ValueIdentifier.get(id).getDefaultValue());
 		}

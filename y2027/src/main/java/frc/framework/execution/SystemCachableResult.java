@@ -110,6 +110,7 @@ public class SystemCachableResult {
 	public void storeToLog(String id, LogFrame frame) {
 		ArrayList<String> outputs = new ArrayList<>(values.keySet());
 		
+		frame.set("/system_outputs/" + id + "/timestamp", timeCreated);
 		frame.set("/system_outputs/" + id + "/outputs", outputs.toArray());
 		
 		for (String key : values.keySet()) {
