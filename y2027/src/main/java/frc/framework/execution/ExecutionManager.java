@@ -60,6 +60,12 @@ public class ExecutionManager {
 			
 			cachedResults.put(system, result);
 		}
+		
+		for (String key : values.keySet()) {
+			Object value = values.get(key);
+			
+			frame.set("/values/" + key, value);
+		}
 	}
 	
 	/**
