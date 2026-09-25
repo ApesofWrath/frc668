@@ -3,6 +3,8 @@ package frc.framework.systems;
 import edu.wpi.first.wpilibj.TimedRobot;
 import frc.framework.OpMode;
 import frc.framework.builtinsystems.HALRobotInformationSystem;
+import frc.framework.logging.LogFrame;
+import frc.framework.logging.LogWriter;
 
 import java.util.Date;
 
@@ -11,6 +13,7 @@ import java.util.Date;
  */
 public abstract class SystemsRobot extends TimedRobot {
 	private final HALRobotInformationSystem robotInformationSystem = new HALRobotInformationSystem();
+	private final LogWriter logger = LogWriter.open(LogWriter.getLogPath());
 	/**
 	 * The current systems framework manager
 	 */
@@ -53,7 +56,14 @@ public abstract class SystemsRobot extends TimedRobot {
 			isConfigured = true;
 		}
 		robotInformationSystem.opMode = mode;
-		systemsManager.update(new Date().getTime());
+		
+		LogFrame frame = new LogFrame();
+		
+		long time = new Date().getTime();
+		
+		systemsManager.update(time, frame);
+		logger.writeFrame(frame, time);
+		
 		systemsManager.publishValuesToNetworkTables();
 	}
 }

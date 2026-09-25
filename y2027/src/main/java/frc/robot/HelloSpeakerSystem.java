@@ -21,6 +21,5 @@ public class HelloSpeakerSystem implements System {
 	
 	@Override
 	public void update(SystemUpdateHelper update) {
-		java.lang.System.out.println("Hello, " + update.getValue(NAME_VALUE));
 	}
 }

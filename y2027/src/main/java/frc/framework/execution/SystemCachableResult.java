@@ -1,5 +1,8 @@
 package frc.framework.execution;
 
+import frc.framework.logging.LogFrame;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
@@ -102,5 +105,25 @@ public class SystemCachableResult {
 	public void set(String key, Object value, int priority) {
 		values.put(key, value);
 		priorities.put(key, priority);
+	}
+	
+	/**
+	 * Store the evaluation data to a log file for observability purposes
+	 *
+	 * @param systemId The system ID to group output data under.
+	 * @param frame    The log frame to store data to
+	 */
+	public void storeToLog(String systemId, LogFrame frame) {
+		ArrayList<String> outputs = new ArrayList<>(values.keySet());
+		
+		frame.set("/system_outputs/" + systemId + "/timestamp", timeCreated);
+		frame.set("/system_outputs/" + systemId + "/outputs", outputs.toArray());
+		
+		for (String key : values.keySet()) {
+			Object value = values.get(key);
+			int priority = priorities.get(key);
+			frame.set("/system_outputs/" + systemId + "/outputs/" + key + "/value", value);
+			frame.set("/system_outputs/" + systemId + "/outputs/" + key + "/priority", priority);
+		}
 	}
 }

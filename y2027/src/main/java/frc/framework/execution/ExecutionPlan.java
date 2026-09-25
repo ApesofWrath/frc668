@@ -1,5 +1,6 @@
 package frc.framework.execution;
 
+import frc.framework.logging.LogFrame;
 import frc.framework.systems.System;
 import frc.framework.systems.SystemInformation;
 
@@ -97,6 +98,22 @@ public class ExecutionPlan {
 		java.lang.System.out.println("EXECUTION ORDER:");
 		for (System sys : systemExecutionOrder) {
 			java.lang.System.out.println("-- " + sys.getId());
+		}
+	}
+	
+	/**
+	 * Write the execution plan to a log frame for observability
+	 *
+	 * @param frame The frame to store data to
+	 */
+	public void storeData(LogFrame frame) {
+		frame.set("/plan/execution_order", systemExecutionOrder.stream().map(System::getId).toArray());
+		
+		for (System system : allSystems) {
+			String id = system.getId();
+			
+			frame.set("/plan/" + id + "/outputs", systemToInformation.get(system).getOutputIds().toArray());
+			frame.set("/plan/" + id + "/inputs", systemToInformation.get(system).getInputIds().toArray());
 		}
 	}
 }
