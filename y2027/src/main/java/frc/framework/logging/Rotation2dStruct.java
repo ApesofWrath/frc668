@@ -2,7 +2,13 @@ package frc.framework.logging;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 
+/**
+ * Handles protobuf serialization &amp; deserialization for Rotation2ds
+ */
 public class Rotation2dStruct implements CustomStruct<Rotation2d, SystemLog.Rotation2D> {
+	/**
+	 * Singleton
+	 */
 	public static final Rotation2dStruct instance = new Rotation2dStruct();
 	
 	@Override

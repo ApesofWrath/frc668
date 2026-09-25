@@ -3,7 +3,13 @@ package frc.framework.logging;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 
+/**
+ * Handles protobuf serialization &amp; deserialization for Pose2ds
+ */
 public class Pose2dStruct implements CustomStruct<Pose2d, SystemLog.Pose2D> {
+	/**
+	 * Singleton
+	 */
 	public static final Pose2dStruct instance = new Pose2dStruct();
 	
 	@Override

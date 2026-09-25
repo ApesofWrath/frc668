@@ -3,7 +3,13 @@ package frc.framework.logging;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 
+/**
+ * Handles protobuf serialization &amp; deserialization for Pose3ds
+ */
 public class Pose3dStruct implements CustomStruct<Pose3d, SystemLog.Pose3D> {
+	/**
+	 * Singleton
+	 */
 	public static Pose3dStruct instance = new Pose3dStruct();
 	
 	@Override

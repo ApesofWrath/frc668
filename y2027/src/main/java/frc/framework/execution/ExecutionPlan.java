@@ -101,6 +101,11 @@ public class ExecutionPlan {
 		}
 	}
 	
+	/**
+	 * Write the execution plan to a log frame for observability
+	 *
+	 * @param frame The frame to store data to
+	 */
 	public void storeData(LogFrame frame) {
 		frame.set("/plan/execution_order", systemExecutionOrder.stream().map(System::getId).toArray());
 		

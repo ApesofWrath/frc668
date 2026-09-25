@@ -1,6 +1,12 @@
 package frc.framework.logging;
 
+/**
+ * Handles protobuf serialization &amp; deserialization for integers
+ */
 public class IntegerStruct implements CustomStruct<Integer, Integer> {
+	/**
+	 * Singleton
+	 */
 	public static IntegerStruct instance = new IntegerStruct();
 	
 	@Override

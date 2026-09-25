@@ -7,7 +7,13 @@ import frc.framework.logging.SystemLog;
 
 import java.util.Map;
 
+/**
+ * Handles serialization &amp; deserialization for ControllerStates
+ */
 public class ControllerStateStruct implements CustomStruct<ControllerState, SystemLog.ControllerState> {
+	/**
+	 * Singleton
+	 */
 	public static ControllerStateStruct instance = new ControllerStateStruct();
 	
 	@Override

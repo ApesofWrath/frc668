@@ -107,17 +107,23 @@ public class SystemCachableResult {
 		priorities.put(key, priority);
 	}
 	
-	public void storeToLog(String id, LogFrame frame) {
+	/**
+	 * Store the evaluation data to a log file for observability purposes
+	 *
+	 * @param systemId The system ID to group output data under.
+	 * @param frame    The log frame to store data to
+	 */
+	public void storeToLog(String systemId, LogFrame frame) {
 		ArrayList<String> outputs = new ArrayList<>(values.keySet());
 		
-		frame.set("/system_outputs/" + id + "/timestamp", timeCreated);
-		frame.set("/system_outputs/" + id + "/outputs", outputs.toArray());
+		frame.set("/system_outputs/" + systemId + "/timestamp", timeCreated);
+		frame.set("/system_outputs/" + systemId + "/outputs", outputs.toArray());
 		
 		for (String key : values.keySet()) {
 			Object value = values.get(key);
 			int priority = priorities.get(key);
-			frame.set("/system_outputs/" + id + "/outputs/" + key + "/value", value);
-			frame.set("/system_outputs/" + id + "/outputs/" + key + "/priority", priority);
+			frame.set("/system_outputs/" + systemId + "/outputs/" + key + "/value", value);
+			frame.set("/system_outputs/" + systemId + "/outputs/" + key + "/priority", priority);
 		}
 	}
 }

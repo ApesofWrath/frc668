@@ -4,7 +4,13 @@ import frc.framework.commonrobot.ControllerStateStruct;
 
 import java.util.ArrayList;
 
+/**
+ * Stores global values for log readers and writers
+ */
 public class Logging {
+	/**
+	 * The globally available set of serialization structs
+	 */
 	public static ArrayList<CustomStruct<?, ?>> customStructs = new ArrayList<>();
 	
 	static {

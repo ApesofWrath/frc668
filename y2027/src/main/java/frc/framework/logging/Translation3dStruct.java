@@ -2,7 +2,13 @@ package frc.framework.logging;
 
 import edu.wpi.first.math.geometry.Translation3d;
 
+/**
+ * Handles protobuf serialization &amp; deserialization for Translation3ds
+ */
 public class Translation3dStruct implements CustomStruct<Translation3d, SystemLog.Translation3D> {
+	/**
+	 * Singleton
+	 */
 	public static final Translation3dStruct instance = new Translation3dStruct();
 	
 	@Override

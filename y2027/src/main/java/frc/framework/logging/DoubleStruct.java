@@ -1,6 +1,12 @@
 package frc.framework.logging;
 
+/**
+ * Handles protobuf serialization &amp; deserialization for doubles
+ */
 public class DoubleStruct implements CustomStruct<Double, Double> {
+	/**
+	 * Singleton
+	 */
 	public static DoubleStruct instance = new DoubleStruct();
 	
 	@Override
