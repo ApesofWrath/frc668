@@ -1,6 +1,7 @@
 package frc.framework.logging;
 
 import com.google.protobuf.CodedOutputStream;
+import edu.wpi.first.util.datalog.DataLogWriter;
 import edu.wpi.first.wpilibj.RobotBase;
 
 import java.io.DataOutputStream;
@@ -9,10 +10,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 import static frc.framework.logging.SystemLog.*;
 
@@ -50,7 +48,8 @@ public class LogWriter {
 	 */
 	public static LogWriter open(String path) {
 		try {
-			LogWriter writer = new LogWriter(new FileOutputStream(path));
+			String dataLogPath = path.replace(".slog", ".wpilog");
+			LogWriter writer = new LogWriter(new FileOutputStream(path), new FileOutputStream(dataLogPath));
 			
 			writer.writeHeader();
 			
@@ -61,18 +60,21 @@ public class LogWriter {
 	}
 	
 	private final DataOutputStream outputStream;
-	
 	private final ArrayList<String> stringTable = new ArrayList<>();
+	
+	private final DataLogBridge dataLogFallback;
 	
 	private LogFrame previouslyWrittenLogFrame = new LogFrame();
 	
 	/**
 	 * Create a log serializer
 	 *
-	 * @param stream The stream to write output data to
+	 * @param stream        The stream to write output data to
+	 * @param dataLogStream The stream to write DataLog values to, for AdvantageScope compatibility
 	 */
-	public LogWriter(FileOutputStream stream) {
+	public LogWriter(FileOutputStream stream, FileOutputStream dataLogStream) {
 		outputStream = new DataOutputStream(stream);
+		dataLogFallback = new DataLogBridge(new DataLogWriter(dataLogStream));
 	}
 	
 	/**
@@ -141,10 +143,12 @@ public class LogWriter {
 	 * Given a log frame, create the requisite delta entries and then add an entry to create a new log frame. Also known
 	 * as, serialize a log frame.
 	 *
-	 * @param frame The log frame to serialize.
+	 * @param frame     The log frame to serialize.
+	 * @param timestamp The timestamp to use for logging
 	 */
-	public synchronized void writeFrame(LogFrame frame) {
-		Set<String> removedKeys = previouslyWrittenLogFrame.data.keySet();
+	public synchronized void writeFrame(LogFrame frame, long timestamp) {
+		// A copy is made so we don't modify the previous frame
+		Set<String> removedKeys = new HashSet<>(previouslyWrittenLogFrame.data.keySet());
 		
 		removedKeys.removeAll(frame.data.keySet());
 		
@@ -168,6 +172,7 @@ public class LogWriter {
 							)
 							.build()
 					);
+					dataLogFallback.set(key, value, timestamp);
 				} catch (Exception e) {
 					System.out.println("failed to write key " + key);
 					//noinspection CallToPrintStackTrace
@@ -175,6 +180,8 @@ public class LogWriter {
 				}
 			}
 		}
+		
+		dataLogFallback.flush();
 		
 		write(LogEntry.newBuilder().setFinishFrame(FinishFrameEntry.newBuilder()).build());
 		

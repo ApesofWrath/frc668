@@ -59,8 +59,10 @@ public abstract class SystemsRobot extends TimedRobot {
 		
 		LogFrame frame = new LogFrame();
 		
-		systemsManager.update(new Date().getTime(), frame);
-		logger.writeFrame(frame);
+		long time = new Date().getTime();
+		
+		systemsManager.update(time, frame);
+		logger.writeFrame(frame, time);
 		
 		systemsManager.publishValuesToNetworkTables();
 	}
