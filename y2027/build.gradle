@@ -120,6 +120,11 @@ tasks.withType(JavaCompile) {
 	options.compilerArgs.add '-XDstringConcat=inline'
 }
 
+protobuf {
+	protoc {
+		artifact = 'com.google.protobuf:protoc:3.0.0'
+	}
+}
 
 spotless {
 	format 'misc', {
