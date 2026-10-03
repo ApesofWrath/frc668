@@ -1,4 +1,6 @@
 //file:noinspection DependencyNotationArgument
+
+import com.diffplug.spotless.LineEnding
 import edu.wpi.first.gradlerio.GradleRIOPlugin
 
 plugins {
@@ -6,6 +8,7 @@ plugins {
 	id 'edu.wpi.first.GradleRIO' version '2026.2.1'
 	id 'com.diffplug.spotless' version '8.10.1'
 	id 'org.jetbrains.dokka' version '2.2.0'
+	id 'com.google.protobuf' version '0.10.0'
 }
 
 java {
@@ -26,14 +29,14 @@ deploy {
 			// want to store a team number in this file.
 			team = project.frc.getTeamNumber()
 			debug = project.frc.getDebugOrDefault(false)
-
+			
 			artifacts {
 				// First part is artifact name, 2nd is artifact type
 				// getTargetTypeClass is a shortcut to get the class type using a string
-
+				
 				frcJava(getArtifactTypeClass('FRCJavaArtifact')) {
 				}
-
+				
 				// Static files artifact
 				frcStaticFileDeploy(getArtifactTypeClass('FileTreeArtifact')) {
 					files = project.fileTree('src/main/deploy')
@@ -61,25 +64,27 @@ dependencies {
 	annotationProcessor wpi.java.deps.wpilibAnnotations()
 	implementation wpi.java.deps.wpilib()
 	implementation wpi.java.vendor.java()
-
+	
 	roborioDebug wpi.java.deps.wpilibJniDebug(wpi.platforms.roborio)
 	roborioDebug wpi.java.vendor.jniDebug(wpi.platforms.roborio)
-
+	
 	roborioRelease wpi.java.deps.wpilibJniRelease(wpi.platforms.roborio)
 	roborioRelease wpi.java.vendor.jniRelease(wpi.platforms.roborio)
-
+	
 	nativeDebug wpi.java.deps.wpilibJniDebug(wpi.platforms.desktop)
 	nativeDebug wpi.java.vendor.jniDebug(wpi.platforms.desktop)
 	simulationDebug wpi.sim.enableDebug()
-
+	
 	nativeRelease wpi.java.deps.wpilibJniRelease(wpi.platforms.desktop)
 	nativeRelease wpi.java.vendor.jniRelease(wpi.platforms.desktop)
 	simulationRelease wpi.sim.enableRelease()
-
+	
 	testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
+	
 	dokkaPlugin 'org.jetbrains.dokka:kotlin-as-java-plugin:2.2.0'
+	
+	implementation 'com.google.protobuf:protobuf-java:4.36.1'
 }
 
 test {
@@ -117,18 +122,26 @@ tasks.withType(JavaCompile) {
 	options.compilerArgs.add '-XDstringConcat=inline'
 }
 
+protobuf {
+	protoc {
+		artifact = 'com.google.protobuf:protoc:4.36.1'
+	}
+}
 
 spotless {
+	lineEndings = LineEnding.UNIX
+	
 	format 'misc', {
 		// define the files to apply `misc` to
-		target '*.gradle', '.gitattributes', '.gitignore'
-
+		target '.gitattributes', '.gitignore'
+		
 		// define the steps to apply to those files
 		trimTrailingWhitespace()
 		leadingSpacesToTabs() // or leadingTabsToSpaces. Takes an integer argument if you don't like 4
 		endWithNewline()
 	}
 	java {
+		targetExclude 'build/generated/**'
 		removeUnusedImports()
 		eclipse('4.41').configFile('eclipse-prefs.xml').sortMembersEnabled(true)
 		cleanthat()
