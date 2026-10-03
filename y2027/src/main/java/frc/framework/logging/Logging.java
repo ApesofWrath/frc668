@@ -24,6 +24,7 @@ public class Logging {
 		
 		// custom
 		customStructs.add(ControllerStateStruct.instance);
+		customStructs.add(OpModeStruct.instance);
 		
 		// wpilib geometry
 		customStructs.add(Pose2dStruct.instance);

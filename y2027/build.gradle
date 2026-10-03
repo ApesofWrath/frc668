@@ -116,14 +116,14 @@ tasks.withType(JavaCompile) {
 
 protobuf {
 	protoc {
-		artifact = 'com.google.protobuf:protoc:3.0.0'
+		artifact = 'com.google.protobuf:protoc:4.36.1'
 	}
 }
 
 spotless {
 	format 'misc', {
 		// define the files to apply `misc` to
-		target '*.gradle', '.gitattributes', '.gitignore'
+		target '.gitattributes', '.gitignore'
 
 		// define the steps to apply to those files
 		trimTrailingWhitespace()
@@ -131,6 +131,7 @@ spotless {
 		endWithNewline()
 	}
 	java {
+		targetExclude 'build/generated/**'
 		removeUnusedImports()
 		eclipse('4.41').configFile('eclipse-prefs.xml').sortMembersEnabled(true)
 		cleanthat()

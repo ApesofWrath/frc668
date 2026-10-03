@@ -20,7 +20,8 @@ public abstract class SystemsRobot extends TimedRobot {
 	public SystemsManager systemsManager = new SystemsManager();
 	private boolean isConfigured = false;
 	
-	@Override public void autonomousPeriodic() {
+	@Override
+	public void autonomousPeriodic() {
 		update(OpMode.Autonomous);
 	}
 	
@@ -29,15 +30,18 @@ public abstract class SystemsRobot extends TimedRobot {
 	 */
 	public abstract void configure();
 	
-	@Override public void disabledPeriodic() {
+	@Override
+	public void disabledPeriodic() {
 		update(OpMode.Disabled);
 	}
 	
-	@Override public void teleopPeriodic() {
+	@Override
+	public void teleopPeriodic() {
 		update(OpMode.Teleop);
 	}
 	
-	@Override public void testPeriodic() {
+	@Override
+	public void testPeriodic() {
 		update(OpMode.Test);
 	}
 	
