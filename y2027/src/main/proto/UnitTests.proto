@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package frc.framework.testengine;
+
+message CodebaseReport {
+  repeated UnitTestData unitTests = 1;
+  repeated LintData lints = 2;
+}
+
+message UnitTestData {
+  repeated CheckData checks = 1;
+  string name = 2;
+  string containingClass = 3;
+}
+
+message CheckData {
+  string name = 1;
+  bool succeeded = 2;
+  string failureReason = 3;
+}
+
+message LintData {
+  string message = 1;
+}
