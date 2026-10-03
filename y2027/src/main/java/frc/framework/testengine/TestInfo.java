@@ -23,6 +23,19 @@ public class TestInfo {
 		 */
 		public String failureReason = "";
 		
+		/**
+		 * Converts this check into a serializable protobuf message
+		 *
+		 * @return The protobuf message
+		 */
+		public UnitTests.CheckData toProtobuf() {
+			return UnitTests.CheckData.newBuilder()
+				.setFailureReason(failureReason)
+				.setName(message)
+				.setSucceeded(succeeded)
+				.build();
+		}
+		
 		@Override
 		public String toString() {
 			return "TestCheck{" + "succeeded=" + succeeded + ", message='" + message + '\'' + ", failureReason='" + failureReason + '\'' + '}';
@@ -37,11 +50,28 @@ public class TestInfo {
 	 * Errors that arose during the test
 	 */
 	public ArrayList<String> errors = new ArrayList<>();
-	
 	/**
 	 * The name of the test
 	 */
 	public String name = "";
+	
+	/**
+	 * The class in which this test is contained
+	 */
+	public String containingClass = "";
+	
+	/**
+	 * Converts the test information to a serializable protobuf
+	 *
+	 * @return The serialized protobuf
+	 */
+	public UnitTests.UnitTestData toProtobuf() {
+		return UnitTests.UnitTestData.newBuilder()
+			.setName(name)
+			.setContainingClass(containingClass)
+			.addAllChecks(checks.stream().map(it -> it.toProtobuf()).toList())
+			.build();
+	}
 	
 	@Override
 	public String toString() {

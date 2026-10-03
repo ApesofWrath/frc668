@@ -1,5 +1,6 @@
 package frc.framework.testengine;
 
+import frc.framework.logging.LogFrame;
 import frc.framework.systems.SystemsManager;
 import frc.framework.systems.ValueIdentifier;
 
@@ -100,7 +101,9 @@ public abstract class Testable {
 	 * @param dt The deltatime to advance by
 	 */
 	public void update(long dt) {
-		systems.update(currentTime);
+		LogFrame frame = new LogFrame();
+		
+		systems.update(currentTime, frame);
 		currentTime += dt;
 	}
 }

@@ -3,7 +3,7 @@
     <ExternalSystemSettings>
       <option name="env">
         <map>
-          <entry key="CODEINFO_OUTPUT" value="./.infodeck/output.json" />
+          <entry key="CODEINFO_OUTPUT" value="./.infodeck/output.bin" />
         </map>
       </option>
       <option name="executionName" />

@@ -4,6 +4,9 @@ import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ScanResult;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -42,7 +45,23 @@ public class Testing {
 			test.run(info);
 		}
 		
-		System.out.println(info);
+		// Save to disk
+		File outputData = new File(getOutputDataPath());
+		if (!outputData.getParentFile().exists() && !outputData.getParentFile().mkdirs()) {
+			throw new AssertionError("Failed to make directories");
+		}
+		if (outputData.exists()) {
+			if (!outputData.delete()) {
+				throw new AssertionError("Failed to delete existing test output data file.");
+			}
+		}
+		
+		
+		try (FileOutputStream outputStream = new FileOutputStream(outputData)) {
+			info.toProtobuf().writeTo(outputStream);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 	
 	/**

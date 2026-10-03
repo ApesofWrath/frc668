@@ -45,6 +45,18 @@ public class CodeInfo {
 		return tests;
 	}
 	
+	/**
+	 * Converts the codebase information to a serializable protobuf
+	 *
+	 * @return The serialized protobuf
+	 */
+	public UnitTests.CodebaseReport toProtobuf() {
+		return UnitTests.CodebaseReport.newBuilder()
+			.addAllLints(getLints().stream().map(it -> UnitTests.LintData.newBuilder().setMessage(it).build()).toList())
+			.addAllUnitTests(getTests().stream().map(it -> it.toProtobuf()).toList())
+			.build();
+	}
+	
 	@Override
 	public String toString() {
 		return "CodeInfo{" + "lints=" + lints + ", tests=" + tests + '}';
