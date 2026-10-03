@@ -45,6 +45,7 @@ message Value {
     Translation3D translation3d = 12;
     Rotation3D rotation3d = 13;
     Quaternion quaternion = 14;
+    OpMode opMode = 15;
   }
 }
 
@@ -102,4 +103,11 @@ message Quaternion {
   double x = 2;
   double y = 3;
   double z = 4;
+}
+
+enum OpMode {
+  Disabled = 0;
+  Autonomous = 1;
+  Teleop = 2;
+  Test = 3;
 }
