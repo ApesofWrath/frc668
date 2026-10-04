@@ -4,6 +4,7 @@ import com.google.protobuf.Descriptors;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -36,7 +37,7 @@ public class LogReader {
 	 * A list of strings, such that they can be stored between frames and reused
 	 */
 	public final ArrayList<String> stringTable = new ArrayList<>();
-	private final ByteBuffer primaryBuffer;
+	private final FileInputStream inputStream;
 	private final HashMap<String, Object> data = new HashMap<>();
 	
 	/**
@@ -50,19 +51,26 @@ public class LogReader {
 	 * @param stream The file stream to read from
 	 */
 	public LogReader(FileInputStream stream) {
-		try {
-			primaryBuffer = ByteBuffer.wrap(stream.readAllBytes());
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+		inputStream = stream;
 	}
 	
 	/**
 	 * Read a message and handle it, may add frames to the frame list.
 	 */
 	public void decode() {
-		while (primaryBuffer.hasRemaining()) {
-			SystemLog.LogEntry entry = readEntry();
+		while (true) {
+			SystemLog.LogEntry entry;
+			try {
+				ByteBuffer lengthBytes = ByteBuffer.wrap(inputStream.readNBytes(4));
+				int length = lengthBytes.getInt();
+				byte[] bytes = inputStream.readNBytes(length);
+				
+				entry = SystemLog.LogEntry.parseFrom(bytes);
+			} catch (BufferUnderflowException exception) {
+				break;
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
 			
 			if (entry.hasDefineString()) {
 				SystemLog.DefineStringLogEntry defString = entry.getDefineString();
@@ -107,20 +115,14 @@ public class LogReader {
 		throw new RuntimeException("Failed to decode value " + value);
 	}
 	
-	private SystemLog.LogEntry readEntry() {
+	private void readHeader() {
+		String header;
+		
 		try {
-			int length = primaryBuffer.getInt();
-			byte[] bytes = new byte[length];
-			primaryBuffer.get(bytes);
-			
-			return SystemLog.LogEntry.parseFrom(bytes);
+			header = readUtfString();
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-	}
-	
-	private void readHeader() {
-		String header = readUtfString();
 		
 		if (!header.contains("SystemLog")) {
 			throw new RuntimeException("INVALID LOG FILE");
@@ -131,11 +133,13 @@ public class LogReader {
 	 * Read a length-prefixed UTF-8 string
 	 *
 	 * @return The string that was read
+	 *
+	 * @throws IOException When reading string fails
 	 */
-	public String readUtfString() {
-		int length = primaryBuffer.getInt();
-		byte[] bytes = new byte[length];
-		primaryBuffer.get(bytes);
+	public String readUtfString() throws IOException {
+		ByteBuffer lengthBytes = ByteBuffer.wrap(inputStream.readNBytes(4));
+		int length = lengthBytes.getInt();
+		byte[] bytes = inputStream.readNBytes(length);
 		
 		return new String(bytes, StandardCharsets.UTF_8);
 	}

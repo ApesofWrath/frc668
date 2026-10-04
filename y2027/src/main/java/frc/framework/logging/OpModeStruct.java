@@ -1,19 +1,22 @@
 package frc.framework.logging;
 
+import com.google.protobuf.Descriptors;
 import frc.framework.OpMode;
 
 /**
  * Handles protobuf serialization &amp; deserialization for OpModes
  */
-public class OpModeStruct implements CustomStruct<OpMode, SystemLog.OpMode> {
+public class OpModeStruct implements CustomStruct<OpMode, Descriptors.EnumValueDescriptor> {
 	/**
 	 * Singleton
 	 */
 	public static final OpModeStruct instance = new OpModeStruct();
 	
 	@Override
-	public OpMode deserialize(SystemLog.OpMode opMode, LogReader reader) {
-		return switch (opMode) {
+	public OpMode deserialize(Descriptors.EnumValueDescriptor opMode, LogReader reader) {
+		SystemLog.OpMode realOpmode = SystemLog.OpMode.valueOf(opMode);
+		
+		return switch (realOpmode) {
 		case Disabled, UNRECOGNIZED -> OpMode.Disabled;
 		case Autonomous -> OpMode.Autonomous;
 		case Teleop -> OpMode.Teleop;
@@ -23,7 +26,7 @@ public class OpModeStruct implements CustomStruct<OpMode, SystemLog.OpMode> {
 	
 	@Override
 	public int getFieldIndex() {
-		return SystemLog.Value.TRANSLATION2D_FIELD_NUMBER;
+		return SystemLog.Value.OPMODE_FIELD_NUMBER;
 	}
 	
 	@Override
