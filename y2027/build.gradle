@@ -1,4 +1,6 @@
 //file:noinspection DependencyNotationArgument
+
+import com.diffplug.spotless.LineEnding
 import edu.wpi.first.gradlerio.GradleRIOPlugin
 
 plugins {
@@ -119,6 +121,7 @@ tasks.withType(JavaCompile) {
 
 
 spotless {
+	lineEndings = LineEnding.UNIX
 	format 'misc', {
 		// define the files to apply `misc` to
 		target '*.gradle', '.gitattributes', '.gitignore'
