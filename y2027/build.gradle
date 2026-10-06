@@ -130,7 +130,6 @@ protobuf {
 
 spotless {
 	lineEndings = LineEnding.UNIX
-	
 	format 'misc', {
 		// define the files to apply `misc` to
 		target '.gitattributes', '.gitignore'
