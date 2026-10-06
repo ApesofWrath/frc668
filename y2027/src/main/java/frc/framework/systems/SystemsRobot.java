@@ -50,6 +50,7 @@ public abstract class SystemsRobot extends TimedRobot {
 	public void update(OpMode mode) {
 		if (!isConfigured) {
 			configure();
+			systemsManager.addSystem(robotInformationSystem);
 			isConfigured = true;
 		}
 		robotInformationSystem.opMode = mode;
