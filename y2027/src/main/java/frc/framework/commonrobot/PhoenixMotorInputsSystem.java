@@ -4,7 +4,6 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import frc.framework.systems.System;
 import frc.framework.systems.SystemInformation;
 import frc.framework.systems.SystemUpdateHelper;
-import frc.robot.MotorId;
 
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
@@ -14,13 +13,13 @@ import static edu.wpi.first.units.Units.RadiansPerSecond;
  */
 public class PhoenixMotorInputsSystem implements System {
 	private final TalonFX talonFX;
-	private final MotorId motorId;
+	private final Enum<?> motorId;
 	
 	/**
 	 * @param talonFX The motor object to get information from
 	 * @param motorId The motor ID for the field identifiers
 	 */
-	public PhoenixMotorInputsSystem(TalonFX talonFX, MotorId motorId) {
+	public PhoenixMotorInputsSystem(TalonFX talonFX, Enum<?> motorId) {
 		this.talonFX = talonFX;
 		this.motorId = motorId;
 	}

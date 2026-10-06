@@ -7,14 +7,13 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import frc.framework.systems.System;
 import frc.framework.systems.SystemInformation;
 import frc.framework.systems.SystemUpdateHelper;
-import frc.robot.MotorId;
 
 /**
  * Handles updating motor information for Phoenix motors
  */
 public class PhoenixMotorOutputsSystem implements System {
 	private final TalonFX talonFX;
-	private final MotorId motorId;
+	private final Enum<?> motorId;
 	private final PositionVoltage positionControl = new PositionVoltage(0);
 	private final VelocityVoltage velocityControl = new VelocityVoltage(0);
 	private final VoltageOut voltageControl = new VoltageOut(0);
@@ -23,7 +22,7 @@ public class PhoenixMotorOutputsSystem implements System {
 	 * @param talonFX The motor object to get information from
 	 * @param motorId The motor ID for the field identifiers
 	 */
-	public PhoenixMotorOutputsSystem(TalonFX talonFX, MotorId motorId) {
+	public PhoenixMotorOutputsSystem(TalonFX talonFX, Enum<?> motorId) {
 		this.talonFX = talonFX;
 		this.motorId = motorId;
 	}
