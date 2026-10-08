@@ -13,7 +13,7 @@ import java.util.Date;
  */
 public abstract class SystemsRobot extends TimedRobot {
 	private final HALRobotInformationSystem robotInformationSystem = new HALRobotInformationSystem();
-	private final LogWriter logger = LogWriter.open(LogWriter.getLogPath());
+	private final LogWriter logger = new LogWriter(LogWriter.getLogPath());
 	/**
 	 * The current systems framework manager
 	 */
