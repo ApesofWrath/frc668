@@ -65,7 +65,6 @@ public class LogWriter {
 		}
 	}
 	
-	
 	/**
 	 * Given a log frame, create the requisite delta entries and then add an entry to create a new log frame. Also known
 	 * as, serialize a log frame.
@@ -74,25 +73,36 @@ public class LogWriter {
 	 * @param timestamp The timestamp to use for logging
 	 */
 	public synchronized void writeFrame(LogFrame frame, long timestamp) {
+		// This one's a doozy, so let's get started
+		// Indicate that we are starting a tick
 		int tickBoundary = dataLog.start("$TickBoundary", "int", "", timestamp);
 		
+		// Make sure that all packers are initialized
 		Packer.setupPackers();
 		
+		// This is our desired set of values
 		HashMap<String, Object> values = new HashMap<>();
+		// This is our desired set of metadata (e.g, name and type and metadata)
 		HashSet<LogField> entries = new HashSet<>();
 		
+		// WPILog files want 0 to be the start of the log file
 		if (timestamp < startTime) {
 			startTime = timestamp;
 		}
 		
+		// Our time in WPILog speak, milliseconds since start of log file
 		long time = timestamp - startTime;
 		
+		// Let's try to unpack all of our data
 		frame.data.forEach((key, value) -> {
 			String typeId = DataLogUtils.getTypeId(DataLogUtils.normalizeValue(value));
+			
+			// If this is a primitive type, save it, and mark it as a primitive root
 			if (typeId != null) {
 				values.put(key, value);
 				entries.add(new LogField(key, typeId, "primitive"));
 			} else {
+				// Otherwise, let's unpack it as a packed root
 				PackHelper helper = new PackHelper();
 				
 				helper.unpackFields(key, value, false);
@@ -102,12 +112,14 @@ public class LogWriter {
 			}
 		});
 		
+		// Figure out the entries we need to add and remove
 		var removedEntries = new HashSet<>(existingFields.keySet());
 		var newEntries = new HashSet<>(entries);
 		
 		newEntries.removeAll(existingFields.keySet());
 		removedEntries.removeAll(entries);
 		
+		// Sync entries with what we want
 		for (LogField removedEntry : removedEntries) {
 			int id = existingFields.get(removedEntry);
 			dataLog.finish(id, time);
@@ -120,7 +132,9 @@ public class LogWriter {
 			existingFields.put(addedEntry, key);
 		}
 		
+		// Push new values
 		values.forEach((key, value) -> {
+			// Figure out the integer ID of this entry
 			LogField entry = null;
 			
 			for (LogField logField : existingFields.keySet()) {
@@ -132,6 +146,7 @@ public class LogWriter {
 			
 			int id = existingFields.get(entry);
 			
+			// If the value has changed, write it
 			if (!Objects.equals(writtenValues.get(id), value)) {
 				writtenValues.put(id, value);
 				
@@ -139,8 +154,10 @@ public class LogWriter {
 			}
 		});
 		
+		// Say that this tick is over
 		dataLog.finish(tickBoundary);
 		
+		// Write it to disk
 		dataLog.flush();
 	}
 }
