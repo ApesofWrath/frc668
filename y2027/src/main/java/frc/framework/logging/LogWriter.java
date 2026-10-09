@@ -73,9 +73,18 @@ public class LogWriter {
 	 * @param timestamp The timestamp to use for logging
 	 */
 	public synchronized void writeFrame(LogFrame frame, long timestamp) {
+		// WPILog files want 0 to be the start of the log file
+		if (timestamp < startTime) {
+			startTime = timestamp;
+		}
+		
+		// Our time in WPILog speak, milliseconds since start of log file
+		long time = (timestamp - startTime) * 1000;
+		
+		
 		// This one's a doozy, so let's get started
 		// Indicate that we are starting a tick
-		int tickBoundary = dataLog.start("$TickBoundary", "int", "", timestamp);
+		int tickBoundary = dataLog.start("$TickBoundary", "int", "", time);
 		
 		// Make sure that all packers are initialized
 		Packer.setupPackers();
@@ -84,14 +93,6 @@ public class LogWriter {
 		HashMap<String, Object> values = new HashMap<>();
 		// This is our desired set of metadata (e.g, name and type and metadata)
 		HashSet<LogField> entries = new HashSet<>();
-		
-		// WPILog files want 0 to be the start of the log file
-		if (timestamp < startTime) {
-			startTime = timestamp;
-		}
-		
-		// Our time in WPILog speak, milliseconds since start of log file
-		long time = timestamp - startTime;
 		
 		// Let's try to unpack all of our data
 		frame.data.forEach((key, value) -> {
@@ -155,7 +156,7 @@ public class LogWriter {
 		});
 		
 		// Say that this tick is over
-		dataLog.finish(tickBoundary);
+		dataLog.finish(tickBoundary, time);
 		
 		// Write it to disk
 		dataLog.flush();
