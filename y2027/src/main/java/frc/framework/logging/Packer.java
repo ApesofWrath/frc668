@@ -1,6 +1,7 @@
 package frc.framework.logging;
 
 import frc.framework.OpModePacker;
+import frc.framework.commonrobot.ControllerStatePacker;
 
 import java.util.ArrayList;
 
@@ -27,6 +28,7 @@ public interface Packer<T> {
 		
 		Packer.registerPacker(new FallbackArrayPacker());
 		Packer.registerPacker(new OpModePacker());
+		Packer.registerPacker(new ControllerStatePacker());
 	}
 	
 	/**
