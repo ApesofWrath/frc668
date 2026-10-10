@@ -69,10 +69,10 @@ public class LogWriter {
 	 * Given a log frame, create the requisite delta entries and then add an entry to create a new log frame. Also known
 	 * as, serialize a log frame.
 	 *
-	 * @param frame     The log frame to serialize.
 	 * @param timestamp The timestamp to use for logging
+	 * @param frame     The log frame to serialize.
 	 */
-	public synchronized void writeFrame(LogFrame frame, long timestamp) {
+	public synchronized void writeFrame(long timestamp, LogFrame frame) {
 		// WPILog files want 0 to be the start of the log file
 		if (timestamp < startTime) {
 			startTime = timestamp;
