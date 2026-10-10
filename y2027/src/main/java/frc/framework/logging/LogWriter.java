@@ -73,14 +73,12 @@ public class LogWriter {
 	 * @param frame     The log frame to serialize.
 	 */
 	public synchronized void writeFrame(long timestamp, LogFrame frame) {
-		// WPILog files want 0 to be the start of the log file
+		// WPILog files want 0 to be the start of the log file, so let's make startTime our "zero time"
+		// and have "time", which is normalized so that we start at zero, as timestamp is currently the UNIX timestamp
 		if (timestamp < startTime) {
 			startTime = timestamp;
 		}
-		
-		// Our time in WPILog speak, milliseconds since start of log file
 		long time = (timestamp - startTime) * 1000;
-		
 		
 		// This one's a doozy, so let's get started
 		// Indicate that we are starting a tick
