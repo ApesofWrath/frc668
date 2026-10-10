@@ -22,7 +22,7 @@ public interface System {
 	 * An identifier uniquely distinguishing this system from others in log files, etc.
 	 *
 	 * @return A unique identifier, by default, this returns the fullly qualified name of your class, e.g
-	 * <code>frc.framework.System</code>
+	 *         <code>System</code>
 	 */
 	default String getId() {
 		return getClass().getSimpleName();
