@@ -1,14 +1,9 @@
 package frc.framework.systems;
 
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.wpilibj.TimedRobot;
 import frc.framework.OpMode;
 import frc.framework.RobotMaker;
 import frc.framework.builtinsystems.HALRobotInformationSystem;
-import frc.framework.commonrobot.PIDConstants;
-import frc.framework.commonrobot.PhoenixMotorInputsSystem;
-import frc.framework.commonrobot.PhoenixMotorOutputsSystem;
 
 import java.util.Date;
 

@@ -2,6 +2,7 @@ package frc.robot;
 
 import frc.framework.RobotMaker;
 import frc.framework.builtinsystems.ControllerSystem;
+import frc.framework.commonrobot.PIDConstants;
 import frc.framework.systems.SystemsManager;
 
 /**
@@ -14,6 +15,7 @@ public class RobotMaker2026 implements RobotMaker {
 		manager.addSystem(new AnshSystem());
 		manager.addSystem(new NameExtenderSystem());
 		manager.addSystem(new ControllerSystem());
+		addMotor(manager, MotorId.IntakeRoller, 0, new PIDConstants().withP(1).withI(0).withD(0));
 	}
 	
 	@Override
