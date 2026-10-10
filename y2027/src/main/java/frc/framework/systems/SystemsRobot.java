@@ -16,7 +16,7 @@ public class SystemsRobot extends TimedRobot {
 	private final HALRobotInformationSystem robotInformationSystem = new HALRobotInformationSystem();
 	private final LogWriter logger = new LogWriter(LogWriter.getLogPath());
 	private final RobotMaker robotMaker;
-
+	
 	/**
 	 * The current systems framework manager
 	 */
