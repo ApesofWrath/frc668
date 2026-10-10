@@ -4,6 +4,7 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.RobotBase;
+import frc.framework.systems.SystemsRobot;
 
 /**
  * Do NOT add any static variables to this class, or any initialization at all. Unless you know what you are doing, do
@@ -18,7 +19,7 @@ public final class Main {
 	 * @param args The command line arguments of the robot program
 	 */
 	public static void main(String... args) {
-		RobotBase.startRobot(Robot::new);
+		RobotBase.startRobot(() -> new SystemsRobot(new RobotMaker2026()));
 	}
 	
 	private Main() {
