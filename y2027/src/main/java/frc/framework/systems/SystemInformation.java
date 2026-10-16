@@ -51,7 +51,7 @@ public class SystemInformation {
 	 * @param value The value identifier representing the input, in the case of an automatic alignment system, it may be
 	 *              the current robot pose.
 	 */
-	public void recievesInput(ValueIdentifier<?> value) {
+	public void receivesInput(ValueIdentifier<?> value) {
 		inputIds.add(value.getId());
 	}
 }

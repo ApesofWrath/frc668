@@ -1,5 +1,7 @@
 package frc.framework.execution;
 
+import frc.framework.systems.Priority;
+
 import java.util.HashMap;
 import java.util.Map.Entry;
 
@@ -18,11 +20,11 @@ public class SystemCachableResult {
 	/**
 	 * A mapping from string identifiers to the priority of values outputted
 	 */
-	public HashMap<String, Integer> priorities = new HashMap<>();
+	public HashMap<String, Priority> priorities = new HashMap<>();
 	/**
 	 * A mapping from string identifiers to values read during the evaluation of a system
 	 */
-	public HashMap<String, Object> accessedValues = new HashMap<>();
+	public HashMap<String, TimestampedValue<?>> accessedValues = new HashMap<>();
 	
 	/**
 	 * Create a result with a given time value
@@ -37,13 +39,14 @@ public class SystemCachableResult {
 	 * Replay/apply the computed values to an {@link ExecutionManager}
 	 *
 	 * @param manager The {@link ExecutionManager} that values should be outputted to
+	 * @param time    The time to attempt to apply the values using
 	 */
-	public void apply(ExecutionManager manager) {
+	public void apply(ExecutionManager manager, long time) {
 		for (String key : values.keySet()) {
 			Object value = values.get(key);
-			int priority = priorities.get(key);
+			Priority priority = priorities.get(key);
 			
-			manager.trySetValue(key, value, priority);
+			manager.trySetValue(key, new TimestampedValue<>(value, time, priority, manager));
 		}
 	}
 	
@@ -55,7 +58,7 @@ public class SystemCachableResult {
 	 * @return A boolean indicating if values are the same as before
 	 */
 	public boolean doInputsMatchWithManager(ExecutionManager manager) {
-		for (Entry<String, Object> entry : accessedValues.entrySet()) {
+		for (Entry<String, TimestampedValue<?>> entry : accessedValues.entrySet()) {
 			Object currentValue = manager.getValue(entry.getKey());
 			
 			if (!currentValue.equals(entry.getValue())) {
@@ -74,8 +77,8 @@ public class SystemCachableResult {
 	 *
 	 * @return The value contained within the slot with the given key
 	 */
-	public Object get(ExecutionManager executor, String key) {
-		Object value = executor.getValue(key);
+	public TimestampedValue<?> get(ExecutionManager executor, String key) {
+		TimestampedValue<?> value = executor.getValue(key);
 		accessedValues.put(key, value);
 		return value;
 	}
@@ -99,7 +102,7 @@ public class SystemCachableResult {
 	 * @param value    The value to write to the slot
 	 * @param priority The priority with which the value should be written
 	 */
-	public void set(String key, Object value, int priority) {
+	public void set(String key, Object value, Priority priority) {
 		values.put(key, value);
 		priorities.put(key, priority);
 	}

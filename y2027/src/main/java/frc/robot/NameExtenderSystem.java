@@ -16,20 +16,20 @@ public class NameExtenderSystem implements System {
 	 */
 	public static ValueIdentifier<String> NAME_TO_EXTEND_VALUE = ValueIdentifier.get(
 		"/name_extender/name_to_extend",
-		"World"
+		String.class
 	);
 	
 	@Override
 	public void configure(SystemInformation information) {
 		information.cacheStrategy = new MemoizationCacheStrategy();
-		information.recievesInput(NAME_TO_EXTEND_VALUE);
+		information.receivesInput(NAME_TO_EXTEND_VALUE);
 		information.createsOutput(HelloSpeakerSystem.NAME_VALUE);
 	}
 	
 	@Override
 	public void update(SystemUpdateHelper update) {
 		java.lang.System.out.println("extending name");
-		String name = update.getValue(NAME_TO_EXTEND_VALUE);
+		String name = update.getValue(NAME_TO_EXTEND_VALUE).orDefault("Default Name");
 		update.setValue(HelloSpeakerSystem.NAME_VALUE, name + " " + name + "ington");
 	}
 }

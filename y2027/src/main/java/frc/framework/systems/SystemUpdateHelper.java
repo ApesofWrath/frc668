@@ -2,6 +2,7 @@ package frc.framework.systems;
 
 import frc.framework.execution.ExecutionManager;
 import frc.framework.execution.SystemCachableResult;
+import frc.framework.execution.TimestampedValue;
 
 /**
  * Provides tools for systems to handle inputs and outputs
@@ -40,7 +41,7 @@ public class SystemUpdateHelper {
 	@SuppressWarnings(
 		"unchecked"
 	)
-	public <T> T getValue(ValueIdentifier<T> identifier) {
+	public <T> TimestampedValue<T> getValue(ValueIdentifier<T> identifier) {
 		if (!systemInformation.getInputIds().contains(identifier.getId())) {
 			throw new RuntimeException(
 				"The system " + system.getId() + " tried to get the value of " + identifier
@@ -48,7 +49,16 @@ public class SystemUpdateHelper {
 			);
 		}
 		
-		return (T) cachableResult.get(executionManager, identifier.getId());
+		TimestampedValue<?> result = cachableResult.get(executionManager, identifier.getId());
+		
+		if (!identifier.getType().isInstance(result.getValue())) {
+			throw new ClassCastException(
+				"Attempted to get a value of type " + identifier.getType()
+					.getName() + ", but the value we got is of type " + result.getValue().getClass()
+			);
+		}
+		
+		return (TimestampedValue<T>) result;
 	}
 	
 	/**
@@ -78,6 +88,6 @@ public class SystemUpdateHelper {
 			);
 		}
 		
-		cachableResult.set(identifier.getId(), value, priority.value);
+		cachableResult.set(identifier.getId(), value, priority);
 	}
 }

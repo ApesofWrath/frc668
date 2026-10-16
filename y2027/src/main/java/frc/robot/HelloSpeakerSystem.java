@@ -12,15 +12,15 @@ public class HelloSpeakerSystem implements System {
 	/**
 	 * The name to say hi to
 	 */
-	public static ValueIdentifier<String> NAME_VALUE = ValueIdentifier.get("/hello/name", "World");
+	public static ValueIdentifier<String> NAME_VALUE = ValueIdentifier.get("/hello/name", String.class);
 	
 	@Override
 	public void configure(SystemInformation information) {
-		information.recievesInput(NAME_VALUE);
+		information.receivesInput(NAME_VALUE);
 	}
 	
 	@Override
 	public void update(SystemUpdateHelper update) {
-		java.lang.System.out.println("Hello, " + update.getValue(NAME_VALUE));
+		java.lang.System.out.println("Hello, " + update.getValue(NAME_VALUE).orDefault("Default Name"));
 	}
 }

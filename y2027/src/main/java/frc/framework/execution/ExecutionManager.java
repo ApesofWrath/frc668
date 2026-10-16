@@ -2,10 +2,10 @@ package frc.framework.execution;
 
 import edu.wpi.first.networktables.NetworkTableInstance;
 import frc.framework.commonrobot.RobotInformation;
+import frc.framework.systems.Priority;
 import frc.framework.systems.System;
 import frc.framework.systems.SystemInformation;
 import frc.framework.systems.SystemUpdateHelper;
-import frc.framework.systems.ValueIdentifier;
 
 import java.util.HashMap;
 
@@ -13,13 +13,13 @@ import java.util.HashMap;
  * Manages the execution of and caching of systems
  */
 public class ExecutionManager {
-	private final HashMap<String, Object> values = new HashMap<>();
-	private final HashMap<String, Integer> valuePriorities = new HashMap<>();
+	private final HashMap<String, TimestampedValue<?>> values = new HashMap<>();
 	private final HashMap<System, SystemCachableResult> cachedResults = new HashMap<>();
 	/**
 	 * The plan to use for execution, containing the order that systems should be evaluated
 	 */
 	public ExecutionPlan plan;
+	private long timestamp = 0;
 	
 	/**
 	 * Evaluate the systems
@@ -27,18 +27,19 @@ public class ExecutionManager {
 	 * @param time The current time, used for caching
 	 */
 	public void execute(long time) {
-		// reset values
-		values.clear();
-		valuePriorities.clear();
+		timestamp = time;
+		values.put(
+			RobotInformation.TIMESTAMP_VALUE.getId(),
+			new TimestampedValue<Long>(time, time, Priority.Default, this)
+		);
 		
-		values.put(RobotInformation.TIMESTAMP_VALUE.getId(), time);
 		// run plan
 		for (System system : plan.systemExecutionOrder) {
 			SystemCachableResult previousResult = cachedResults.getOrDefault(system, null);
 			SystemInformation info = plan.systemToInformation.get(system);
 			
 			if (previousResult != null && info.cacheStrategy.isCacheValid(time, this, previousResult)) {
-				previousResult.apply(this);
+				previousResult.apply(this, time);
 				continue;
 			}
 			
@@ -52,10 +53,17 @@ public class ExecutionManager {
 			
 			system.update(helper);
 			
-			result.apply(this);
+			result.apply(this, time);
 			
 			cachedResults.put(system, result);
 		}
+	}
+	
+	/**
+	 * @return The current time in milliseconds
+	 */
+	public long getTimestamp() {
+		return timestamp;
 	}
 	
 	/**
@@ -69,12 +77,12 @@ public class ExecutionManager {
 	@SuppressWarnings(
 		"unchecked"
 	)
-	public <T> T getValue(String id) {
+	public <T> TimestampedValue<T> getValue(String id) {
 		if (!values.containsKey(id)) {
-			values.put(id, ValueIdentifier.get(id).getDefaultValue());
+			values.put(id, new TimestampedValue<>(null, 0, Priority.Default, this));
 		}
 		
-		return (T) values.get(id);
+		return (TimestampedValue<T>) values.get(id);
 	}
 	
 	/**
@@ -83,7 +91,7 @@ public class ExecutionManager {
 	public void publishValuesToNetworkTables() {
 		NetworkTableInstance nt = NetworkTableInstance.getDefault();
 		
-		for (java.util.Map.Entry<String, Object> pair : values.entrySet()) {
+		for (java.util.Map.Entry<String, TimestampedValue<?>> pair : values.entrySet()) {
 			String key = pair.getKey();
 			
 			if (key.startsWith("/")) {
@@ -92,7 +100,7 @@ public class ExecutionManager {
 			
 			key = "Systems/" + key;
 			
-			Object value = pair.getValue();
+			Object value = pair.getValue().getValue();
 			
 			if (value instanceof Integer integerValue) {
 				nt.getEntry(key).setInteger(integerValue);
@@ -107,19 +115,14 @@ public class ExecutionManager {
 	}
 	
 	/**
-	 * Try to assign a value to a given slot, with a certain priority
+	 * Try to assign a timestamped value to a given slot, not updating it if the time or the priority is too low
 	 *
-	 * @param key      The string identifer of the slot to assign to
-	 * @param value    The value to put in the slot
-	 * @param priority The priority to write to the slot, typically gotten by accessing
-	 *                 {@link frc.framework.systems.Priority#value}
+	 * @param key   The string identifer of the slot to assign to
+	 * @param value The value to try to set
 	 */
-	public void trySetValue(String key, Object value, int priority) {
-		int currentPriority = valuePriorities.getOrDefault(key, Integer.MIN_VALUE);
-		
-		if (priority > currentPriority) {
+	public void trySetValue(String key, TimestampedValue<?> value) {
+		if (value.takesPrecedenceOver(getValue(key))) {
 			values.put(key, value);
-			valuePriorities.put(key, priority);
 		}
 	}
 }

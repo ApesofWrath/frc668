@@ -11,7 +11,7 @@ public interface System {
 	 * Inform the evaluation planning engine of what your system is going to do.
 	 *
 	 * @param information An object with methods of providing the information about your system, most notably, the
-	 *                    {@link SystemInformation#createsOutput} and {@link SystemInformation#recievesInput} methods.
+	 *                    {@link SystemInformation#createsOutput} and {@link SystemInformation#receivesInput} methods.
 	 *                    Additionally, there is also the {@link SystemInformation#cacheStrategy} field, which can be
 	 *                    set to determine when your system is evaluated, which may be useful in performance-critical
 	 *                    contexts.

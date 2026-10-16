@@ -13,12 +13,14 @@ public class AnshSystem implements System {
 	@Override
 	public void configure(SystemInformation information) {
 		information.createsOutput(NameExtenderSystem.NAME_TO_EXTEND_VALUE);
-		information.recievesInput(UserInputInformation.CONTROLLER_INPUT);
+		information.receivesInput(UserInputInformation.CONTROLLER_INPUT);
 	}
 	
 	@Override
 	public void update(SystemUpdateHelper update) {
-		ControllerState controllerState = update.getValue(UserInputInformation.CONTROLLER_INPUT);
+		ControllerState controllerState = update.getValue(UserInputInformation.CONTROLLER_INPUT).orNull();
+		
+		if (controllerState == null) { return; }
 		
 		if (controllerState.getAxis(ControllerState.Axis.LeftThumbstickX) < 0f) {
 			update.setValue(NameExtenderSystem.NAME_TO_EXTEND_VALUE, "LeftAnsh");
