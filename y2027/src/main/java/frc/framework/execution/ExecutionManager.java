@@ -15,22 +15,19 @@ import java.util.HashMap;
 public class ExecutionManager {
 	private final HashMap<String, TimestampedValue<?>> values = new HashMap<>();
 	private final HashMap<System, SystemCachableResult> cachedResults = new HashMap<>();
-	/**
-	 * The plan to use for execution, containing the order that systems should be evaluated
-	 */
-	public ExecutionPlan plan;
 	private long timestamp = 0;
 	
 	/**
 	 * Evaluate the systems
 	 *
 	 * @param time The current time, used for caching
+	 * @param plan The plan to execute
 	 */
-	public void execute(long time) {
+	public void execute(long time, ExecutionPlan plan) {
 		timestamp = time;
 		values.put(
 			RobotInformation.TIMESTAMP_VALUE.getId(),
-			new TimestampedValue<Long>(time, time, Priority.Default, this)
+			new TimestampedValue<>(time, time, Priority.Default, this)
 		);
 		
 		// run plan

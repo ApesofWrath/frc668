@@ -25,14 +25,7 @@ public class SystemsManager {
 		isExecutionPlanDirty = true;
 	}
 	
-	/**
-	 * Posts the data evaluated by various systems to NetworkTables, which is useful for debugging.
-	 */
-	public void publishValuesToNetworkTables() {
-		manager.publishValuesToNetworkTables();
-	}
-	
-	private void rebuildExecutionPlan() {
+	private void maybeRebuildExecutionPlan() {
 		if (!isExecutionPlanDirty) {
 			return;
 		}
@@ -46,16 +39,21 @@ public class SystemsManager {
 	}
 	
 	/**
+	 * Posts the data evaluated by various systems to NetworkTables, which is useful for debugging.
+	 */
+	public void publishValuesToNetworkTables() {
+		manager.publishValuesToNetworkTables();
+	}
+	
+	/**
 	 * Evaluate the value graph, and rebuild it if need be.
 	 *
 	 * @param time The current time, which is passed to {@link frc.framework.cache.CacheStrategy}s to determine if
 	 *             systems should be re-run.
 	 */
 	public void update(long time) {
-		rebuildExecutionPlan();
+		maybeRebuildExecutionPlan();
 		
-		manager.plan = executionPlan;
-		
-		manager.execute(time);
+		manager.execute(time, executionPlan);
 	}
 }
