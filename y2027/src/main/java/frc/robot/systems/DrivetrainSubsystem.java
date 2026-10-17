@@ -27,12 +27,12 @@ public class DrivetrainSubsystem implements System {
 	
 	@Override
 	public void configure(SystemInformation information) {
-		information.recievesInput(WANTED_SPEEDS);
+		information.receivesInput(WANTED_SPEEDS);
 	}
 	
 	@Override
 	public void update(SystemUpdateHelper update) {
-		speeds.Speeds = update.getValue(WANTED_SPEEDS);
+		speeds.Speeds = update.getValue(WANTED_SPEEDS).orDefault(new ChassisSpeeds()); // not moving is a safe default
 		
 		drivetrain.setControl(speeds);
 	}

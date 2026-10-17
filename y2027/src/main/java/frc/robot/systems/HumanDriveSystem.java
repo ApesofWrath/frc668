@@ -33,8 +33,8 @@ public class HumanDriveSystem implements System {
 		
 		ChassisSpeeds speed = new ChassisSpeeds();
 		
-		speed.vxMetersPerSecond = controllerState.getAxis(Axis.LeftThumbstickX) * driveSpeed;
-		speed.vyMetersPerSecond = controllerState.getAxis(Axis.LeftThumbstickY) * driveSpeed;
+		speed.vxMetersPerSecond = controllerState.getAxis(Axis.LeftThumbstickY) * driveSpeed;
+		speed.vyMetersPerSecond = controllerState.getAxis(Axis.LeftThumbstickX) * driveSpeed;
 		speed.omegaRadiansPerSecond = controllerState.getAxis(Axis.RightThumbstickX) * rotateSpeed;
 		
 		update.setValue(DrivetrainSubsystem.WANTED_SPEEDS, speed, Priority.DriverInput);
