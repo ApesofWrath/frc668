@@ -1,0 +1,28 @@
+package frc.robot;
+
+import frc.framework.RobotMaker;
+import frc.framework.builtinnodes.ControllerNode;
+import frc.framework.nodes.NodesManager;
+
+/**
+ * Sets up the 2026 Apes of Wrath robot
+ */
+public class RobotMaker2026 implements RobotMaker {
+	@Override
+	public void setupFullRobot(NodesManager manager) {
+		manager.addNode(new HelloSpeakerNode());
+		manager.addNode(new AnshNode());
+		manager.addNode(new NameExtenderNode());
+		manager.addNode(new ControllerNode());
+	}
+	
+	@Override
+	public void setupRealHardware(NodesManager manager) {
+		
+	}
+	
+	@Override
+	public void setupSimulation(NodesManager manager) {
+		
+	}
+}
