@@ -2,6 +2,7 @@ package frc.robot;
 
 import frc.framework.RobotMaker;
 import frc.framework.builtinnodes.ControllerNode;
+import frc.framework.commonrobot.PIDConstants;
 import frc.framework.nodes.NodesManager;
 
 /**
@@ -14,6 +15,7 @@ public class RobotMaker2026 implements RobotMaker {
 		manager.addNode(new AnshNode());
 		manager.addNode(new NameExtenderNode());
 		manager.addNode(new ControllerNode());
+		addMotor(manager, MotorId.IntakeRoller, 0, new PIDConstants().withP(1).withI(0).withD(0));
 	}
 	
 	@Override
