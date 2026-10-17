@@ -1,7 +1,7 @@
 package frc.framework.commonrobot;
 
 import frc.framework.OpMode;
-import frc.framework.systems.ValueIdentifier;
+import frc.framework.nodes.ValueIdentifier;
 
 /**
  * Contains various ValueIdentifies relating to HAL information.

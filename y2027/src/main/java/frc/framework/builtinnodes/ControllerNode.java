@@ -1,28 +1,28 @@
-package frc.framework.builtinsystems;
+package frc.framework.builtinnodes;
 
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
 import frc.framework.commonrobot.ControllerState;
 import frc.framework.commonrobot.UserInputInformation;
-import frc.framework.systems.Priority;
-import frc.framework.systems.System;
-import frc.framework.systems.SystemInformation;
-import frc.framework.systems.SystemUpdateHelper;
+import frc.framework.nodes.Node;
+import frc.framework.nodes.NodeInformation;
+import frc.framework.nodes.NodeUpdateHelper;
+import frc.framework.nodes.Priority;
 
 /**
- * A system that outputs controller data to process user input
+ * A node that outputs controller data to process user input
  */
-public class ControllerSystem implements System {
+public class ControllerNode implements Node {
 	private final XboxController xbox = new XboxController(0);
 	private final Joystick joystick = new Joystick(0);
 	
 	@Override
-	public void configure(SystemInformation information) {
+	public void configure(NodeInformation information) {
 		information.createsOutput(UserInputInformation.CONTROLLER_INPUT);
 	}
 	
 	@Override
-	public void update(SystemUpdateHelper update) {
+	public void update(NodeUpdateHelper update) {
 		ControllerState state = new ControllerState();
 		
 		if (joystick.isConnected()) {

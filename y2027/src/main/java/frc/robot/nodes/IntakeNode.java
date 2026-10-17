@@ -1,17 +1,17 @@
-package frc.robot.systems;
+package frc.robot.nodes;
 
-import frc.framework.systems.System;
-import frc.framework.systems.SystemInformation;
-import frc.framework.systems.SystemUpdateHelper;
 import edu.wpi.first.wpilibj.DriverStation;
+import frc.framework.nodes.Node;
+import frc.framework.nodes.NodeInformation;
+import frc.framework.nodes.NodeUpdateHelper;
 
-public class IntakeSubsystem implements System {
+public class IntakeNode implements Node {
 	
 	boolean IntakeTeleopInit = DriverStation.isEnabled();
 	boolean IntakeDeployed = false;
 	
 	@Override
-	public void configure(SystemInformation information) {
+	public void configure(NodeInformation information) {
 		
 		if (IntakeTeleopInit) {
 			
@@ -19,7 +19,7 @@ public class IntakeSubsystem implements System {
 	}
 	
 	@Override
-	public void update(SystemUpdateHelper update) {
+	public void update(NodeUpdateHelper update) {
 		// TODO Auto-generated method stub
 		throw new UnsupportedOperationException("Unimplemented method 'update'");
 	}

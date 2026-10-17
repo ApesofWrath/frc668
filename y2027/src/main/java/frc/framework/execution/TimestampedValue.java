@@ -1,6 +1,6 @@
 package frc.framework.execution;
 
-import frc.framework.systems.Priority;
+import frc.framework.nodes.Priority;
 
 /**
  * Represents a value with a given priority at a given time

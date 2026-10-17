@@ -1,54 +1,54 @@
 package frc.framework.execution;
 
-import frc.framework.systems.System;
-import frc.framework.systems.SystemInformation;
+import frc.framework.nodes.Node;
+import frc.framework.nodes.NodeInformation;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
- * Represents the evaluation order of various systems
+ * Represents the evaluation order of various nodes
  */
 public class ExecutionPlan {
-	private final ArrayList<System> allSystems = new ArrayList<>();
-	private final ArrayList<System> systemsBeingPlanned = new ArrayList<>();
+	private final ArrayList<Node> allNodes = new ArrayList<>();
+	private final ArrayList<Node> nodesBeingPlanned = new ArrayList<>();
 	private final ArrayList<String> evaluatedValues = new ArrayList<>();
 	/**
-	 * The order in which systems are to be evaluated
+	 * The order in which nodes are to be evaluated
 	 */
-	public ArrayList<System> systemExecutionOrder = new ArrayList<>();
+	public ArrayList<Node> nodeExecutionOrder = new ArrayList<>();
 	/**
-	 * A mapping of systems to a reused SystemInformation class configured by the system
+	 * A mapping of nodes to a reused nodeInformation class configured by the node
 	 */
-	public HashMap<System, SystemInformation> systemToInformation = new HashMap<>();
+	public HashMap<Node, NodeInformation> nodeToInformation = new HashMap<>();
 	
 	/**
-	 * Add various systems to be planned
+	 * Add various nodes to be planned
 	 *
-	 * @param systems The systems to be planned
+	 * @param nodes The nodes to be planned
 	 */
-	public void addSystems(ArrayList<System> systems) {
-		allSystems.addAll(systems);
+	public void addNodes(ArrayList<Node> nodes) {
+		allNodes.addAll(nodes);
 	}
 	
-	private void addSystemToExecutionPlan(System system, SystemInformation info) {
-		if (systemExecutionOrder.contains(system)) {
+	private void addNodeToExecutionPlan(Node node, NodeInformation info) {
+		if (nodeExecutionOrder.contains(node)) {
 			return;
 		}
 		
-		if (systemsBeingPlanned.contains(system)) {
-			throw new RuntimeException("System depends on its own outputs: " + system.getId());
+		if (nodesBeingPlanned.contains(node)) {
+			throw new RuntimeException("System depends on its own outputs: " + node.getId());
 		}
 		
-		systemsBeingPlanned.add(system);
+		nodesBeingPlanned.add(node);
 		
 		for (String input : info.getInputIds()) {
 			addValueToExecutionPlan(input);
 		}
 		
-		systemsBeingPlanned.remove(system);
+		nodesBeingPlanned.remove(node);
 		
-		systemExecutionOrder.add(system);
+		nodeExecutionOrder.add(node);
 	}
 	
 	private void addValueToExecutionPlan(String id) {
@@ -56,11 +56,11 @@ public class ExecutionPlan {
 			return;
 		}
 		
-		for (System system : allSystems) {
-			SystemInformation info = systemToInformation.get(system);
+		for (Node node : allNodes) {
+			NodeInformation info = nodeToInformation.get(node);
 			
 			if (info.getOutputIds().contains(id)) {
-				addSystemToExecutionPlan(system, info);
+				addNodeToExecutionPlan(node, info);
 			}
 		}
 		
@@ -68,25 +68,25 @@ public class ExecutionPlan {
 	}
 	
 	private void analyze() {
-		for (System system : allSystems) {
-			SystemInformation information = new SystemInformation();
+		for (Node node : allNodes) {
+			NodeInformation information = new NodeInformation();
 			
-			system.configure(information);
+			node.configure(information);
 			
-			systemToInformation.put(system, information);
+			nodeToInformation.put(node, information);
 		}
 	}
 	
 	/**
-	 * Construct an execution order from all the currently stored systems
+	 * Construct an execution order from all the currently stored nodes
 	 */
 	public void build() {
 		analyze();
 		
-		for (System system : allSystems) {
-			SystemInformation info = systemToInformation.get(system);
+		for (Node node : allNodes) {
+			NodeInformation info = nodeToInformation.get(node);
 			
-			addSystemToExecutionPlan(system, info);
+			addNodeToExecutionPlan(node, info);
 		}
 	}
 	
@@ -94,9 +94,9 @@ public class ExecutionPlan {
 	 * Print the current execution plan to the console for debugging purposes
 	 */
 	public void debug() {
-		java.lang.System.out.println("EXECUTION ORDER:");
-		for (System sys : systemExecutionOrder) {
-			java.lang.System.out.println("-- " + sys.getId());
+		System.out.println("EXECUTION ORDER:");
+		for (Node sys : nodeExecutionOrder) {
+			System.out.println("-- " + sys.getId());
 		}
 	}
 }

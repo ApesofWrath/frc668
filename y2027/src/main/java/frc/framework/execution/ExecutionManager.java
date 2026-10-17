@@ -2,23 +2,23 @@ package frc.framework.execution;
 
 import edu.wpi.first.networktables.NetworkTableInstance;
 import frc.framework.commonrobot.RobotInformation;
-import frc.framework.systems.Priority;
-import frc.framework.systems.System;
-import frc.framework.systems.SystemInformation;
-import frc.framework.systems.SystemUpdateHelper;
+import frc.framework.nodes.Node;
+import frc.framework.nodes.NodeInformation;
+import frc.framework.nodes.NodeUpdateHelper;
+import frc.framework.nodes.Priority;
 
 import java.util.HashMap;
 
 /**
- * Manages the execution of and caching of systems
+ * Manages the execution of and caching of nodes
  */
 public class ExecutionManager {
 	private final HashMap<String, TimestampedValue<?>> values = new HashMap<>();
-	private final HashMap<System, SystemCachableResult> cachedResults = new HashMap<>();
+	private final HashMap<Node, NodeCachableResult> cachedResults = new HashMap<>();
 	private long timestamp = 0;
 	
 	/**
-	 * Evaluate the systems
+	 * Evaluate the nodes
 	 *
 	 * @param time The current time, used for caching
 	 * @param plan The plan to execute
@@ -31,28 +31,23 @@ public class ExecutionManager {
 		);
 		
 		// run plan
-		for (System system : plan.systemExecutionOrder) {
-			SystemCachableResult previousResult = cachedResults.getOrDefault(system, null);
-			SystemInformation info = plan.systemToInformation.get(system);
+		for (Node node : plan.nodeExecutionOrder) {
+			NodeCachableResult previousResult = cachedResults.getOrDefault(node, null);
+			NodeInformation info = plan.nodeToInformation.get(node);
 			
 			if (previousResult != null && info.cacheStrategy.isCacheValid(time, this, previousResult)) {
 				previousResult.apply(this, time);
 				continue;
 			}
 			
-			SystemCachableResult result = new SystemCachableResult(time);
-			SystemUpdateHelper helper = new SystemUpdateHelper(
-				system,
-				plan.systemToInformation.get(system),
-				this,
-				result
-			);
+			NodeCachableResult result = new NodeCachableResult(time);
+			NodeUpdateHelper helper = new NodeUpdateHelper(node, plan.nodeToInformation.get(node), this, result);
 			
-			system.update(helper);
+			node.update(helper);
 			
 			result.apply(this, time);
 			
-			cachedResults.put(system, result);
+			cachedResults.put(node, result);
 		}
 	}
 	
