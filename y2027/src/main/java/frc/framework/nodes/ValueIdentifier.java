@@ -1,4 +1,4 @@
-package frc.framework.systems;
+package frc.framework.nodes;
 
 import java.util.HashMap;
 import java.util.InputMismatchException;

@@ -1,6 +1,6 @@
 package frc.framework.execution;
 
-import frc.framework.systems.Priority;
+import frc.framework.nodes.Priority;
 
 import java.util.HashMap;
 import java.util.Map.Entry;
@@ -8,7 +8,7 @@ import java.util.Map.Entry;
 /**
  * Represents the outputs of a system at a given type
  */
-public class SystemCachableResult {
+public class NodeCachableResult {
 	/**
 	 * The time at which the system was evaluated
 	 */
@@ -31,7 +31,7 @@ public class SystemCachableResult {
 	 *
 	 * @param time The time value of the result
 	 */
-	public SystemCachableResult(long time) {
+	public NodeCachableResult(long time) {
 		this.timeCreated = time;
 	}
 	

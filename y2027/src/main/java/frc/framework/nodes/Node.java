@@ -1,4 +1,4 @@
-package frc.framework.systems;
+package frc.framework.nodes;
 
 /**
  * A node in the evaluation graph. A system takes in inputs and returns outputs.
@@ -6,17 +6,17 @@ package frc.framework.systems;
  * @see #configure
  * @see #update
  */
-public interface System {
+public interface Node {
 	/**
 	 * Inform the evaluation planning engine of what your system is going to do.
 	 *
 	 * @param information An object with methods of providing the information about your system, most notably, the
-	 *                    {@link SystemInformation#createsOutput} and {@link SystemInformation#receivesInput} methods.
-	 *                    Additionally, there is also the {@link SystemInformation#cacheStrategy} field, which can be
-	 *                    set to determine when your system is evaluated, which may be useful in performance-critical
+	 *                    {@link NodeInformation#createsOutput} and {@link NodeInformation#receivesInput} methods.
+	 *                    Additionally, there is also the {@link NodeInformation#cacheStrategy} field, which can be set
+	 *                    to determine when your system is evaluated, which may be useful in performance-critical
 	 *                    contexts.
 	 */
-	void configure(SystemInformation information);
+	void configure(NodeInformation information);
 	
 	/**
 	 * An identifier uniquely distinguishing this system from others in log files, etc.
@@ -32,10 +32,10 @@ public interface System {
 	 * Take in the inputs of your system, and create various outputs, or, in the case of physical hardware, apply
 	 * changes based on the inputs.
 	 *
-	 * @param update An object with {@link SystemUpdateHelper#getValue} and {@link SystemUpdateHelper#setValue} methods,
+	 * @param update An object with {@link NodeUpdateHelper#getValue} and {@link NodeUpdateHelper#setValue} methods,
 	 *               allowing you to take in inputs and create outputs for your class. Please note that if you read or
-	 *               write a value that was not explicitly declared in {@link System#configure}, the methods will throw
-	 *               an exception.
+	 *               write a value that was not explicitly declared in {@link Node#configure}, the methods will throw an
+	 *               exception.
 	 */
-	void update(SystemUpdateHelper update);
+	void update(NodeUpdateHelper update);
 }

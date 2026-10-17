@@ -1,6 +1,6 @@
 package frc.framework.commonrobot;
 
-import frc.framework.systems.ValueIdentifier;
+import frc.framework.nodes.ValueIdentifier;
 
 /**
  * Contains various common ValueIdentifiers for I/O

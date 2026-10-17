@@ -1,22 +1,22 @@
-package frc.framework.systems;
+package frc.framework.nodes;
 
 import edu.wpi.first.wpilibj.TimedRobot;
 import frc.framework.OpMode;
 import frc.framework.RobotMaker;
-import frc.framework.builtinsystems.HALRobotInformationSystem;
+import frc.framework.builtinnodes.HALRobotInformationNode;
 
 import java.util.Date;
 
 /**
  * A utility class that manages the HAL information bridge and framework management for an FRC robot.
  */
-public class SystemsRobot extends TimedRobot {
-	private final HALRobotInformationSystem robotInformationSystem = new HALRobotInformationSystem();
+public class NodesRobot extends TimedRobot {
+	private final HALRobotInformationNode robotInformationNode = new HALRobotInformationNode();
 	private final RobotMaker robotMaker;
 	/**
 	 * The current systems framework manager
 	 */
-	public SystemsManager systemsManager = new SystemsManager();
+	public NodesManager nodesManager = new NodesManager();
 	private boolean isConfigured = false;
 	
 	/**
@@ -24,7 +24,7 @@ public class SystemsRobot extends TimedRobot {
 	 *
 	 * @param maker The template used to instantiate the robot systems
 	 */
-	public SystemsRobot(RobotMaker maker) {
+	public NodesRobot(RobotMaker maker) {
 		robotMaker = maker;
 	}
 	
@@ -52,13 +52,13 @@ public class SystemsRobot extends TimedRobot {
 	
 	private void maybeConfigure() {
 		if (!isConfigured) {
-			robotMaker.setupFullRobot(systemsManager);
+			robotMaker.setupFullRobot(nodesManager);
 			if (isReal()) {
-				robotMaker.setupRealHardware(systemsManager);
+				robotMaker.setupRealHardware(nodesManager);
 			} else {
-				robotMaker.setupSimulation(systemsManager);
+				robotMaker.setupSimulation(nodesManager);
 			}
-			systemsManager.addSystem(robotInformationSystem);
+			nodesManager.addNode(robotInformationNode);
 			isConfigured = true;
 		}
 	}
@@ -92,8 +92,8 @@ public class SystemsRobot extends TimedRobot {
 	 */
 	public void update(OpMode mode) {
 		maybeConfigure();
-		robotInformationSystem.opMode = mode;
-		systemsManager.update(new Date().getTime());
-		systemsManager.publishValuesToNetworkTables();
+		robotInformationNode.opMode = mode;
+		nodesManager.update(new Date().getTime());
+		nodesManager.publishValuesToNetworkTables();
 	}
 }

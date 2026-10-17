@@ -1,4 +1,4 @@
-package frc.framework.systems;
+package frc.framework.nodes;
 
 /**
  * An enumeration where {@link #value} is a number indicating the priority that outputted values should have, higher

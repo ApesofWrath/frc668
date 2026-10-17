@@ -2,10 +2,7 @@ package frc.framework.execution;
 
 import edu.wpi.first.networktables.NetworkTableInstance;
 import frc.framework.commonrobot.RobotInformation;
-import frc.framework.systems.Priority;
-import frc.framework.systems.System;
-import frc.framework.systems.SystemInformation;
-import frc.framework.systems.SystemUpdateHelper;
+import frc.framework.nodes.*;
 
 import java.util.HashMap;
 
@@ -14,7 +11,7 @@ import java.util.HashMap;
  */
 public class ExecutionManager {
 	private final HashMap<String, TimestampedValue<?>> values = new HashMap<>();
-	private final HashMap<System, SystemCachableResult> cachedResults = new HashMap<>();
+	private final HashMap<Node, NodeCachableResult> cachedResults = new HashMap<>();
 	private long timestamp = 0;
 	
 	/**
@@ -31,28 +28,23 @@ public class ExecutionManager {
 		);
 		
 		// run plan
-		for (System system : plan.systemExecutionOrder) {
-			SystemCachableResult previousResult = cachedResults.getOrDefault(system, null);
-			SystemInformation info = plan.systemToInformation.get(system);
+		for (Node node : plan.nodeExecutionOrder) {
+			NodeCachableResult previousResult = cachedResults.getOrDefault(node, null);
+			NodeInformation info = plan.nodeToInformation.get(node);
 			
 			if (previousResult != null && info.cacheStrategy.isCacheValid(time, this, previousResult)) {
 				previousResult.apply(this, time);
 				continue;
 			}
 			
-			SystemCachableResult result = new SystemCachableResult(time);
-			SystemUpdateHelper helper = new SystemUpdateHelper(
-				system,
-				plan.systemToInformation.get(system),
-				this,
-				result
-			);
+			NodeCachableResult result = new NodeCachableResult(time);
+			NodeUpdateHelper helper = new NodeUpdateHelper(node, plan.nodeToInformation.get(node), this, result);
 			
-			system.update(helper);
+			node.update(helper);
 			
 			result.apply(this, time);
 			
-			cachedResults.put(system, result);
+			cachedResults.put(node, result);
 		}
 	}
 	

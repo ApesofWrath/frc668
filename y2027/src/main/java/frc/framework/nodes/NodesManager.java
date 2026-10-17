@@ -1,4 +1,4 @@
-package frc.framework.systems;
+package frc.framework.nodes;
 
 import frc.framework.execution.ExecutionManager;
 import frc.framework.execution.ExecutionPlan;
@@ -8,8 +8,8 @@ import java.util.ArrayList;
 /**
  * An object that delegates the planning and execution of a value graph, represented by various systems.
  */
-public class SystemsManager {
-	private final ArrayList<System> systems = new ArrayList<>();
+public class NodesManager {
+	private final ArrayList<Node> nodes = new ArrayList<>();
 	private final ExecutionManager manager = new ExecutionManager();
 	private boolean isExecutionPlanDirty = true;
 	private ExecutionPlan executionPlan;
@@ -17,10 +17,10 @@ public class SystemsManager {
 	/**
 	 * Add a given system to the value graph
 	 *
-	 * @param system The system that should be added to the value graph
+	 * @param node The system that should be added to the value graph
 	 */
-	public void addSystem(System system) {
-		systems.add(system);
+	public void addNode(Node node) {
+		nodes.add(node);
 		
 		isExecutionPlanDirty = true;
 	}
@@ -34,7 +34,7 @@ public class SystemsManager {
 		
 		executionPlan = new ExecutionPlan();
 		
-		executionPlan.addSystems(systems);
+		executionPlan.addNodes(nodes);
 		executionPlan.build();
 	}
 	

@@ -1,6 +1,6 @@
 package frc.framework;
 
-import frc.framework.systems.SystemsManager;
+import frc.framework.nodes.NodesManager;
 
 public interface RobotMaker {
 	/**
@@ -8,7 +8,7 @@ public interface RobotMaker {
 	 *
 	 * @param manager The SystemsManager to add the systems to
 	 */
-	void setupFullRobot(SystemsManager manager);
+	void setupFullRobot(NodesManager manager);
 	
 	
 	/**
@@ -16,12 +16,12 @@ public interface RobotMaker {
 	 *
 	 * @param manager The SystemsManager to add the systems to
 	 */
-	void setupRealHardware(SystemsManager manager);
+	void setupRealHardware(NodesManager manager);
 	
 	/**
 	 * Add the systems relating to simulation, whether it's a replay or not.
 	 *
 	 * @param manager The SystemsManager to add the systems to
 	 */
-	void setupSimulation(SystemsManager manager);
+	void setupSimulation(NodesManager manager);
 }

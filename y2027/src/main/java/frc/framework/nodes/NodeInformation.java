@@ -1,4 +1,4 @@
-package frc.framework.systems;
+package frc.framework.nodes;
 
 import frc.framework.cache.CacheStrategy;
 import frc.framework.cache.NoCacheStrategy;
@@ -8,7 +8,7 @@ import java.util.ArrayList;
 /**
  * An object used to generate execution plans for systems and decide when to re-evaluate them.
  */
-public class SystemInformation {
+public class NodeInformation {
 	private final ArrayList<String> inputIds = new ArrayList<>();
 	private final ArrayList<String> outputIds = new ArrayList<>();
 	
