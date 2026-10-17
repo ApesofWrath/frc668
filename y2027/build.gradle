@@ -136,8 +136,4 @@ spotless {
 		eclipse('4.41').configFile('eclipse-prefs.xml').sortMembersEnabled(true)
 		cleanthat()
 	}
-	groovyGradle {
-		target '*.gradle' // default target of groovyGradle
-		greclipse().configFile('eclipse-prefs.xml')
-	}
 }
