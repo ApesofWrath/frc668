@@ -4,6 +4,8 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import frc.framework.OpMode;
 import frc.framework.RobotMaker;
 import frc.framework.builtinnodes.HALRobotInformationNode;
+import frc.framework.logging.LogFrame;
+import frc.framework.logging.LogWriter;
 
 import java.util.Date;
 
@@ -12,7 +14,9 @@ import java.util.Date;
  */
 public class NodesRobot extends TimedRobot {
 	private final HALRobotInformationNode robotInformationNode = new HALRobotInformationNode();
+	private final LogWriter logger = new LogWriter(LogWriter.getLogPath());
 	private final RobotMaker robotMaker;
+	
 	/**
 	 * The current nodes framework manager
 	 */
@@ -93,7 +97,14 @@ public class NodesRobot extends TimedRobot {
 	public void update(OpMode mode) {
 		maybeConfigure();
 		robotInformationNode.opMode = mode;
-		nodesManager.update(new Date().getTime());
+		
+		LogFrame frame = new LogFrame();
+		
+		long time = new Date().getTime();
+		
+		nodesManager.update(time, frame);
+		logger.writeFrame(time, frame);
+		
 		nodesManager.publishValuesToNetworkTables();
 	}
 }

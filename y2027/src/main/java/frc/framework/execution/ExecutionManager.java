@@ -2,6 +2,7 @@ package frc.framework.execution;
 
 import edu.wpi.first.networktables.NetworkTableInstance;
 import frc.framework.commonrobot.RobotInformation;
+import frc.framework.logging.LogFrame;
 import frc.framework.nodes.Node;
 import frc.framework.nodes.NodeInformation;
 import frc.framework.nodes.NodeUpdateHelper;
@@ -20,10 +21,11 @@ public class ExecutionManager {
 	/**
 	 * Evaluate the nodes
 	 *
-	 * @param time The current time, used for caching
-	 * @param plan The plan to execute
+	 * @param time  The current time, used for caching
+	 * @param frame The logging frame, used to capture the internal computations of the robot
+	 * @param plan  The plan to execute
 	 */
-	public void execute(long time, ExecutionPlan plan) {
+	public void execute(long time, LogFrame frame, ExecutionPlan plan) {
 		timestamp = time;
 		values.put(
 			RobotInformation.TIMESTAMP_VALUE.getId(),
@@ -37,6 +39,7 @@ public class ExecutionManager {
 			
 			if (previousResult != null && info.cacheStrategy.isCacheValid(time, this, previousResult)) {
 				previousResult.apply(this, time);
+				previousResult.storeToLog(node.getId(), frame);
 				continue;
 			}
 			
@@ -46,8 +49,17 @@ public class ExecutionManager {
 			node.update(helper);
 			
 			result.apply(this, time);
+			result.storeToLog(node.getId(), frame);
 			
 			cachedResults.put(node, result);
+		}
+		
+		for (String key : values.keySet()) {
+			TimestampedValue<?> value = values.get(key);
+			
+			frame.set("/values/" + key, value.getValue());
+			frame.set("/values/" + key + "/timestamp", value.getTimestamp());
+			frame.set("/values/" + key + "/priority", value.getPriority().name());
 		}
 	}
 	

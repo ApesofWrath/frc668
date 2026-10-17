@@ -1,7 +1,9 @@
 package frc.framework.execution;
 
+import frc.framework.logging.LogFrame;
 import frc.framework.nodes.Priority;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
@@ -105,5 +107,26 @@ public class NodeCachableResult {
 	public void set(String key, Object value, Priority priority) {
 		values.put(key, value);
 		priorities.put(key, priority);
+	}
+	
+	/**
+	 * Store the evaluation data to a log file for observability purposes
+	 *
+	 * @param nodeId The node ID to group output data under.
+	 * @param frame  The log frame to store data to
+	 */
+	public void storeToLog(String nodeId, LogFrame frame) {
+		ArrayList<String> outputs = new ArrayList<>(values.keySet());
+		
+		frame.set("/node_outputs/" + nodeId + "/timestamp", timeCreated);
+		frame.set("/node_outputs/" + nodeId + "/outputs", outputs.toArray());
+		
+		for (String key : values.keySet()) {
+			Object value = values.get(key);
+			Priority priority = priorities.get(key);
+			
+			frame.set("/node_outputs/" + nodeId + "/outputs/" + key + "/value", value);
+			frame.set("/node_outputs/" + nodeId + "/outputs/" + key + "/priority", priority.name());
+		}
 	}
 }

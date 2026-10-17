@@ -1,6 +1,9 @@
 package frc.framework.commonrobot;
 
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * Represents the inputs of a controller at a given instant
@@ -25,7 +28,18 @@ public class ControllerState {
 		/**
 		 * The vertical position of the right thumbstick
 		 */
-		RightThumbstickY,
+		RightThumbstickY;
+		
+		/**
+		 * Turn an ordinal into the representative axis ID
+		 *
+		 * @param ordinal The integer ordinal
+		 *
+		 * @return The axis ID
+		 */
+		public static Axis fromOrdinal(int ordinal) {
+			return values()[ordinal];
+		}
 	}
 	
 	/**
@@ -75,12 +89,48 @@ public class ControllerState {
 		/**
 		 * The Xbox button
 		 */
-		Start,
+		Start;
+		
+		/**
+		 * Turn an ordinal into the representative button ID
+		 *
+		 * @param ordinal The integer ordinal
+		 *
+		 * @return The button ID
+		 */
+		public static Button fromOrdinal(int ordinal) {
+			return values()[ordinal];
+		}
 	}
 	
 	private final HashMap<Axis, Double> axisData = new HashMap<>();
 	
 	private final HashMap<Button, Boolean> buttonStates = new HashMap<>();
+	
+	@Override
+	public boolean equals(Object o) {
+		if (o == null || getClass() != o.getClass()) { return false; }
+		ControllerState that = (ControllerState) o;
+		return Objects.equals(axisData, that.axisData) && Objects.equals(buttonStates, that.buttonStates);
+	}
+	
+	/**
+	 * Get the hashmap of axis ID to axis value
+	 *
+	 * @return The axis hashmap
+	 */
+	public Set<Map.Entry<Axis, Double>> getAllAxes() {
+		return axisData.entrySet();
+	}
+	
+	/**
+	 * Get the hashmap of button ID to button state
+	 *
+	 * @return The button hashmap
+	 */
+	public Set<Map.Entry<Button, Boolean>> getAllButtons() {
+		return buttonStates.entrySet();
+	}
 	
 	/**
 	 * Return the value of an analog input
@@ -102,6 +152,11 @@ public class ControllerState {
 	 */
 	public boolean getButtonState(Button button) {
 		return buttonStates.getOrDefault(button, false);
+	}
+	
+	@Override
+	public int hashCode() {
+		return Objects.hash(axisData, buttonStates);
 	}
 	
 	/**
