@@ -1,22 +1,21 @@
 package frc.robot.systems;
 
 import com.ctre.phoenix6.swerve.SwerveRequest;
-
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import frc.framework.systems.System;
 import frc.framework.systems.SystemInformation;
 import frc.framework.systems.SystemUpdateHelper;
+import frc.framework.systems.ValueIdentifier;
 import frc.robot.TunerConstants;
 import frc.robot.TunerConstants.TunerSwerveDrivetrain;
-import frc.framework.systems.*;
 
 public class DrivetrainSubsystem implements System {
 	public static ValueIdentifier<ChassisSpeeds> WANTED_SPEEDS = ValueIdentifier.get(
 		"/drivetrain/wanted_speed",
-		new ChassisSpeeds()
+		ChassisSpeeds.class
 	);
 	
-	private TunerSwerveDrivetrain drivetrain = new TunerSwerveDrivetrain(
+	private final TunerSwerveDrivetrain drivetrain = new TunerSwerveDrivetrain(
 		TunerConstants.DrivetrainConstants,
 		TunerConstants.FrontLeft,
 		TunerConstants.FrontRight,
@@ -24,7 +23,7 @@ public class DrivetrainSubsystem implements System {
 		TunerConstants.BackRight
 	);
 	
-	private SwerveRequest.ApplyRobotSpeeds speeds = new SwerveRequest.ApplyRobotSpeeds();
+	private final SwerveRequest.ApplyRobotSpeeds speeds = new SwerveRequest.ApplyRobotSpeeds();
 	
 	@Override
 	public void configure(SystemInformation information) {
