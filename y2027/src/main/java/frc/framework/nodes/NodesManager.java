@@ -2,6 +2,7 @@ package frc.framework.nodes;
 
 import frc.framework.execution.ExecutionManager;
 import frc.framework.execution.ExecutionPlan;
+import frc.framework.logging.LogFrame;
 
 import java.util.ArrayList;
 
@@ -48,12 +49,16 @@ public class NodesManager {
 	/**
 	 * Evaluate the value graph, and rebuild it if need be.
 	 *
-	 * @param time The current time, which is passed to {@link frc.framework.cache.CacheStrategy}s to determine if nodes
-	 *             should be re-run.
+	 * @param time  The current time, which is passed to {@link frc.framework.cache.CacheStrategy}s to determine if
+	 *              nodes
+	 *              should be re-run.
+	 * @param frame The logging frame used to capture the behavior of the robot at any given time
 	 */
-	public void update(long time) {
+	public void update(long time, LogFrame frame) {
 		maybeRebuildExecutionPlan();
 		
-		manager.execute(time, executionPlan);
+		executionPlan.storeData(frame);
+		
+		manager.execute(time, frame, executionPlan);
 	}
 }

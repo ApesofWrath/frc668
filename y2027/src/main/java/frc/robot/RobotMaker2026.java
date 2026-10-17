@@ -14,6 +14,7 @@ public class RobotMaker2026 implements RobotMaker {
 		manager.addNode(new AnshNode());
 		manager.addNode(new NameExtenderNode());
 		manager.addNode(new ControllerNode());
+		manager.addNode(new OpmodeArraySystem());
 	}
 	
 	@Override
