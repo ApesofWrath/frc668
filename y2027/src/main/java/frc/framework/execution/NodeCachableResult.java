@@ -6,11 +6,11 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 
 /**
- * Represents the outputs of a system at a given type
+ * Represents the outputs of a node at a given type
  */
 public class NodeCachableResult {
 	/**
-	 * The time at which the system was evaluated
+	 * The time at which the node was evaluated
 	 */
 	public long timeCreated;
 	/**
@@ -22,7 +22,7 @@ public class NodeCachableResult {
 	 */
 	public HashMap<String, Priority> priorities = new HashMap<>();
 	/**
-	 * A mapping from string identifiers to values read during the evaluation of a system
+	 * A mapping from string identifiers to values read during the evaluation of a node
 	 */
 	public HashMap<String, TimestampedValue<?>> accessedValues = new HashMap<>();
 	
@@ -51,7 +51,7 @@ public class NodeCachableResult {
 	}
 	
 	/**
-	 * Returns true if all the values read by the system during computation match the current values
+	 * Returns true if all the values read by the node during computation match the current values
 	 *
 	 * @param manager The ExecutionManager to read the values from
 	 *

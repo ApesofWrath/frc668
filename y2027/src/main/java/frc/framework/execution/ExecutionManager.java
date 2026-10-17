@@ -2,12 +2,15 @@ package frc.framework.execution;
 
 import edu.wpi.first.networktables.NetworkTableInstance;
 import frc.framework.commonrobot.RobotInformation;
-import frc.framework.nodes.*;
+import frc.framework.nodes.Node;
+import frc.framework.nodes.NodeInformation;
+import frc.framework.nodes.NodeUpdateHelper;
+import frc.framework.nodes.Priority;
 
 import java.util.HashMap;
 
 /**
- * Manages the execution of and caching of systems
+ * Manages the execution of and caching of nodes
  */
 public class ExecutionManager {
 	private final HashMap<String, TimestampedValue<?>> values = new HashMap<>();
@@ -15,7 +18,7 @@ public class ExecutionManager {
 	private long timestamp = 0;
 	
 	/**
-	 * Evaluate the systems
+	 * Evaluate the nodes
 	 *
 	 * @param time The current time, used for caching
 	 * @param plan The plan to execute

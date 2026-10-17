@@ -7,25 +7,25 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
- * Represents the evaluation order of various systems
+ * Represents the evaluation order of various nodes
  */
 public class ExecutionPlan {
 	private final ArrayList<Node> allNodes = new ArrayList<>();
 	private final ArrayList<Node> nodesBeingPlanned = new ArrayList<>();
 	private final ArrayList<String> evaluatedValues = new ArrayList<>();
 	/**
-	 * The order in which systems are to be evaluated
+	 * The order in which nodes are to be evaluated
 	 */
 	public ArrayList<Node> nodeExecutionOrder = new ArrayList<>();
 	/**
-	 * A mapping of systems to a reused SystemInformation class configured by the system
+	 * A mapping of nodes to a reused nodeInformation class configured by the node
 	 */
 	public HashMap<Node, NodeInformation> nodeToInformation = new HashMap<>();
 	
 	/**
-	 * Add various systems to be planned
+	 * Add various nodes to be planned
 	 *
-	 * @param nodes The systems to be planned
+	 * @param nodes The nodes to be planned
 	 */
 	public void addNodes(ArrayList<Node> nodes) {
 		allNodes.addAll(nodes);
@@ -78,7 +78,7 @@ public class ExecutionPlan {
 	}
 	
 	/**
-	 * Construct an execution order from all the currently stored systems
+	 * Construct an execution order from all the currently stored nodes
 	 */
 	public void build() {
 		analyze();

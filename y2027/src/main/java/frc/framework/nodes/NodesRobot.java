@@ -14,15 +14,15 @@ public class NodesRobot extends TimedRobot {
 	private final HALRobotInformationNode robotInformationNode = new HALRobotInformationNode();
 	private final RobotMaker robotMaker;
 	/**
-	 * The current systems framework manager
+	 * The current nodes framework manager
 	 */
 	public NodesManager nodesManager = new NodesManager();
 	private boolean isConfigured = false;
 	
 	/**
-	 * Create a SystemsRobot
+	 * Create a nodesRobot
 	 *
-	 * @param maker The template used to instantiate the robot systems
+	 * @param maker The template used to instantiate the robot nodes
 	 */
 	public NodesRobot(RobotMaker maker) {
 		robotMaker = maker;
