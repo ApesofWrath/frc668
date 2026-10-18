@@ -12,5 +12,5 @@ public class UserInputInformation {
 	public static final ValueIdentifier<ControllerState> CONTROLLER_INPUT = ValueIdentifier.get(
 		"/controller/state",
 		ControllerState.class
-	);
+	).replayed();
 }
