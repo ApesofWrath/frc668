@@ -3,6 +3,8 @@ package frc.robot;
 import frc.framework.RobotMaker;
 import frc.framework.builtinnodes.ControllerNode;
 import frc.framework.nodes.NodesManager;
+import frc.robot.nodes.DrivetrainNode;
+import frc.robot.nodes.HumanDriveNode;
 
 /**
  * Sets up the 2026 Apes of Wrath robot
@@ -10,9 +12,8 @@ import frc.framework.nodes.NodesManager;
 public class RobotMaker2026 implements RobotMaker {
 	@Override
 	public void setupFullRobot(NodesManager manager) {
-		manager.addNode(new HelloSpeakerNode());
-		manager.addNode(new AnshNode());
-		manager.addNode(new NameExtenderNode());
+		manager.addNode(new HumanDriveNode());
+		manager.addNode(new DrivetrainNode());
 		manager.addNode(new ControllerNode());
 	}
 	
