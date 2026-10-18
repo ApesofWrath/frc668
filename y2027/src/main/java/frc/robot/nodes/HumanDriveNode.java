@@ -11,6 +11,9 @@ import frc.framework.nodes.Priority;
 
 import static edu.wpi.first.units.Units.*;
 
+/**
+ * Handles the conversion of controller input to desired chassis speeds
+ */
 public class HumanDriveNode implements Node {
 	
 	@Override
@@ -24,7 +27,6 @@ public class HumanDriveNode implements Node {
 		ControllerState controllerState = update.getValue(UserInputInformation.CONTROLLER_INPUT).orNull();
 		
 		if (controllerState == null) {
-			update.setValue(DrivetrainNode.WANTED_SPEEDS, new ChassisSpeeds(), Priority.DriverInput); // Don't move if the controller is not connected
 			return;
 		}
 		

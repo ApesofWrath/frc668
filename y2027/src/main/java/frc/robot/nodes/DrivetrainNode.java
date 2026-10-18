@@ -9,6 +9,9 @@ import frc.framework.nodes.ValueIdentifier;
 import frc.robot.TunerConstants;
 import frc.robot.TunerConstants.TunerSwerveDrivetrain;
 
+/**
+ * Reads in {@link #WANTED_SPEEDS} and accelerates the drivebase to that speed
+ */
 public class DrivetrainNode implements Node {
 	public static ValueIdentifier<ChassisSpeeds> WANTED_SPEEDS = ValueIdentifier.get(
 		"/drivetrain/wanted_speed",
