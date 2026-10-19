@@ -27,7 +27,7 @@ public class ExecutionManager {
 		timestamp = time;
 		values.put(
 			RobotInformation.TIMESTAMP_VALUE.getId(),
-			new TimestampedValue<>(time, time, Priority.Default, this)
+			new TimestampedValue<>(RobotInformation.TIMESTAMP_VALUE.getId(), time, time, Priority.Default, this)
 		);
 		
 		// run plan
@@ -71,7 +71,7 @@ public class ExecutionManager {
 	)
 	public <T> TimestampedValue<T> getValue(String id) {
 		if (!values.containsKey(id)) {
-			values.put(id, new TimestampedValue<>(null, 0, Priority.Default, this));
+			values.put(id, new TimestampedValue<>(id, null, 0, Priority.Default, this));
 		}
 		
 		return (TimestampedValue<T>) values.get(id);
