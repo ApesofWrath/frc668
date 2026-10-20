@@ -50,8 +50,7 @@ public class NodesManager {
 	 * Evaluate the value graph, and rebuild it if need be.
 	 *
 	 * @param time  The current time, which is passed to {@link frc.framework.cache.CacheStrategy}s to determine if
-	 *              nodes
-	 *              should be re-run.
+	 *              nodes should be re-run.
 	 * @param frame The logging frame used to capture the behavior of the robot at any given time
 	 */
 	public void update(long time, LogFrame frame) {
