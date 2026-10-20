@@ -4,7 +4,9 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.RobotBase;
+import frc.framework.RobotMaker;
 import frc.framework.nodes.NodesRobot;
+import frc.framework.replays.ReplayManager;
 
 /**
  * Do NOT add any static variables to this class, or any initialization at all. Unless you know what you are doing, do
@@ -19,7 +21,13 @@ public final class Main {
 	 * @param args The command line arguments of the robot program
 	 */
 	public static void main(String... args) {
-		RobotBase.startRobot(() -> new NodesRobot(new RobotMaker2026()));
+		RobotMaker robotMaker = new RobotMaker2026();
+		if (ReplayManager.doesUserProbablyWantReplay()) {
+			ReplayManager replayManager = new ReplayManager(robotMaker);
+			replayManager.simulateReplay();
+			return;
+		}
+		RobotBase.startRobot(() -> new NodesRobot(robotMaker));
 	}
 	
 	private Main() {
