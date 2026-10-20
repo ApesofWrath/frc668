@@ -17,7 +17,6 @@ public class NodesRobot extends TimedRobot {
 	private final LogWriter logger = new LogWriter(LogWriter.getLogPath());
 	private final RobotMaker robotMaker;
 	
-	
 	/**
 	 * The current nodes framework manager
 	 */
