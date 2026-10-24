@@ -113,8 +113,8 @@ public class LogWriter {
 		});
 		
 		// Figure out the entries we need to add and remove
-		var removedEntries = new HashSet<>(existingFields.keySet());
-		var newEntries = new HashSet<>(entries);
+		HashSet<LogField> removedEntries = new HashSet<>(existingFields.keySet());
+		HashSet<LogField> newEntries = new HashSet<>(entries);
 		
 		newEntries.removeAll(existingFields.keySet());
 		removedEntries.removeAll(entries);
