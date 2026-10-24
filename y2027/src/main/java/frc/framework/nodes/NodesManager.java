@@ -25,6 +25,15 @@ public class NodesManager {
 		isExecutionPlanDirty = true;
 	}
 	
+	/**
+	 * Get the execution manager
+	 *
+	 * @return The execution manager
+	 */
+	public ExecutionManager getExecutionManager() {
+		return manager;
+	}
+	
 	private void maybeRebuildExecutionPlan() {
 		if (!isExecutionPlanDirty) {
 			return;
