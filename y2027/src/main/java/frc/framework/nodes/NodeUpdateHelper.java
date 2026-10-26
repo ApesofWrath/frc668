@@ -83,7 +83,7 @@ public class NodeUpdateHelper {
 	public <T> void setValue(ValueIdentifier<T> identifier, T value, Priority priority) {
 		if (!nodeInformation.getOutputIds().contains(identifier.getId())) {
 			throw new RuntimeException(
-				"The system " + node.getId() + " tried to set the value of " + identifier
+				"The node " + node.getId() + " tried to set the value of " + identifier
 					.getId() + ", but it never specified ahead of time that it sets it, this is throwing an error as it could cause unintended logic bugs."
 			);
 		}
