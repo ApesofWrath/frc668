@@ -37,7 +37,7 @@ public class ExecutionPlan {
 		}
 		
 		if (nodesBeingPlanned.contains(node)) {
-			throw new RuntimeException("System depends on its own outputs: " + node.getId());
+			throw new RuntimeException("Node depends on its own outputs: " + node.getId());
 		}
 		
 		nodesBeingPlanned.add(node);
