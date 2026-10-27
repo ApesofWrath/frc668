@@ -78,7 +78,7 @@ public class NodeCachableResult implements DataAccessNotifier {
 			
 			if (isCurrentValueStale != accessedValue.wasStale) { return false; }
 			
-			if (!isCurrentValueStale && !accessedValue.value.equals(currentValue.getValue())) { return false; }
+			if (!accessedValue.value.equals(currentValue.getValue())) { return false; }
 		}
 		
 		return true;
