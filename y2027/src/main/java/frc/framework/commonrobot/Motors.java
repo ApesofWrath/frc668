@@ -18,7 +18,7 @@ public class Motors {
 	}
 	
 	/**
-	 * Gets a value identifier for a motors position
+	 * Gets a value identifier for a motors position in radians
 	 *
 	 * @param motorId A string identifier to distinguish the motor from others
 	 *
@@ -29,7 +29,7 @@ public class Motors {
 	}
 	
 	/**
-	 * Gets a value identifier for a motors velocity
+	 * Gets a value identifier for a motors velocity in radians per second
 	 *
 	 * @param motorId A string identifier to distinguish the motor from others
 	 *
