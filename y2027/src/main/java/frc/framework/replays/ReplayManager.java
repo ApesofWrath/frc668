@@ -100,9 +100,10 @@ public class ReplayManager {
 			
 			if (frame == null) { break; }
 			
-			if (!frame.data.containsKey("/values/hal/timestamp")) { continue; }
+			String timestampLocation = DataLogUtils.joinKey("values", "hal", "timestamp");
+			Long tickTime = (Long) frame.data.get(timestampLocation);
 			
-			long time = (Long) frame.data.get("/values/hal/timestamp");
+			if (tickTime == null) { continue; }
 			
 			LogFrame resultingFrame = new LogFrame();
 			
@@ -112,11 +113,13 @@ public class ReplayManager {
 				String valueKey = DataLogUtils.joinKey("values", identifier.getId());
 				String timestampKey = DataLogUtils.joinKey("values", identifier.getId(), "timestamp");
 				
-				if (!frame.data.containsKey(valueKey)) { continue; }
-				if (!frame.data.containsKey(timestampKey)) { continue; }
-				
 				Object value = frame.data.get(valueKey);
-				long timestamp = (Long) frame.data.get(timestampKey);
+				Long timestamp = (Long) frame.data.get(timestampKey);
+				
+				if (value == null || timestamp == null) {
+					// We can't fully read this field, let's move on.
+					continue;
+				}
 				
 				ExecutionManager executionManager = manager.getExecutionManager();
 				
@@ -126,13 +129,13 @@ public class ReplayManager {
 				);
 			}
 			
-			manager.update(time, resultingFrame);
+			manager.update(tickTime, resultingFrame);
 			
 			frame.data.forEach((key, value) -> {
 				resultingFrame.set(DataLogUtils.joinKey("original_data", key), value);
 			});
 			
-			writer.writeFrame(time, resultingFrame);
+			writer.writeFrame(tickTime, resultingFrame);
 		}
 	}
 }
