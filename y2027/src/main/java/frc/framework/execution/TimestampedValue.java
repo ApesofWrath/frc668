@@ -13,7 +13,7 @@ public class TimestampedValue<T> {
 	private final Priority priority;
 	private final T value;
 	private final ExecutionManager manager;
-	private final String key;
+	
 	/**
 	 * Allows objects to hook into the reading of this value
 	 */
@@ -22,14 +22,12 @@ public class TimestampedValue<T> {
 	/**
 	 * Create a TimestampedValue
 	 *
-	 * @param key       The key that holds this value
 	 * @param value     The value to store
 	 * @param timestamp The timestamp that this value was set at
 	 * @param priority  The priority that this value should take over other values
 	 * @param manager   The current ExecutionManager managing this value
 	 */
-	public TimestampedValue(String key, T value, long timestamp, Priority priority, ExecutionManager manager) {
-		this.key = key;
+	public TimestampedValue(T value, long timestamp, Priority priority, ExecutionManager manager) {
 		this.value = value;
 		this.timestamp = timestamp;
 		this.priority = priority;
@@ -42,7 +40,6 @@ public class TimestampedValue<T> {
 	 * @param other The value to copy
 	 */
 	public TimestampedValue(TimestampedValue<T> other) {
-		this.key = other.key;
 		this.value = other.value;
 		this.timestamp = other.timestamp;
 		this.priority = other.priority;
@@ -100,7 +97,9 @@ public class TimestampedValue<T> {
 	 */
 	public T orDefault(T defaultValue, long maxAge) {
 		boolean isStale = getAgeMilliseconds() > maxAge;
-		notifier.notifyOfAccess(key, value, maxAge, isStale);
+		if (notifier != null) {
+			notifier.notifyOfAccess(value, maxAge, isStale);
+		}
 		if (isStale) {
 			return defaultValue;
 		}
@@ -125,7 +124,9 @@ public class TimestampedValue<T> {
 	 */
 	public T orNull(long maxAge) {
 		boolean isStale = getAgeMilliseconds() > maxAge;
-		notifier.notifyOfAccess(key, value, maxAge, isStale);
+		if (notifier != null) {
+			notifier.notifyOfAccess(value, maxAge, isStale);
+		}
 		if (isStale) {
 			return null;
 		}
