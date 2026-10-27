@@ -52,7 +52,7 @@ public class ReplayManager {
 			try (Scanner reader = new Scanner(akitLogPath.toFile())) {
 				potentialPaths.add(reader.nextLine());
 			} catch (FileNotFoundException e) {
-				throw new RuntimeException(e);
+				// We intentionally ignore this exception, as we could resort to other log file locations
 			}
 		}
 		
@@ -107,7 +107,7 @@ public class ReplayManager {
 			LogFrame resultingFrame = new LogFrame();
 			
 			for (ValueIdentifier<?> identifier : ValueIdentifier.getAll()) {
-				if (!identifier.isReplayed) { continue; }
+				if (!identifier.isReplayed()) { continue; }
 				
 				String valueKey = DataLogUtils.joinKey("values", identifier.getId());
 				String timestampKey = DataLogUtils.joinKey("values", identifier.getId(), "timestamp");

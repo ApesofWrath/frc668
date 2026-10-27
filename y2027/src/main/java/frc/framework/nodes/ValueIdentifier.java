@@ -73,7 +73,7 @@ public class ValueIdentifier<T> {
 	
 	private final Class<T> type;
 	
-	public boolean isReplayed = false;
+	private boolean isReplayed = false;
 	
 	private ValueIdentifier(String id, Class<T> type) {
 		this.id = id;
@@ -92,6 +92,13 @@ public class ValueIdentifier<T> {
 	 */
 	public Class<T> getType() {
 		return type;
+	}
+	
+	/**
+	 * @return True if this value should be updated from replay files, false otherwise
+	 */
+	public boolean isReplayed() {
+		return isReplayed;
 	}
 	
 	/**
