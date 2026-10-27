@@ -33,7 +33,6 @@ public interface RobotMaker {
 		nodesManager.addNode(new PhoenixMotorOutputsNode(talonFX, id));
 	}
 	
-	
 	/**
 	 * Add the nodes relating to all subnodes, regardless of whether this is simulated or real.
 	 *
