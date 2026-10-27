@@ -2,6 +2,7 @@ package frc.framework.nodes;
 
 import java.util.HashMap;
 import java.util.InputMismatchException;
+import java.util.Set;
 
 import static java.text.MessageFormat.format;
 
@@ -59,9 +60,20 @@ public class ValueIdentifier<T> {
 		return instance;
 	}
 	
+	/**
+	 * Returns all value identifiers declared
+	 *
+	 * @return The set of all declared value identifiers
+	 */
+	public static Set<ValueIdentifier<?>> getAll() {
+		return Set.copyOf(singletons.values());
+	}
+	
 	private final String id;
 	
 	private final Class<T> type;
+	
+	private boolean isReplayed = false;
 	
 	private ValueIdentifier(String id, Class<T> type) {
 		this.id = id;
@@ -80,5 +92,22 @@ public class ValueIdentifier<T> {
 	 */
 	public Class<T> getType() {
 		return type;
+	}
+	
+	/**
+	 * @return True if this value should be updated from replay files, false otherwise
+	 */
+	public boolean isReplayed() {
+		return isReplayed;
+	}
+	
+	/**
+	 * Mark this value identifier as being replayed
+	 *
+	 * @return This value identifier
+	 */
+	public ValueIdentifier<T> replayed() {
+		this.isReplayed = true;
+		return this;
 	}
 }
