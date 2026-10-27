@@ -1,6 +1,5 @@
 package frc.framework.execution;
 
-import frc.framework.nodes.DataAccessNotifier;
 import frc.framework.nodes.Priority;
 
 import java.util.HashMap;
@@ -9,7 +8,7 @@ import java.util.HashSet;
 /**
  * Represents the outputs of a node at a given type
  */
-public class NodeCachableResult implements DataAccessNotifier {
+public class NodeCachableResult {
 	/**
 	 * Represents a value access with a maximum age
 	 *
@@ -59,7 +58,7 @@ public class NodeCachableResult implements DataAccessNotifier {
 			Object value = values.get(key);
 			Priority priority = priorities.get(key);
 			
-			manager.trySetValue(key, new TimestampedValue<>(key, value, time, priority, manager));
+			manager.trySetValue(key, new TimestampedValue<>(value, time, priority, manager));
 		}
 	}
 	
@@ -95,7 +94,9 @@ public class NodeCachableResult implements DataAccessNotifier {
 	public TimestampedValue<?> get(ExecutionManager executor, String key) {
 		TimestampedValue<?> value = new TimestampedValue<>(executor.getValue(key));
 		
-		value.notifier = this;
+		value.notifier = (valueAtMoment, maxAge, wasStale) -> accessedValues.add(
+			new AccessedValue(key, valueAtMoment, maxAge, wasStale)
+		);
 		
 		return value;
 	}
@@ -110,11 +111,6 @@ public class NodeCachableResult implements DataAccessNotifier {
 	 */
 	public boolean isFresh(int time, int millisecondThreshold) {
 		return (time - timeCreated) < millisecondThreshold;
-	}
-	
-	@Override
-	public void notifyOfAccess(String key, Object value, long maxAge, boolean wasStale) {
-		accessedValues.add(new AccessedValue(key, value, maxAge, wasStale));
 	}
 	
 	/**

@@ -7,10 +7,9 @@ public interface DataAccessNotifier {
 	/**
 	 * A value was read from a timestamped value
 	 *
-	 * @param key      The key
 	 * @param value    The value stored
 	 * @param maxAge   The maximum age of the value
-	 * @param wasStale
+	 * @param wasStale True if the value being read is stale at the time of reading
 	 */
-	void notifyOfAccess(String key, Object value, long maxAge, boolean wasStale);
+	void notifyOfAccess(Object value, long maxAge, boolean wasStale);
 }
