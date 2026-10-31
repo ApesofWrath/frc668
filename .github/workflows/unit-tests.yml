@@ -1,5 +1,8 @@
 name: run-unit-tests
 on: [ push ]
+permissions:
+  checks: write
+  pull-requests: write
 jobs:
   run-unit-tests:
     runs-on: ubuntu-latest
@@ -13,9 +16,9 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build
         working-directory: y2027
-      - name: Publish Test Report
-        id: report
-        uses: mikepenz/action-junit-report@v6
-        if: success() || failure() # always run even if the previous step fails
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: (!cancelled())
         with:
-          report_paths: 'y2027/build/test-results/test/TEST-*.xml'
+          files:
+            - "y2027/build/test-results/test/TEST-*.xml"
