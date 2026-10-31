@@ -20,5 +20,5 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action@v2
         if: (!cancelled())
         with:
-          files:
-            - "y2027/build/test-results/test/TEST-*.xml"
+          files: |
+            y2027/build/test-results/test/TEST-*.xml
