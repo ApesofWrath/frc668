@@ -1,5 +1,6 @@
 package frc.framework.execution;
 
+import frc.framework.nodes.DataAccessNotifier;
 import frc.framework.nodes.Priority;
 
 /**
@@ -14,6 +15,11 @@ public class TimestampedValue<T> {
 	private final ExecutionManager manager;
 	
 	/**
+	 * Allows objects to hook into the reading of this value
+	 */
+	public DataAccessNotifier notifier = null;
+	
+	/**
 	 * Create a TimestampedValue
 	 *
 	 * @param value     The value to store
@@ -26,6 +32,19 @@ public class TimestampedValue<T> {
 		this.timestamp = timestamp;
 		this.priority = priority;
 		this.manager = manager;
+	}
+	
+	/**
+	 * Create a copy of another timestamped value
+	 *
+	 * @param other The value to copy
+	 */
+	public TimestampedValue(TimestampedValue<T> other) {
+		this.value = other.value;
+		this.timestamp = other.timestamp;
+		this.priority = other.priority;
+		this.manager = other.manager;
+		this.notifier = other.notifier;
 	}
 	
 	/**
@@ -77,7 +96,11 @@ public class TimestampedValue<T> {
 	 * @return defaultValue if value is older than maxAge milliseconds, otherwise returns the value.
 	 */
 	public T orDefault(T defaultValue, long maxAge) {
-		if (getAgeMilliseconds() > maxAge) {
+		boolean isStale = getAgeMilliseconds() > maxAge;
+		if (notifier != null) {
+			notifier.notifyOfAccess(value, maxAge, isStale);
+		}
+		if (isStale) {
 			return defaultValue;
 		}
 		return value;
@@ -100,7 +123,11 @@ public class TimestampedValue<T> {
 	 * @return null if value is older than maxAge milliseconds, otherwise returns the value.
 	 */
 	public T orNull(long maxAge) {
-		if (getAgeMilliseconds() > maxAge) {
+		boolean isStale = getAgeMilliseconds() > maxAge;
+		if (notifier != null) {
+			notifier.notifyOfAccess(value, maxAge, isStale);
+		}
+		if (isStale) {
 			return null;
 		}
 		return value;

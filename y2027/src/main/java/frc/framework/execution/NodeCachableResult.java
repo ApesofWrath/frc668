@@ -3,12 +3,23 @@ package frc.framework.execution;
 import frc.framework.nodes.Priority;
 
 import java.util.HashMap;
-import java.util.Map.Entry;
+import java.util.HashSet;
 
 /**
  * Represents the outputs of a node at a given type
  */
 public class NodeCachableResult {
+	/**
+	 * Represents a value access with a maximum age
+	 *
+	 * @param key      The key that was accessed
+	 * @param value    The value at the moment
+	 * @param maxAge   The maximum age specified during the access
+	 * @param wasStale Was this value stale at the time of storage
+	 */
+	public record AccessedValue(String key, Object value, long maxAge, boolean wasStale) {
+	}
+	
 	/**
 	 * The time at which the node was evaluated
 	 */
@@ -21,10 +32,11 @@ public class NodeCachableResult {
 	 * A mapping from string identifiers to the priority of values outputted
 	 */
 	public HashMap<String, Priority> priorities = new HashMap<>();
+	
 	/**
-	 * A mapping from string identifiers to values read during the evaluation of a node
+	 * A set of values read during the evaluation of this node
 	 */
-	public HashMap<String, TimestampedValue<?>> accessedValues = new HashMap<>();
+	public HashSet<AccessedValue> accessedValues = new HashSet<>();
 	
 	/**
 	 * Create a result with a given time value
@@ -58,12 +70,14 @@ public class NodeCachableResult {
 	 * @return A boolean indicating if values are the same as before
 	 */
 	public boolean doInputsMatchWithManager(ExecutionManager manager) {
-		for (Entry<String, TimestampedValue<?>> entry : accessedValues.entrySet()) {
-			Object currentValue = manager.getValue(entry.getKey());
+		for (AccessedValue accessedValue : accessedValues) {
+			TimestampedValue<?> currentValue = manager.getValue(accessedValue.key);
 			
-			if (!currentValue.equals(entry.getValue())) {
-				return false;
-			}
+			boolean isCurrentValueStale = currentValue.getAgeMilliseconds() > accessedValue.maxAge;
+			
+			if (isCurrentValueStale != accessedValue.wasStale) { return false; }
+			
+			if (!accessedValue.value.equals(currentValue.getValue())) { return false; }
 		}
 		
 		return true;
@@ -78,8 +92,12 @@ public class NodeCachableResult {
 	 * @return The value contained within the slot with the given key
 	 */
 	public TimestampedValue<?> get(ExecutionManager executor, String key) {
-		TimestampedValue<?> value = executor.getValue(key);
-		accessedValues.put(key, value);
+		TimestampedValue<?> value = new TimestampedValue<>(executor.getValue(key));
+		
+		value.notifier = (valueAtMoment, maxAge, wasStale) -> accessedValues.add(
+			new AccessedValue(key, valueAtMoment, maxAge, wasStale)
+		);
+		
 		return value;
 	}
 	
