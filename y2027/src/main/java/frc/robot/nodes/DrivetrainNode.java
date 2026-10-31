@@ -1,13 +1,11 @@
 package frc.robot.nodes;
 
-import com.ctre.phoenix6.hardware.TalonFX;
 
 import static edu.wpi.first.units.Units.InchesPerSecond;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
-import com.ctre.phoenix6.controls.StaticBrake;
-import com.ctre.phoenix6.hardware.CANcoder;
-import com.ctre.phoenix6.swerve.SwerveModule;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.MathUtil;
@@ -34,8 +32,6 @@ public class DrivetrainNode implements Node {
 		TunerConstants.BackRight
 	);
 	
-	private final StaticBrake brakeControl = new StaticBrake();
-	
 	private final SwerveRequest.ApplyRobotSpeeds speeds = new SwerveRequest.ApplyRobotSpeeds();
 	
 	@Override
@@ -45,24 +41,20 @@ public class DrivetrainNode implements Node {
 	
 	@Override
 	public void update(NodeUpdateHelper update) {
-		speeds.Speeds = update.getValue(WANTED_SPEEDS).orDefault(new ChassisSpeeds()); // not moving is a safe default
+		ChassisSpeeds desiredSpeeds = update.getValue(WANTED_SPEEDS).orDefault(new ChassisSpeeds());  // not moving is a safe default
 		
-		double velocityEpsilon = InchesPerSecond.of(1).baseUnitMagnitude();
-		double rotationalEpsilon = RotationsPerSecond.of(0.1).baseUnitMagnitude();
+		double velocityEpsilon = InchesPerSecond.of(1).in(MetersPerSecond);
+		double rotationalEpsilon = RotationsPerSecond.of(0.1).in(RadiansPerSecond);
 		
-		if (MathUtil.isNear(speeds.Speeds.vxMetersPerSecond, 0, velocityEpsilon) && MathUtil.isNear(
-			speeds.Speeds.vyMetersPerSecond,
+		if (MathUtil.isNear(desiredSpeeds.vxMetersPerSecond, 0, velocityEpsilon) && MathUtil.isNear(
+			desiredSpeeds.vyMetersPerSecond,
 			0,
 			velocityEpsilon
-		) && MathUtil.isNear(speeds.Speeds.omegaRadiansPerSecond, 0, rotationalEpsilon)) {
-			for (SwerveModule<TalonFX, TalonFX, CANcoder> module : drivetrain.getModules()) {
-				TalonFX steer = module.getSteerMotor();
-				TalonFX drive = module.getDriveMotor();
-				
-				steer.setControl(brakeControl);
-				drive.setControl(brakeControl);
-			}
+		) && MathUtil.isNear(desiredSpeeds.omegaRadiansPerSecond, 0, rotationalEpsilon)) {
+			speeds.Speeds = new ChassisSpeeds();
+			drivetrain.setControl(speeds);
 		} else {
+			speeds.Speeds = desiredSpeeds;
 			drivetrain.setControl(speeds);
 		}
 	}
