@@ -2,6 +2,7 @@ package frc.robot;
 
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
+import com.ctre.phoenix6.hardware.Pigeon2;
 
 public class Constants {
 	public class IntakeConstants {
@@ -34,5 +35,18 @@ public class Constants {
 		public static final double SENSOR_TO_MECHANISM_RATIO = 1.79;
 		
 		
+	}
+
+	public class VisionConstants {
+		public static final String[] limelights= {
+					"limelight-fl",
+					"limelight-fr",
+					"limelight-upfl",
+					"limelight-upfr",
+			};
+
+		public static final double translationsStdDev = 0.5;
+		public static final double rotationStdDev = Double.POSITIVE_INFINITY;
+
 	}
 }
