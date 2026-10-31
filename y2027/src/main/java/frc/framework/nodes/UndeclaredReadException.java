@@ -28,7 +28,6 @@ public class UndeclaredReadException extends RuntimeException {
 	}
 	
 	/**
-	 *
 	 * @return The identifier that was attempted to be read from
 	 */
 	public ValueIdentifier<?> getIdentifier() {
@@ -36,7 +35,6 @@ public class UndeclaredReadException extends RuntimeException {
 	}
 	
 	/**
-	 *
 	 * @return The node that tried to perform the read
 	 */
 	public Node getNode() {

@@ -8,8 +8,7 @@ import frc.robot.TestNodeIdentifiers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 class BadWriteNode implements Node {
 	@Override
@@ -32,6 +31,7 @@ public class BadWriteTest extends RobotTest {
 		addNode(node);
 		
 		UndeclaredWriteException exception = assertThrows(UndeclaredWriteException.class, this::advance);
+		assertNull(exception.getCause());
 		assertEquals(node, exception.getNode());
 		assertEquals(TestNodeIdentifiers.alpha, exception.getIdentifier());
 	}
