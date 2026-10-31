@@ -33,12 +33,11 @@ public class HumanDriveNode implements Node {
 		double driveSpeed = FeetPerSecond.of(3).in(MetersPerSecond); // 19.8 feet per second when we feel comfortable
 		double rotateSpeed = RotationsPerSecond.of(1).in(RadiansPerSecond); // 2 rotations per second when we feel comfortable
 		
-		ChassisSpeeds speed = new ChassisSpeeds();
-		
-		speed.vxMetersPerSecond = controllerState.getAxis(Axis.LeftThumbstickY) * driveSpeed;
-		speed.vyMetersPerSecond = controllerState.getAxis(Axis.LeftThumbstickX) * driveSpeed;
-		speed.omegaRadiansPerSecond = controllerState.getAxis(Axis.RightThumbstickX) * rotateSpeed;
-		
+		ChassisSpeeds speed = new ChassisSpeeds(
+			controllerState.getAxis(Axis.LeftThumbstickY) * driveSpeed,
+			controllerState.getAxis(Axis.LeftThumbstickX) * driveSpeed,
+			controllerState.getAxis(Axis.RightThumbstickX) * rotateSpeed
+		);
 		update.setValue(DrivetrainNode.WANTED_SPEEDS, speed, Priority.DriverInput);
 	}
 	

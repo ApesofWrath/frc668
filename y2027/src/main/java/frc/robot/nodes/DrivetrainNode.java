@@ -52,10 +52,9 @@ public class DrivetrainNode implements Node {
 			velocityEpsilon
 		) && MathUtil.isNear(desiredSpeeds.omegaRadiansPerSecond, 0, rotationalEpsilon)) {
 			speeds.Speeds = new ChassisSpeeds();
-			drivetrain.setControl(speeds);
 		} else {
 			speeds.Speeds = desiredSpeeds;
-			drivetrain.setControl(speeds);
 		}
+		drivetrain.setControl(speeds);
 	}
 }
