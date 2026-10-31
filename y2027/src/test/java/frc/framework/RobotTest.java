@@ -2,6 +2,7 @@ package frc.framework;
 
 import edu.wpi.first.units.measure.Time;
 import frc.framework.execution.TimestampedValue;
+import frc.framework.logging.LogFrame;
 import frc.framework.nodes.Node;
 import frc.framework.nodes.NodesManager;
 import frc.framework.nodes.Priority;
@@ -36,7 +37,8 @@ public class RobotTest {
 	 * Advance the simulation by one tick
 	 */
 	public void advance() {
-		this.robot.update(this.currentTime);
+		LogFrame frame = new LogFrame();
+		this.robot.update(this.currentTime, frame);
 		this.currentTime += deltaTime;
 	}
 	
