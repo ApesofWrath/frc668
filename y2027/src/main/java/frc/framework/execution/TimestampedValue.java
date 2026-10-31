@@ -1,5 +1,6 @@
 package frc.framework.execution;
 
+import frc.framework.nodes.DataAccessNotifier;
 import frc.framework.nodes.Priority;
 
 /**
@@ -12,20 +13,41 @@ public class TimestampedValue<T> {
 	private final Priority priority;
 	private final T value;
 	private final ExecutionManager manager;
+	private final String key;
+	/**
+	 * Allows objects to hook into the reading of this value
+	 */
+	public DataAccessNotifier notifier = null;
 	
 	/**
 	 * Create a TimestampedValue
 	 *
+	 * @param key       The key that holds this value
 	 * @param value     The value to store
 	 * @param timestamp The timestamp that this value was set at
 	 * @param priority  The priority that this value should take over other values
 	 * @param manager   The current ExecutionManager managing this value
 	 */
-	public TimestampedValue(T value, long timestamp, Priority priority, ExecutionManager manager) {
+	public TimestampedValue(String key, T value, long timestamp, Priority priority, ExecutionManager manager) {
+		this.key = key;
 		this.value = value;
 		this.timestamp = timestamp;
 		this.priority = priority;
 		this.manager = manager;
+	}
+	
+	/**
+	 * Create a copy of another timestamped value
+	 *
+	 * @param other The value to copy
+	 */
+	public TimestampedValue(TimestampedValue<T> other) {
+		this.key = other.key;
+		this.value = other.value;
+		this.timestamp = other.timestamp;
+		this.priority = other.priority;
+		this.manager = other.manager;
+		this.notifier = other.notifier;
 	}
 	
 	/**
@@ -77,7 +99,9 @@ public class TimestampedValue<T> {
 	 * @return defaultValue if value is older than maxAge milliseconds, otherwise returns the value.
 	 */
 	public T orDefault(T defaultValue, long maxAge) {
-		if (getAgeMilliseconds() > maxAge) {
+		boolean isStale = getAgeMilliseconds() > maxAge;
+		notifier.notifyOfAccess(key, value, maxAge, isStale);
+		if (isStale) {
 			return defaultValue;
 		}
 		return value;
@@ -100,7 +124,9 @@ public class TimestampedValue<T> {
 	 * @return null if value is older than maxAge milliseconds, otherwise returns the value.
 	 */
 	public T orNull(long maxAge) {
-		if (getAgeMilliseconds() > maxAge) {
+		boolean isStale = getAgeMilliseconds() > maxAge;
+		notifier.notifyOfAccess(key, value, maxAge, isStale);
+		if (isStale) {
 			return null;
 		}
 		return value;
