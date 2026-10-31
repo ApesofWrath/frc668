@@ -43,10 +43,7 @@ public class NodeUpdateHelper {
 	)
 	public <T> TimestampedValue<T> getValue(ValueIdentifier<T> identifier) {
 		if (!nodeInformation.getInputIds().contains(identifier.getId())) {
-			throw new RuntimeException(
-				"The node " + node.getId() + " tried to get the value of " + identifier
-					.getId() + ", but it never specified ahead of time that it needs it, thus, we cannot be sure that the value has been set."
-			);
+			throw new UndeclaredReadException(node, identifier);
 		}
 		
 		TimestampedValue<?> result = cachableResult.get(executionManager, identifier.getId());
@@ -82,10 +79,7 @@ public class NodeUpdateHelper {
 	 */
 	public <T> void setValue(ValueIdentifier<T> identifier, T value, Priority priority) {
 		if (!nodeInformation.getOutputIds().contains(identifier.getId())) {
-			throw new RuntimeException(
-				"The node " + node.getId() + " tried to set the value of " + identifier
-					.getId() + ", but it never specified ahead of time that it sets it, this is throwing an error as it could cause unintended logic bugs."
-			);
+			throw new UndeclaredWriteException(node, identifier);
 		}
 		
 		cachableResult.set(identifier.getId(), value, priority);
