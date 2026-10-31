@@ -1,0 +1,44 @@
+package frc.robot.nodes;
+
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import frc.framework.commonrobot.ControllerState;
+import frc.framework.commonrobot.ControllerState.Axis;
+import frc.framework.commonrobot.UserInputInformation;
+import frc.framework.nodes.Node;
+import frc.framework.nodes.NodeInformation;
+import frc.framework.nodes.NodeUpdateHelper;
+import frc.framework.nodes.Priority;
+
+import static edu.wpi.first.units.Units.*;
+
+/**
+ * Handles the conversion of controller input to desired chassis speeds
+ */
+public class HumanDriveNode implements Node {
+	
+	@Override
+	public void configure(NodeInformation information) {
+		information.receivesInput(UserInputInformation.CONTROLLER_INPUT);
+		information.createsOutput(DrivetrainNode.WANTED_SPEEDS);
+	}
+	
+	@Override
+	public void update(NodeUpdateHelper update) {
+		ControllerState controllerState = update.getValue(UserInputInformation.CONTROLLER_INPUT).orNull();
+		
+		if (controllerState == null) {
+			return;
+		}
+		
+		double driveSpeed = FeetPerSecond.of(3).in(MetersPerSecond); // 19.8 feet per second when we feel comfortable
+		double rotateSpeed = RotationsPerSecond.of(1).in(RadiansPerSecond); // 2 rotations per second when we feel comfortable
+		
+		ChassisSpeeds speed = new ChassisSpeeds(
+			controllerState.getAxis(Axis.LeftThumbstickY) * driveSpeed,
+			controllerState.getAxis(Axis.LeftThumbstickX) * driveSpeed,
+			controllerState.getAxis(Axis.RightThumbstickX) * rotateSpeed
+		);
+		update.setValue(DrivetrainNode.WANTED_SPEEDS, speed, Priority.DriverInput);
+	}
+	
+}
