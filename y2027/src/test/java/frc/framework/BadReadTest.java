@@ -3,6 +3,7 @@ package frc.framework;
 import frc.framework.nodes.Node;
 import frc.framework.nodes.NodeInformation;
 import frc.framework.nodes.NodeUpdateHelper;
+import frc.framework.nodes.UndeclaredReadException;
 import frc.robot.TestNodeIdentifiers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,13 +27,12 @@ public class BadReadTest extends RobotTest {
 		"Bad reads throw"
 	)
 	public void badRead() {
-		addNode(new BadReadNode());
-		RuntimeException exception = assertThrows(RuntimeException.class, this::advance);
+		BadReadNode node = new BadReadNode();
+		addNode(node);
+		
+		UndeclaredReadException exception = assertThrows(UndeclaredReadException.class, this::advance);
 		assertNull(exception.getCause());
-		assertEquals(
-			"The node " + BadReadNode.class.getName() + " tried to get the value of " + TestNodeIdentifiers.alpha
-				.getId() + ", but it never specified ahead of time that it needs it, thus, we cannot be sure that the value has been set.",
-			exception.getMessage()
-		);
+		assertEquals(node, exception.getNode());
+		assertEquals(TestNodeIdentifiers.alpha, exception.getIdentifier());
 	}
 }

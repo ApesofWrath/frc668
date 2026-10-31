@@ -3,11 +3,13 @@ package frc.framework;
 import frc.framework.nodes.Node;
 import frc.framework.nodes.NodeInformation;
 import frc.framework.nodes.NodeUpdateHelper;
+import frc.framework.nodes.UndeclaredWriteException;
 import frc.robot.TestNodeIdentifiers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class BadWriteNode implements Node {
 	@Override
@@ -23,16 +25,14 @@ class BadWriteNode implements Node {
 public class BadWriteTest extends RobotTest {
 	@Test
 	@DisplayName(
-		"Bad reads throw"
+		"Bad writes throw"
 	)
-	public void badRead() {
-		addNode(new BadWriteNode());
-		RuntimeException exception = assertThrows(RuntimeException.class, this::advance);
-		assertNull(exception.getCause());
-		assertEquals(
-			"The node " + BadWriteNode.class.getName() + " tried to set the value of " + TestNodeIdentifiers.alpha
-				.getId() + ", but it never specified ahead of time that it sets it, this is throwing an error as it could cause unintended logic bugs.",
-			exception.getMessage()
-		);
+	public void badWrite() {
+		BadWriteNode node = new BadWriteNode();
+		addNode(node);
+		
+		UndeclaredWriteException exception = assertThrows(UndeclaredWriteException.class, this::advance);
+		assertEquals(node, exception.getNode());
+		assertEquals(TestNodeIdentifiers.alpha, exception.getIdentifier());
 	}
 }
