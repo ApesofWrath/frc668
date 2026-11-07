@@ -2,6 +2,7 @@ package frc.robot.nodes;
 
 
 import frc.framework.OpMode;
+import frc.framework.cache.MemoizationCacheStrategy;
 import frc.framework.commonrobot.MotorControl;
 import frc.framework.commonrobot.Motors;
 import frc.framework.commonrobot.RobotInformation;
@@ -16,8 +17,10 @@ import frc.robot.MotorId;
 
 public class IntakeDeployNode implements Node {
 
-	double deployedPosition = 0.3;
-	double unDeployedPosition = 0.1;
+	double deployedPosition = 0.3; /*the deployed and undeployed states are based off of what phoenix tuner says the
+								     motor positions are when the intake is folded in or out, these are
+									 rounded values and should be updated */
+	double unDeployedPosition = 0.1; // these should probably be intake constants
 	
 	public static ValueIdentifier<Boolean> REQUEST_DEPLOY_INTAKE = ValueIdentifier.get(
 		"/drivetrain/request_deploy_intake",
@@ -27,6 +30,8 @@ public class IntakeDeployNode implements Node {
 
 	@Override
 	public void configure(NodeInformation information){
+		information.cacheStrategy = new MemoizationCacheStrategy();
+		
 		information.receivesInput(Motors.positionIdentifier(MotorId.IntakeDeployer)); 
 		information.receivesInput(RobotInformation.OPMODE_VALUE);
 		information.receivesInput(REQUEST_DEPLOY_INTAKE);
@@ -43,22 +48,15 @@ public class IntakeDeployNode implements Node {
 
 		OpMode opMode = update.getValue(RobotInformation.OPMODE_VALUE).orNull();
 
-		if(requestDeploy){
-			if (opMode != OpMode.Teleop){
+		if (opMode != OpMode.Teleop){
+			update.setValue(Motors.controlIdentifier(MotorId.IntakeDeployer), MotorControl.velocity(0));
 			return;
-			}
-			if (motorPos >= deployedPosition) {
-				return;
-			}
+		}
+
+		if(requestDeploy && (motorPos<deployedPosition)){
 			update.setValue(Motors.controlIdentifier(MotorId.IntakeDeployer), MotorControl.velocity(.2));
 		}
-		if (!requestDeploy){
-			if (opMode != OpMode.Teleop){
-			return;
-			}
-			if (motorPos <= unDeployedPosition) {
-				return;
-			}
+		else if (!requestDeploy && (motorPos>unDeployedPosition)){
 			update.setValue(Motors.controlIdentifier(MotorId.IntakeDeployer), MotorControl.velocity(.2));
 		}
 		
