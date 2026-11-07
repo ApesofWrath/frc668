@@ -105,6 +105,6 @@ public class NodesRobot extends TimedRobot {
 		nodesManager.update(time, frame);
 		logger.writeFrame(time, frame);
 		
-		nodesManager.publishValuesToNetworkTables();
+		nodesManager.publishValuesToNetworkTables(frame);
 	}
 }

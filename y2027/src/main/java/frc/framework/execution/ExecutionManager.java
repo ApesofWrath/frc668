@@ -1,13 +1,17 @@
 package frc.framework.execution;
 
+import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import frc.framework.commonrobot.RobotInformation;
+import frc.framework.logging.DataLogUtils;
 import frc.framework.logging.LogFrame;
+import frc.framework.logging.PackHelper;
 import frc.framework.nodes.Node;
 import frc.framework.nodes.NodeInformation;
 import frc.framework.nodes.NodeUpdateHelper;
 import frc.framework.nodes.Priority;
 
+import java.util.Arrays;
 import java.util.HashMap;
 
 /**
@@ -91,31 +95,53 @@ public class ExecutionManager {
 	
 	/**
 	 * Write all value data to NetworkTables for debugging purposes.
+	 *
+	 * @param frame The frame to publish to NetworkTables
 	 */
-	public void publishValuesToNetworkTables() {
+	public void publishValuesToNetworkTables(LogFrame frame) {
 		NetworkTableInstance nt = NetworkTableInstance.getDefault();
 		
-		for (java.util.Map.Entry<String, TimestampedValue<?>> pair : values.entrySet()) {
-			String key = pair.getKey();
-			
-			if (key.startsWith("/")) {
-				key = key.substring(1);
+		PackHelper helper = new PackHelper();
+		
+		frame.data.forEach((key, value) -> {
+			if (DataLogUtils.getTypeId(value) == null) {
+				helper.unpackFields(key, value, false);
+			} else {
+				helper.setValue(key, value);
 			}
+		});
+		
+		helper.getData().forEach((key, value) -> {
+			NetworkTableEntry entry = nt.getEntry(DataLogUtils.joinKey(key));
 			
-			key = "Nodes/" + key;
-			
-			Object value = pair.getValue().getValue();
-			
-			if (value instanceof Integer integerValue) {
-				nt.getEntry(key).setInteger(integerValue);
-			} else if (value instanceof Long longValue) {
-				nt.getEntry(key).setInteger(longValue);
-			} else if (value instanceof String stringValue) {
-				nt.getEntry(key).setString(stringValue);
-			} else if (value instanceof Boolean booleanValue) {
-				nt.getEntry(key).setBoolean(booleanValue);
+			if (value instanceof String val) {
+				entry.setString(val);
+			} else if (value instanceof String[] val) {
+				entry.setStringArray(val);
+			} else if (value instanceof Integer val) {
+				entry.setInteger(val);
+			} else if (value instanceof Integer[] val) {
+				entry.setIntegerArray(Arrays.stream(val).mapToLong(it -> it).toArray());
+			} else if (value instanceof Long val) {
+				entry.setInteger(val);
+			} else if (value instanceof Long[] val) {
+				entry.setIntegerArray(val);
+			} else if (value instanceof Boolean val) {
+				entry.setBoolean(val);
+			} else if (value instanceof Boolean[] val) {
+				entry.setBooleanArray(val);
+			} else if (value instanceof Float val) {
+				entry.setFloat(val);
+			} else if (value instanceof Float[] val) {
+				entry.setFloatArray(val);
+			} else if (value instanceof Double val) {
+				entry.setDouble(val);
+			} else if (value instanceof Double[] val) {
+				entry.setDoubleArray(val);
+			} else {
+				throw new UnsupportedOperationException("Cannot publish NT value of " + value);
 			}
-		}
+		});
 	}
 	
 	/**

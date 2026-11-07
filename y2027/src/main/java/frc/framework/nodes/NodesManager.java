@@ -50,9 +50,11 @@ public class NodesManager {
 	
 	/**
 	 * Posts the data evaluated by various nodes to NetworkTables, which is useful for debugging.
+	 *
+	 * @param frame The frame to put on NetworkTables
 	 */
-	public void publishValuesToNetworkTables() {
-		manager.publishValuesToNetworkTables();
+	public void publishValuesToNetworkTables(LogFrame frame) {
+		manager.publishValuesToNetworkTables(frame);
 	}
 	
 	/**
