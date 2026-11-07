@@ -29,6 +29,7 @@ public interface Packer<T> {
 		Packer.registerPacker(new FallbackArrayPacker());
 		Packer.registerPacker(new OpModePacker());
 		Packer.registerPacker(new ControllerStatePacker());
+		Packer.registerPacker(new ChassisSpeedsPacker());
 	}
 	
 	/**
