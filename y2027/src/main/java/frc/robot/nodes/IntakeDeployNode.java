@@ -11,6 +11,7 @@ import frc.framework.nodes.NodeInformation;
 import frc.framework.nodes.NodeUpdateHelper;
 import frc.framework.nodes.ValueIdentifier;
 import frc.robot.MotorId;
+import frc.robot.constants.Constants.IntakeConstants;;
 
 
 public class IntakeDeployNode implements Node {
@@ -19,11 +20,9 @@ public class IntakeDeployNode implements Node {
 		"/drivetrain/request_deploy_intake",
 		Boolean.class
 	);
-	double deployedPosition = 0.3; /*the deployed and undeployed states are based off of what phoenix tuner says the
-									  motor positions are when the intake is folded in or out, these are
-									 rounded values and should be updated */
+	double deployedPosition = IntakeConstants.INTAKE_DEPLOYED_POSITION; 
 	
-	double unDeployedPosition = 0.1; // these should probably be intake constants
+	double unDeployedPosition = IntakeConstants.INTAKE_UNDEPLOYED_POSITION; 
 	
 	@Override
 	public void configure(NodeInformation information) {
