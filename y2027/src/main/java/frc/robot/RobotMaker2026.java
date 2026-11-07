@@ -4,6 +4,7 @@ import frc.framework.RobotMaker;
 import frc.framework.builtinnodes.ControllerNode;
 import frc.framework.commonrobot.PIDConstants;
 import frc.framework.nodes.NodesManager;
+import frc.robot.constants.Constants.IntakeConstants;
 import frc.robot.nodes.DrivetrainNode;
 import frc.robot.nodes.HumanDriveNode;
 
@@ -17,7 +18,9 @@ public class RobotMaker2026 implements RobotMaker {
 		manager.addNode(new DrivetrainNode());
 		manager.addNode(new ControllerNode());
 		
-		addMotor(manager, MotorId.IntakeDeployer, 0, new PIDConstants());
+		addMotor(manager, MotorId.IntakeDeployer, IntakeConstants.DEPLOY_MOTOR_CAN_ID, new PIDConstants());
+		addMotor(manager, MotorId.IntakeRollerTop, IntakeConstants.ROLLER_TOP_MOTOR_CANID, new PIDConstants());
+		addMotor(manager, MotorId.IntakeRollerBottom, IntakeConstants.ROLLER_BOTTOM_MOTOR_CANID, new PIDConstants());
 	}
 	
 	@Override
