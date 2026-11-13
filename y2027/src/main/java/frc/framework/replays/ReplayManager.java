@@ -70,6 +70,11 @@ public class ReplayManager {
 	private final RobotMaker robotMaker;
 	
 	/**
+	 * The instance of the robot
+	 */
+	public NodesManager nodesManager = new NodesManager();
+	
+	/**
 	 * Create a replay manager
 	 *
 	 * @param robotMaker The RobotMaker used to run the replay
@@ -80,17 +85,17 @@ public class ReplayManager {
 	
 	/**
 	 * Run and save a replay
+	 *
+	 * @param replayPath The path to load a log file from
 	 */
-	public void simulateReplay() {
+	public void simulateReplay(Path replayPath) {
 		System.out.println("Running robot in replay mode...");
-		Path replayPath = getReplayPath();
 		Path outputPath = replayPath.resolveSibling(
 			replayPath.getFileName().toString().replace(".wpilog", ".replayed.wpilog")
 		);
-		NodesManager manager = new NodesManager();
 		
-		robotMaker.setupFullRobot(manager);
-		robotMaker.setupSimulation(manager);
+		robotMaker.setupFullRobot(nodesManager);
+		robotMaker.setupSimulation(nodesManager);
 		
 		LogReader reader = new LogReader(replayPath.toString());
 		LogWriter writer = new LogWriter(outputPath.toString());
@@ -121,7 +126,7 @@ public class ReplayManager {
 					continue;
 				}
 				
-				ExecutionManager executionManager = manager.getExecutionManager();
+				ExecutionManager executionManager = nodesManager.getExecutionManager();
 				
 				executionManager.trySetValue(
 					identifier.getId(),
@@ -129,7 +134,7 @@ public class ReplayManager {
 				);
 			}
 			
-			manager.update(tickTime, resultingFrame);
+			nodesManager.update(tickTime, resultingFrame);
 			
 			frame.data.forEach((key, value) -> {
 				resultingFrame.set(DataLogUtils.joinKey("original_data", key), value);

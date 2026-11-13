@@ -24,7 +24,7 @@ public final class Main {
 		RobotMaker robotMaker = new RobotMaker2026();
 		if (ReplayManager.doesUserProbablyWantReplay()) {
 			ReplayManager replayManager = new ReplayManager(robotMaker);
-			replayManager.simulateReplay();
+			replayManager.simulateReplay(ReplayManager.getReplayPath());
 			return;
 		}
 		RobotBase.startRobot(() -> new NodesRobot(robotMaker));
