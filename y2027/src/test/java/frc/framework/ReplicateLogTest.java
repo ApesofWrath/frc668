@@ -3,6 +3,7 @@ package frc.framework;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.util.datalog.DataLogReader;
 import frc.framework.commonrobot.ControllerState;
+import frc.framework.logging.DataLogUtils;
 import frc.framework.logging.LogFrame;
 import frc.framework.logging.LogReader;
 import frc.framework.logging.LogWriter;
@@ -53,7 +54,7 @@ public class ReplicateLogTest {
 			5,
 			5
 		), null, "ADjlkJLKASJDLKAMSDKLMALKSDMLKQMWE", new ControllerState()};
-		String[] keys = new String[]{"/alpha", "/beta", "/gamme", "/delta", "/foo", "/bar", "/", "/-", "/buzz"};
+		String[] keys = new String[]{"alpha", "/beta", "/gam//me", "/delta", "/foo", "/bar", "/", "/-", "/buzz", "    ", "asdkljasdl", ")(*#)", "JJdas/d/asd/asdasdljkasdkkm"};
 		
 		for (int i = 0; i < 1000; i++) {
 			ArrayList<LogFrame> frames = new ArrayList<>();
@@ -62,7 +63,7 @@ public class ReplicateLogTest {
 				LogFrame frame = new LogFrame();
 				
 				for (int k = 0; k < 10; k++) {
-					frame.set(keys[rng.nextInt(keys.length)], values[rng.nextInt(values.length)]);
+					frame.set(DataLogUtils.joinKey(keys[rng.nextInt(keys.length)]), values[rng.nextInt(values.length)]);
 				}
 				
 				frames.add(frame);
