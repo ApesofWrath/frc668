@@ -39,4 +39,16 @@ public class Constants{
 		public static final double INTAKE_UNDEPLOYED_POSITION = 0.1; 
 	
 	}
+	public class HopperConstants{
+		/*Right hopper: 59
+		Left hopper: 55
+		Indexer front: 18
+		Indexer back: 19 */
+
+		public static int HOPPER_LEFT_MOTOR_CANID = 59;
+		public static int HOPPER_RIGHT_MOTOR_CANID = 55;
+		public static int INDEXER_FRONT_MOTOR_CANID = 18;
+		public static int INDEXER_BACK_MOTOR_CANID = 19;
+
+	}
 }

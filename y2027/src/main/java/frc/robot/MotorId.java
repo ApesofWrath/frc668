@@ -7,9 +7,15 @@ public enum MotorId {
 	/**
 	 * The intake motor
 	 */
-	IntakeRoller,
+	IntakeRollerTop,
+
+	IntakeRollerBottom,
 	/**
 	 * The intake deployer
 	 */
-	IntakeDeployer
+	IntakeDeployer,
+
+	HopperMotorLeft,
+
+	HopperMotorRight
 }
