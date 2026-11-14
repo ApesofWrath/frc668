@@ -49,11 +49,16 @@ public class ReplicateLogTest {
 	public void tortureTest() throws Exception {
 		// Consistent seed
 		Random rng = new Random(668);
+		ControllerState testState = new ControllerState();
+		testState.setButtonState(ControllerState.Button.A, true);
+		testState.setAxis(ControllerState.Axis.LeftThumbstickX, -11);
+		testState.setAxis(ControllerState.Axis.RightThumbstickX, Float.MAX_VALUE);
+		testState.setAxis(ControllerState.Axis.RightThumbstickY, Double.MAX_VALUE);
 		Object[] values = new Object[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 3.14, new ChassisSpeeds(
 			5,
 			5,
 			5
-		), null, "ADjlkJLKASJDLKAMSDKLMALKSDMLKQMWE", new ControllerState()};
+		), null, "ADjlkJLKASJDLKAMSDKLMALKSDMLKQMWE", new ControllerState(), testState};
 		String[] keys = new String[]{"alpha", "/beta", "/gam//me", "/delta", "/foo", "/bar", "/", "/-", "/buzz", "    ", "asdkljasdl", ")(*#)", "JJdas/d/asd/asdasdljkasdkkm"};
 		
 		for (int i = 0; i < 1000; i++) {
