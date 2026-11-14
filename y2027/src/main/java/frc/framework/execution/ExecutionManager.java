@@ -71,7 +71,7 @@ public class ExecutionManager {
 	)
 	public <T> TimestampedValue<T> getValue(String id) {
 		if (!values.containsKey(id)) {
-			values.put(id, new TimestampedValue<>(null, Integer.MIN_VALUE, Priority.Default, this));
+			values.put(id, new TimestampedValue<>(null, Long.MIN_VALUE, Priority.Default, this));
 		}
 		
 		return (TimestampedValue<T>) values.get(id);
