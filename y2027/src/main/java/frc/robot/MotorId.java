@@ -5,9 +5,13 @@ package frc.robot;
  */
 public enum MotorId {
 	/**
-	 * The intake motor
+	 * Top intake roller
 	 */
-	IntakeRoller,
+	IntakeRollerTop,
+	/**
+	 * Bottom intake roller
+	 */
+	IntakeRollerBottom,
 	/**
 	 * The intake deployer
 	 */
