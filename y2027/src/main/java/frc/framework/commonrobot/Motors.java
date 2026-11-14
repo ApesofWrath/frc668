@@ -1,0 +1,41 @@
+package frc.framework.commonrobot;
+
+import frc.framework.nodes.ValueIdentifier;
+
+/**
+ * A utility class for working with motors.
+ */
+public class Motors {
+	/**
+	 * Gets a value identifier for a motors control
+	 *
+	 * @param motorId A string identifier to distinguish the motor from others
+	 *
+	 * @return The motors control value identifier
+	 */
+	public static ValueIdentifier<MotorControl> controlIdentifier(Enum<?> motorId) {
+		return ValueIdentifier.get("/motors/" + motorId.name() + "/control", MotorControl.class);
+	}
+	
+	/**
+	 * Gets a value identifier for a motors position in radians
+	 *
+	 * @param motorId A string identifier to distinguish the motor from others
+	 *
+	 * @return The motors position value identifier
+	 */
+	public static ValueIdentifier<Double> positionIdentifier(Enum<?> motorId) {
+		return ValueIdentifier.get("/motors/" + motorId.name() + "/position", Double.class);
+	}
+	
+	/**
+	 * Gets a value identifier for a motors velocity in radians per second
+	 *
+	 * @param motorId A string identifier to distinguish the motor from others
+	 *
+	 * @return The motors velocity value identifier
+	 */
+	public static ValueIdentifier<Double> velocityIdentifier(Enum<?> motorId) {
+		return ValueIdentifier.get("/motors/" + motorId.name() + "/velocity", Double.class);
+	}
+}
