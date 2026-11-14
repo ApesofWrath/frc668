@@ -11,6 +11,16 @@ public class LogFrame {
 	 */
 	public HashMap<String, Object> data = new HashMap<>();
 	
+	@Override
+	public boolean equals(Object o) {
+		return o != null && hashCode() == o.hashCode();
+	}
+	
+	@Override
+	public int hashCode() {
+		return data.hashCode();
+	}
+	
 	/**
 	 * Store a value for this logging frame
 	 *
@@ -19,5 +29,10 @@ public class LogFrame {
 	 */
 	public void set(String key, Object value) {
 		data.put(key, value);
+	}
+	
+	@Override
+	public String toString() {
+		return "LogFrame{" + "data=" + data + '}';
 	}
 }

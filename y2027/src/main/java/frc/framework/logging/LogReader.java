@@ -87,7 +87,9 @@ public class LogReader {
 	public LogFrame read() {
 		while (true) {
 			// If the log file is done, we are done
-			if (!iterator.hasNext()) { return null; }
+			if (!iterator.hasNext()) {
+				return null;
+			}
 			
 			// Get the next update in the log file
 			DataLogRecord record = iterator.next();

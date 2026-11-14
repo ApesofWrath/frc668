@@ -3,9 +3,10 @@ package frc.framework.logging;
 import edu.wpi.first.util.datalog.DataLogWriter;
 import edu.wpi.first.wpilibj.RobotBase;
 
+import java.io.Closeable;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.Paths;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -15,7 +16,7 @@ import java.util.Objects;
 /**
  * Handles serialization of log data
  */
-public class LogWriter {
+public class LogWriter implements Closeable {
 	/**
 	 * Get the primary logging directory
 	 *
@@ -48,7 +49,7 @@ public class LogWriter {
 	 *
 	 * @param stream The stream to write to
 	 */
-	public LogWriter(FileOutputStream stream) {
+	public LogWriter(OutputStream stream) {
 		dataLog = new DataLogWriter(stream);
 	}
 	
@@ -63,6 +64,12 @@ public class LogWriter {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+	
+	@Override
+	public void close() throws IOException {
+		dataLog.flush();
+		dataLog.close();
 	}
 	
 	/**
