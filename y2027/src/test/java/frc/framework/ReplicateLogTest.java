@@ -59,7 +59,7 @@ public class ReplicateLogTest {
 			5,
 			5
 		), null, "ADjlkJLKASJDLKAMSDKLMALKSDMLKQMWE", new ControllerState(), testState};
-		String[] keys = new String[]{"alpha", "/beta", "/gam//me", "/delta", "/foo", "/bar", "/", "/-", "/buzz", "    ", "asdkljasdl", ")(*#)", "JJdas/d/asd/asdasdljkasdkkm"};
+		String[] keys = new String[]{"alpha", "/beta", "/gam//me", "/delta", "/foo", "/bar", "/", "/-", "/buzz", "    ", "asdkljasdl", ")(*#)", "JJdas/d/asd/asdasdljkasdkkm", "///////////////////"};
 		
 		for (int i = 0; i < 1000; i++) {
 			ArrayList<LogFrame> frames = new ArrayList<>();
