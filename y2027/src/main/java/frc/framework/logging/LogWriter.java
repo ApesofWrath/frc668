@@ -105,7 +105,10 @@ public class LogWriter implements Closeable {
 			String typeId = DataLogUtils.getTypeId(DataLogUtils.normalizeValue(value));
 			
 			// If this is a primitive type, save it, and mark it as a primitive root
-			if (typeId != null) {
+			if (value == null) {
+				values.put(normalizedKey, 0);
+				entries.add(new LogField(normalizedKey, "int64", "null"));
+			} else if (typeId != null) {
 				values.put(normalizedKey, value);
 				entries.add(new LogField(normalizedKey, typeId, "primitive"));
 			} else {

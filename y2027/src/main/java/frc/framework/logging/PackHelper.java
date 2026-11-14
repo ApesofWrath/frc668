@@ -29,6 +29,12 @@ public class PackHelper {
 	public void addUnpackedField(String key, Object value) {
 		String typeId = DataLogUtils.getTypeId(DataLogUtils.normalizeValue(value));
 		
+		if (value == null) {
+			data.put(key, 0);
+			fields.add(new LogField(key, "int64", "packed::null"));
+			return;
+		}
+		
 		if (typeId == null) {
 			unpackFields(key, value, true);
 			return;
@@ -100,6 +106,10 @@ public class PackHelper {
 		if (field == null) { throw new RuntimeException("Cannot find field " + key); }
 		
 		String fieldMetadata = field.metadata();
+		
+		if (fieldMetadata.equals("null") || fieldMetadata.equals("packed::null")) {
+			return null;
+		}
 		
 		if (fieldMetadata.equals("primitive") || fieldMetadata.isEmpty()) {
 			return data.get(key);

@@ -2,20 +2,26 @@ package frc.framework;
 
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.util.datalog.DataLogReader;
+import frc.framework.commonrobot.ControllerState;
 import frc.framework.logging.LogFrame;
 import frc.framework.logging.LogReader;
 import frc.framework.logging.LogWriter;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ReplicateLogTest {
 	@Test
+	@DisplayName(
+		"Replicate a log file"
+	)
 	public void replicateLog() throws Exception {
 		LogFrame alpha = new LogFrame();
 		LogFrame beta = new LogFrame();
@@ -33,6 +39,37 @@ public class ReplicateLogTest {
 		frames.add(gamma);
 		
 		tryReplicateLog(frames);
+	}
+	
+	@Test
+	@DisplayName(
+		"Replicate 1000 random log files"
+	)
+	public void tortureTest() throws Exception {
+		// Consistent seed
+		Random rng = new Random(668);
+		Object[] values = new Object[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 3.14, new ChassisSpeeds(
+			5,
+			5,
+			5
+		), null, "ADjlkJLKASJDLKAMSDKLMALKSDMLKQMWE", new ControllerState()};
+		String[] keys = new String[]{"/alpha", "/beta", "/gamme", "/delta", "/foo", "/bar", "/", "/-", "/buzz"};
+		
+		for (int i = 0; i < 1000; i++) {
+			ArrayList<LogFrame> frames = new ArrayList<>();
+			
+			for (int j = 0; j < 100; j++) {
+				LogFrame frame = new LogFrame();
+				
+				for (int k = 0; k < 10; k++) {
+					frame.set(keys[rng.nextInt(keys.length)], values[rng.nextInt(values.length)]);
+				}
+				
+				frames.add(frame);
+			}
+			
+			tryReplicateLog(frames);
+		}
 	}
 	
 	public void tryReplicateLog(ArrayList<LogFrame> frames) throws IOException {

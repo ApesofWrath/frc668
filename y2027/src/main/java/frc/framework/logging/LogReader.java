@@ -114,7 +114,8 @@ public class LogReader {
 			// Let's decode root values
 			fields.forEach((key, value) -> {
 				// Primitives are root primitive values, packed::[packer_id] is a root packed value
-				if (value.metadata().equals("primitive") || value.metadata().startsWith("packed::")) {
+				if (value.metadata().equals("primitive") || value.metadata().startsWith("packed::") || value.metadata()
+					.equals("null")) {
 					result.set(value.id(), helper.getValueUntyped(value.id()));
 				}
 			});

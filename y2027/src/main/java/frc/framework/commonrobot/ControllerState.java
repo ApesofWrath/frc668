@@ -107,6 +107,18 @@ public class ControllerState {
 	
 	private final HashMap<Button, Boolean> buttonStates = new HashMap<>();
 	
+	/**
+	 * Create a default controller state with no buttons pressed
+	 */
+	public ControllerState() {
+		for (Axis value : Axis.values()) {
+			setAxis(value, 0);
+		}
+		for (Button value : Button.values()) {
+			setButtonState(value, false);
+		}
+	}
+	
 	@Override
 	public boolean equals(Object o) {
 		if (o == null || getClass() != o.getClass()) { return false; }
