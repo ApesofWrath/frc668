@@ -40,15 +40,32 @@ public class Constants{
 	
 	}
 	public class HopperConstants{
-		/*Right hopper: 59
-		Left hopper: 55
-		Indexer front: 18
-		Indexer back: 19 */
+		//TODO get actual constants values for invertedValues, test sensor and mechanism ratios & desired rps
 
-		public static int HOPPER_LEFT_MOTOR_CANID = 59;
-		public static int HOPPER_RIGHT_MOTOR_CANID = 55;
-		public static int INDEXER_FRONT_MOTOR_CANID = 18;
-		public static int INDEXER_BACK_MOTOR_CANID = 19;
+		public static final int HOPPER_LEFT_MOTOR_CANID = 59;
+		public static final String HOPPER_LEFT_MOTOR_CAN_BUS = "rio";
+		
+
+		public static final int HOPPER_RIGHT_MOTOR_CANID = 55;
+		public static final String HOPPER_RIGHT_MOTOR_CAN_BUS = "rio";
+		
+
+		public static final int INDEXER_FRONT_MOTOR_CANID = 18;
+		public static final String INDEXER_FRONT_MOTOR_CAN_BUS = "rio";
+		
+
+		public static final int INDEXER_BACK_MOTOR_CANID = 19;
+		public static final String INDEXER_BACK_MOTOR_CAN_BUS = "rio";
+        
+		
+
+		//rps taken from y2026 constants, may need to be checked
+		public static final double HOPPER_LEFT_MOTOR_RPS = 50;
+		public static final double HOPPER_RIGHT_MOTOR_RPS = 50;
+
+		//gear ratio is a 2:1 reduction, so we need to spin at twice the speed to get the same rps
+		public static final double MOTOR_TO_HOPPER_GEAR_RATIO = 2;
+
 
 	}
 }
