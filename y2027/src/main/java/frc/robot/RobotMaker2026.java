@@ -3,6 +3,7 @@ package frc.robot;
 import frc.framework.RobotMaker;
 import frc.framework.builtinnodes.ControllerNode;
 import frc.framework.nodes.NodesManager;
+import frc.framework.simulation.Simulator;
 import frc.robot.nodes.DrivetrainNode;
 import frc.robot.nodes.HumanDriveNode;
 
@@ -12,6 +13,7 @@ import frc.robot.nodes.HumanDriveNode;
 public class RobotMaker2026 implements RobotMaker {
 	@Override
 	public void setupFullRobot(NodesManager manager) {
+		Simulator.getInstance();
 		manager.addNode(new HumanDriveNode());
 		manager.addNode(new DrivetrainNode());
 		manager.addNode(new ControllerNode());
