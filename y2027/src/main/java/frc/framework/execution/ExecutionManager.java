@@ -71,6 +71,11 @@ public class ExecutionManager {
 	)
 	public <T> TimestampedValue<T> getValue(String id) {
 		if (!values.containsKey(id)) {
+			// We're using a negative sentinel value here, however, it CANNOT be Long.MIN_VALUE
+			// This is because if you have Long.MIN_VALUE, and a positive current timestamp of the robot
+			// the age delta will exceed Long.MAX_VALUE, and overflow to be negative, causing the value to not appear
+			// expired, which will result in nulls leaking through, as this unset value, seems like it was set in the
+			// future, and will then return the placeholder null value from the standard TimestampedValue APIs
 			values.put(id, new TimestampedValue<>(null, Integer.MIN_VALUE, Priority.Default, this));
 		}
 		
