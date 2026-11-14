@@ -6,9 +6,11 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
+import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import frc.framework.nodes.Node;
 import frc.framework.nodes.NodeInformation;
@@ -23,6 +25,17 @@ public class DrivetrainNode implements Node {
 		"/drivetrain/wanted_speed",
 		ChassisSpeeds.class
 	);
+
+	public static ValueIdentifier<Rotation2d> IMU_ANGLE = ValueIdentifier.get(
+        "/pigeon/rotation",
+        Rotation2d.class
+    );
+
+	public static ValueIdentifier<SwerveDriveState> ODOMETRY_POSE = ValueIdentifier.get(
+        "/drivetrain/estimated_pose",
+        SwerveDriveState.class
+    );
+
 	
 	private final TunerSwerveDrivetrain drivetrain = new TunerSwerveDrivetrain(
 		TunerConstants.DrivetrainConstants,
@@ -37,6 +50,7 @@ public class DrivetrainNode implements Node {
 	@Override
 	public void configure(NodeInformation information) {
 		information.receivesInput(WANTED_SPEEDS);
+		information.createsOutput(ODOMETRY_POSE);
 	}
 	
 	@Override
@@ -56,5 +70,7 @@ public class DrivetrainNode implements Node {
 			speeds.Speeds = desiredSpeeds;
 		}
 		drivetrain.setControl(speeds);
+
+		update.setValue(ODOMETRY_POSE, drivetrain.getState());
 	}
 }

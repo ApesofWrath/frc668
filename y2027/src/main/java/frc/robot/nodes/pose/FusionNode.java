@@ -1,5 +1,8 @@
+package frc.robot.nodes.pose;
+
 import edu.wpi.first.math.geometry.Pose2d;
-import com.ctre.phoenix6.mechanisms.swerve;
+import edu.wpi.first.math.geometry.Rotation2d;
+import com.ctre.phoenix6.swerve.SwerveDrivetrain.SwerveDriveState;
 import com.fasterxml.jackson.annotation.JacksonInject.Value;
 import com.fasterxml.jackson.databind.jsontype.impl.AsArrayTypeDeserializer;
 
@@ -10,12 +13,16 @@ import frc.framework.nodes.ValueIdentifier;
 
 public class FusionNode implements Node {
 
-    
-    public 
-    
+
+    public static ValueIdentifier<SwerveDriveState> ODOMETRY_POSE = ValueIdentifier.get(
+        "/drivetrain/estimated_pose",
+        SwerveDriveState.class
+    );
+
+
     public static ValueIdentifier<LimelightHelpers.PoseEstimate> POSE_FL = ValueIdentifier.get(
         "/vision/fl/pose_estimate", 
-        LimelightHelpers.PoseEstimate
+        LimelightHelpers.PoseEstimate.class
     );
     public static ValueIdentifier<LimelightHelpers.PoseEstimate> POSE_FR =  ValueIdentifier.get(
         "/vision/fr/pose_estimate", LimelightHelpers.PoseEstimate.class
@@ -27,14 +34,14 @@ public class FusionNode implements Node {
         "/vision/upfl/pose_estimate", LimelightHelpers.PoseEstimate.class
     );
 
-    public static ValueIdentifier<Rotation2d.class> IMU_ANGLE = ValueIdentifier.get(
+    public static ValueIdentifier<Rotation2d> IMU_ANGLE = ValueIdentifier.get(
         "/pigeon/rotation",
         Rotation2d.class
     );
     
     
-    public static ValueIdentifier<geometry.pose2d> ESTIMATED_POSE = ValueIdentifier.get(
-        "drivetrain/pose", geometry.Pose2d
+    public static ValueIdentifier<Pose2d> ESTIMATED_POSE = ValueIdentifier.get(
+        "drivetrain/pose", Pose2d.class
     );
 
 
@@ -45,11 +52,15 @@ public class FusionNode implements Node {
         information.receivesInput(POSE_FR);
         information.receivesInput(POSE_UPFR);
         information.receivesInput(IMU_ANGLE);
+        information.receivesInput(ODOMETRY_POSE);
 
     }
 
     
-    swerve.addVisionMeasurement()
+    @Override
+    public void update(NodeUpdateHelper update){
+        
+    }
 
 
 
