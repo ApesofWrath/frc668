@@ -2,6 +2,8 @@ package frc.framework.builtinnodes;
 
 import org.wpilib.driverstation.Joystick;
 import org.wpilib.driverstation.XboxController;
+import org.wpilib.driverstation.XboxController.Axis;
+
 import frc.framework.commonrobot.ControllerState;
 import frc.framework.commonrobot.UserInputInformation;
 import frc.framework.nodes.Node;
@@ -25,12 +27,12 @@ public class ControllerNode implements Node {
 	public void update(NodeUpdateHelper update) {
 		ControllerState state = new ControllerState();
 		
-		if (joystick.isConnected()) {
+		if (joystick.getHID().isConnected()) {
 			state.setAxis(ControllerState.Axis.LeftThumbstickX, joystick.getX());
 			state.setAxis(ControllerState.Axis.LeftThumbstickY, joystick.getY());
 		}
 		
-		if (xbox.isConnected()) {
+		if (xbox.getHID().isConnected()) {
 			state.setAxis(ControllerState.Axis.LeftThumbstickX, xbox.getLeftX());
 			state.setAxis(ControllerState.Axis.LeftThumbstickY, xbox.getLeftY());
 			
@@ -45,13 +47,16 @@ public class ControllerNode implements Node {
 			state.setButtonState(ControllerState.Button.L1, xbox.getLeftBumperButton());
 			state.setButtonState(ControllerState.Button.R1, xbox.getRightBumperButton());
 			
-			state.setButtonState(ControllerState.Button.L2, xbox.getLeftTriggerAxis() > 0.5);
-			state.setButtonState(ControllerState.Button.R2, xbox.getRightTriggerAxis() > 0.5);
+			//state.setButtonState(ControllerState.Button.L2, xbox.getLeftTriggerAxis() > 0.5);
+			//state.setButtonState(ControllerState.Button.R2, xbox.getRightTriggerAxis() > 0.5);
+
+			state.setButtonState(ControllerState.Button.L2, xbox.getAxis(Axis.LEFT_TRIGGER) > 0.5);
+			state.setButtonState(ControllerState.Button.R2, xbox.getAxis(Axis.RIGHT_TRIGGER) > 0.5);
 			
 			state.setButtonState(ControllerState.Button.L3, xbox.getLeftStickButton());
 			state.setButtonState(ControllerState.Button.R3, xbox.getRightStickButton());
 			
-			state.setButtonState(ControllerState.Button.Start, xbox.getStartButton());
+			state.setButtonState(ControllerState.Button.Start, xbox.getMenuButton());
 		}
 		
 		update.setValue(UserInputInformation.CONTROLLER_INPUT, state, Priority.DriverInput);
