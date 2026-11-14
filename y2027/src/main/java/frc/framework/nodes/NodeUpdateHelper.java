@@ -48,7 +48,7 @@ public class NodeUpdateHelper {
 		
 		TimestampedValue<?> result = cachableResult.get(executionManager, identifier.getId());
 		
-		if (result.getTimestamp() != Long.MIN_VALUE && !identifier.getType().isInstance(result.getValue())) {
+		if (result.getTimestamp() != Integer.MIN_VALUE && !identifier.getType().isInstance(result.getValue())) {
 			throw new ClassCastException(
 				"Attempted to get a value of type " + identifier.getType()
 					.getName() + ", but the value we got is of type " + result.getValue().getClass()
