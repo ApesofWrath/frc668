@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 
 public class ReplayTest {
@@ -18,10 +19,18 @@ public class ReplayTest {
 		"Drivetrain driving left"
 	)
 	public void drivetrainDrivingLeft() {
-		manager.simulateReplay(Path.of("./replay-tests/drivetrain-left.wpilog"));
+		manager.simulateReplay(pathOfReplay("drivetrain-left"));
 		ChassisSpeeds speeds = manager.nodesManager.getExecutionManager()
 			.<ChassisSpeeds>getValue(DrivetrainNode.WANTED_SPEEDS.getId())
 			.orDefault(new ChassisSpeeds());
 		Assertions.assertTrue(speeds.vyMetersPerSecond < 0);
+	}
+	
+	private Path pathOfReplay(String id) {
+		try {
+			return Path.of(ReplayTest.class.getClassLoader().getResource("replays/" + id + ".wpilog").toURI());
+		} catch (URISyntaxException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }
