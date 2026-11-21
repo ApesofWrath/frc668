@@ -1,0 +1,38 @@
+package frc.framework.commonrobot;
+
+import com.ctre.phoenix6.hardware.TalonFX;
+import frc.framework.nodes.Node;
+import frc.framework.nodes.NodeInformation;
+import frc.framework.nodes.NodeUpdateHelper;
+
+import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
+
+/**
+ * Handles updating motor information for Phoenix motors
+ */
+public class PhoenixMotorInputsNode implements Node {
+	private final TalonFX talonFX;
+	private final Enum<?> motorId;
+	
+	/**
+	 * @param talonFX The motor object to get information from
+	 * @param motorId The motor ID for the field identifiers
+	 */
+	public PhoenixMotorInputsNode(TalonFX talonFX, Enum<?> motorId) {
+		this.talonFX = talonFX;
+		this.motorId = motorId;
+	}
+	
+	@Override
+	public void configure(NodeInformation information) {
+		information.createsOutput(Motors.positionIdentifier(motorId));
+		information.createsOutput(Motors.velocityIdentifier(motorId));
+	}
+	
+	@Override
+	public void update(NodeUpdateHelper update) {
+		update.setValue(Motors.positionIdentifier(motorId), talonFX.getPosition().getValue().in(Radians));
+		update.setValue(Motors.velocityIdentifier(motorId), talonFX.getVelocity().getValue().in(RadiansPerSecond));
+	}
+}
