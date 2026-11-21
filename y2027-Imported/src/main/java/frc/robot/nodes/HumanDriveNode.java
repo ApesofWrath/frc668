@@ -8,13 +8,18 @@ import frc.framework.nodes.Node;
 import frc.framework.nodes.NodeInformation;
 import frc.framework.nodes.NodeUpdateHelper;
 import frc.framework.nodes.Priority;
+import frc.robot.GameController;
 
 import static org.wpilib.units.Units.*;
+
+import org.wpilib.driverstation.XboxController;
 
 /**
  * Handles the conversion of controller input to desired chassis speeds
  */
 public class HumanDriveNode implements Node {
+
+	private GameController controller = new GameController(new XboxController(0));
 	
 	@Override
 	public void configure(NodeInformation information) {
@@ -25,7 +30,8 @@ public class HumanDriveNode implements Node {
 	@Override
 	public void update(NodeUpdateHelper update) {
 		ControllerState controllerState = update.getValue(UserInputInformation.CONTROLLER_INPUT).orNull();
-		
+		controller.checkButton();
+
 		if (controllerState == null) {
 			return;
 		}
