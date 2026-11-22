@@ -43,7 +43,7 @@ public class ExecutionManager {
 			
 			if (previousResult != null && info.cacheStrategy.isCacheValid(time, this, previousResult)) {
 				previousResult.apply(this, time);
-				previousResult.storeToLog(node.getId(), frame);
+				previousResult.addToLogFrame(node.getId(), frame);
 				continue;
 			}
 			
@@ -53,7 +53,7 @@ public class ExecutionManager {
 			node.update(helper);
 			
 			result.apply(this, time);
-			result.storeToLog(node.getId(), frame);
+			result.addToLogFrame(node.getId(), frame);
 			
 			cachedResults.put(node, result);
 		}

@@ -11,7 +11,6 @@ import java.util.HashMap;
  * Reads log files
  */
 public class LogReader {
-	private final DataLogReader reader;
 	private final HashMap<String, Object> values = new HashMap<>();
 	private final HashMap<Integer, LogField> fields = new HashMap<>();
 	private final DataLogIterator iterator;
@@ -22,7 +21,6 @@ public class LogReader {
 	 * @param reader The reader instance to use
 	 */
 	public LogReader(DataLogReader reader) {
-		this.reader = reader;
 		this.iterator = reader.iterator();
 	}
 	
@@ -33,11 +31,10 @@ public class LogReader {
 	 */
 	public LogReader(String path) {
 		try {
-			reader = new DataLogReader(path);
+			this.iterator = new DataLogReader(path).iterator();
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-		this.iterator = reader.iterator();
 	}
 	
 	/**
