@@ -123,6 +123,9 @@ public class ReplayManager {
 				
 				if (value == null || timestamp == null) {
 					// We can't fully read this field, let's move on.
+					System.err.println(
+						"Failed to read field " + identifier.getId() + " at " + tickTime + ", ignoring."
+					);
 					continue;
 				}
 				
