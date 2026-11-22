@@ -9,6 +9,8 @@ import frc.framework.nodes.NodeInformation;
 import frc.framework.nodes.NodeUpdateHelper;
 import frc.framework.nodes.Priority;
 import frc.robot.GameController;
+import com.ctre.phoenix6.CANBus;
+import com.ctre.phoenix6.hardware.TalonFX;
 
 import static org.wpilib.units.Units.*;
 
@@ -20,6 +22,7 @@ import org.wpilib.driverstation.XboxController;
 public class HumanDriveNode implements Node {
 
 	private GameController controller = new GameController(new XboxController(0));
+		private final TalonFX motor = new TalonFX(0, new CANBus("CANivoreName"));
 	
 	@Override
 	public void configure(NodeInformation information) {
